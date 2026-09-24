@@ -1,116 +1,169 @@
-
 # 🐞 TracePilot — Backend
 
-> ### Intelligent Software Defect Tracking & Agile Project Management System
+### Intelligent Software Defect Tracking & Agile Project Management System
 
-A production-oriented **FastAPI backend** for managing software defects, projects, users, Agile sprints, backlogs, analytics, audit logs, real-time notifications, and reports.
+TracePilot is a production-oriented **FastAPI backend** for software defect tracking, project management, Agile sprint planning, backlog management, analytics, notifications, audit logging, and reporting.
 
-TracePilot provides a centralized platform for managing the complete software issue lifecycle—from issue creation and assignment to sprint planning, resolution tracking, analytics, and reporting.
+The backend manages the complete defect lifecycle from **issue creation and assignment through testing, resolution, sprint execution, analytics, and reporting**.
 
 ---
 
 ## 🚀 Version
 
-| Property | Details |
-|---|---|
-| **Current Version** | `v1.0.0` |
-| **Status** | 🟢 Active Development |
-| **Latest Milestone** | Advanced Sprint Planning & Backlog Management |
-| **Backend Framework** | FastAPI |
-| **Database** | PostgreSQL |
+| Property                    | Details               |
+| --------------------------- | --------------------- |
+| **Current Version**         | `v1.0.0`              |
+| **Status**                  | 🟢 Active Development |
+| **Backend Framework**       | FastAPI               |
+| **Database**                | PostgreSQL            |
+| **ORM**                     | SQLAlchemy            |
+| **Migrations**              | Alembic               |
+| **Authentication**          | JWT + Email OTP       |
+| **Real-Time Communication** | WebSocket             |
+| **Testing**                 | Pytest                |
 
 ---
 
 # 📌 Overview
 
-TracePilot is an intelligent software defect tracking and Agile project management system designed to support modern software development workflows.
+TracePilot provides a centralized backend for managing software development and defect-tracking workflows.
 
-The backend provides secure APIs for:
+The backend provides APIs for:
 
-- 🔐 Authentication and authorization
-- 👥 Role-Based Access Control (RBAC)
-- 🐞 Issue and defect tracking
-- 📁 Project management
-- 🏃 Agile sprint planning
-- 📋 Backlog management
-- 📊 Real-time sprint analytics
-- 📉 Burndown tracking
-- 👨‍💻 Team workload analysis
-- 🔔 Real-time notifications
-- 📝 Audit logging
-- 💬 Issue comments
-- 📎 File attachments
-- 📈 Advanced analytics
-- 📄 CSV and PDF reporting
+* 🔐 Authentication and authorization
+* 👥 Role-Based Access Control (RBAC)
+* 🐞 Issue and defect tracking
+* 📁 Project management
+* 🏃 Agile sprint planning
+* 📋 Backlog management
+* 📊 Sprint analytics
+* 📉 Burndown tracking
+* ⚖️ Team workload analysis
+* 🔔 Real-time notifications
+* 📝 Audit logging
+* 💬 Issue comments
+* 📎 File attachments
+* 📈 Advanced analytics
+* 📄 CSV reporting
+* 📑 PDF sprint reports
+* 🔄 Issue rollover and sprint management
+* 🔗 GitHub/Webhook integration
 
 ---
 
-# ✨ Core Features
+# 👥 Supported Roles
 
-## 🔐 Authentication & Security
+TracePilot currently uses three application roles:
 
-- JWT-based authentication
-- Secure password handling
-- Email OTP support
-- Role-Based Access Control
-- Protected API routes
-- Role-specific resource access
-- Secure dependency-based authorization
+| Role     | Access                                                                                         |
+| -------- | ---------------------------------------------------------------------------------------------- |
+| `ADMIN`  | System administration, project management, sprint management, analytics and approval workflows |
+| `TESTER` | Testing workflow, assigned sprint work, issue verification and defect-related activities       |
+| `USER`   | Standard authenticated application access                                                      |
 
-### Supported Roles
+> **Note:** The application workflow no longer uses a `DEVELOPER` role. A legacy PostgreSQL enum value may remain for database compatibility, but it is not an active application role.
 
-| Role | Access Level |
-|---|---|
-| `ADMIN` | Full system and sprint management |
-| `DEVELOPER` | Assigned issue access and development workflow |
-| `TESTER` | Reported issue management and testing workflow |
-| `USER` | Standard application access |
+---
+
+# 🔐 Authentication & Security
+
+TracePilot provides secure authentication and authorization mechanisms.
+
+### Features
+
+* JWT-based authentication
+* Secure password hashing
+* Email OTP verification
+* Role-Based Access Control
+* Protected API routes
+* Dependency-based authorization
+* Role-specific resource access
+* Token-based authenticated requests
+* Secure environment configuration
+
+### Authentication Flow
+
+```text
+User
+ │
+ ▼
+Login / Registration
+ │
+ ▼
+Authentication
+ │
+ ▼
+JWT Token
+ │
+ ▼
+Protected API
+ │
+ ▼
+Role Authorization
+ │
+ ├── ADMIN
+ ├── TESTER
+ └── USER
+```
 
 ---
 
 # 🐞 Issue & Defect Management
 
-TracePilot supports the complete issue lifecycle.
+TracePilot supports the complete software defect management lifecycle.
 
 ### Features
 
-- Create and update issues
-- Assign issues to developers
-- Track issue status
-- Set priority and severity
-- Add issue descriptions
-- Track issue reporter and assignee
-- Add estimated effort points
-- Filter issues by multiple attributes
-- Search issues
-- Sort issues
-- Bulk issue operations
-- Attach issues to Agile sprints
-- Track resolution timestamps
+* Create issues
+* Update issues
+* Assign issues
+* Track issue status
+* Set priority
+* Set severity
+* Add descriptions
+* Track reporters
+* Track testers
+* Estimate effort
+* Search issues
+* Filter issues
+* Sort issues
+* Bulk issue operations
+* Assign issues to sprints
+* Return issues to backlog
+* Track resolution timestamps
+* Add comments
+* Attach files
+* Maintain issue history
 
-### Supported Issue Operations
+### Issue Workflow
 
 ```text
 Create Issue
-      ↓
-Assign Developer
-      ↓
-Set Priority & Severity
-      ↓
-Add to Sprint
-      ↓
-Development
-      ↓
-Testing
-      ↓
-Resolve / Close
-````
+     │
+     ▼
+Issue Assignment
+     │
+     ▼
+Sprint Planning
+     │
+     ▼
+Testing / Work
+     │
+     ▼
+Resolution
+     │
+     ▼
+Verification
+     │
+     ▼
+Completed
+```
 
 ---
 
 # 📁 Project Management
 
-Projects provide the primary workspace for organizing software development activities.
+Projects provide the primary workspace for organizing development activities.
 
 ### Features
 
@@ -121,21 +174,26 @@ Projects provide the primary workspace for organizing software development activ
 * Manage project sprints
 * Project-level analytics
 * Project backlog management
+* Sprint summaries
+* Team workload analysis
 
-Each project maintains its own:
+Each project maintains:
 
-* Issues
-* Backlog
-* Sprints
-* Members
-* Analytics
-* Workload information
+```text
+PROJECT
+ ├── Members
+ ├── Issues
+ ├── Backlog
+ ├── Sprints
+ ├── Analytics
+ └── Workload Data
+```
 
 ---
 
 # 🏃 Advanced Sprint Management
 
-TracePilot provides a complete Agile Sprint Management workflow.
+TracePilot provides a controlled Agile sprint lifecycle.
 
 ## Sprint Lifecycle
 
@@ -145,45 +203,55 @@ PLANNED
    ▼
 ACTIVE
    │
-   ├──────────────► EXTEND
+   ▼
+IN PROGRESS
+   │
+   ▼
+AWAITING APPROVAL
+   │
+   ├──────────────► Request Changes
+   │                       │
+   │                       ▼
+   │                  IN PROGRESS
    │
    ▼
 COMPLETED
-   │
-   ▼
-ARCHIVED
 ```
 
-### Supported Sprint Operations
+### Sprint Operations
 
-* Create Sprint
-* Update Sprint
-* Start Sprint
-* Complete Sprint
-* Extend Sprint
-* Archive Sprint
-* Delete Sprint safely
-* Assign issues to Sprint
+* Create sprint
+* Update sprint
+* Start sprint
+* Assign tester
+* Begin sprint work
+* Submit sprint for approval
+* Approve sprint
+* Request changes
+* Complete sprint
+* Extend sprint
+* Archive sprint
+* Safely delete eligible sprints
+* Assign issues to sprint
 * Bulk assign backlog issues
-* Move unfinished issues
-* Rollover issues to another sprint
-* Return issues to backlog
+* Rollover unfinished issues
+* Return unfinished issues to backlog
 
 ---
 
-## 🟢 Single Active Sprint Rule
+# 🟢 Single Active Sprint Rule
 
-TracePilot enforces:
+TracePilot enforces a project-level rule:
 
-> Only one sprint can be `ACTIVE` for a project at a time.
+> **Only one sprint can be actively executed for a project at a time.**
 
-This prevents overlapping execution cycles and maintains a clean Agile workflow.
+This prevents overlapping sprint execution cycles and maintains consistent Agile workflow management.
 
 ---
 
 # 📋 Advanced Backlog Management
 
-The backlog contains issues that are not currently assigned to a sprint.
+The project backlog contains issues that are not currently assigned to a sprint.
 
 ### Features
 
@@ -194,28 +262,26 @@ The backlog contains issues that are not currently assigned to a sprint.
 * Severity filtering
 * Issue type filtering
 * Sorting
-* Recommended priority sorting
+* Recommended priority ordering
 * Backlog aging indicators
 * Bulk issue selection
 * Bulk sprint assignment
 * Estimated effort visibility
 
-### Recommended Priority
+### Priority Recommendation
 
-Issues can be prioritized based on:
+Backlog prioritization can consider:
 
 * Severity
 * Priority
 * Issue age
 * Resolution urgency
 
-This helps teams identify the most important work first.
-
 ---
 
 # 📊 Sprint Analytics
 
-Each sprint provides real-time analytics calculated directly from database data.
+Sprint analytics are calculated from actual database data.
 
 ### Analytics Include
 
@@ -230,19 +296,19 @@ Each sprint provides real-time analytics calculated directly from database data.
 * Team workload
 * Capacity hours
 * Estimated effort
-* Burndown data
+* Burndown information
 
 ---
 
-## 🏥 Sprint Health
+# 🏥 Sprint Health
 
-Sprint health is dynamically calculated.
+Sprint health is dynamically calculated based on sprint progress.
 
-| Status         | Meaning                                   |
-| -------------- | ----------------------------------------- |
-| 🟢 `ON_TRACK`  | Sprint progress is meeting expectations   |
-| 🟡 `AT_RISK`   | Sprint progress is slightly behind        |
-| 🔴 `OFF_TRACK` | Sprint is significantly behind or overdue |
+| Status         | Meaning                                      |
+| -------------- | -------------------------------------------- |
+| 🟢 `ON_TRACK`  | Sprint progress is meeting expected progress |
+| 🟡 `AT_RISK`   | Sprint progress is behind expected progress  |
+| 🔴 `OFF_TRACK` | Sprint is significantly behind or overdue    |
 
 The calculation considers:
 
@@ -256,17 +322,15 @@ The calculation considers:
 
 # 📉 Sprint Burndown
 
-TracePilot generates real burndown data using issue completion history.
+TracePilot generates burndown information from actual issue completion history.
 
 The system compares:
 
 * **Ideal Remaining Work**
 * **Actual Remaining Work**
 
-Example:
-
 ```text
-Issues
+Remaining Work
 10 ┤●
  9 ┤ ╲
  8 ┤  ●
@@ -278,20 +342,18 @@ Issues
  2 ┤        ●
  1 ┤         ●
  0 ┼──────────────
-    Day 1 → Day 10
+     Day 1 → Day 10
 ```
 
-Burndown data is based on actual issue resolution history.
-
-If sufficient historical data is unavailable, the system returns an appropriate empty state instead of displaying fake chart data.
+The system does **not generate fake historical data** when sufficient completion history is unavailable. Instead, the API returns an appropriate empty state.
 
 ---
 
-# 👨‍💻 Capacity Planning
+# ⚖️ Capacity Planning
 
-Sprint capacity can be configured using:
+Sprint capacity can be calculated using:
 
-* Estimated team members
+* Team members
 * Working days
 * Hours per day
 
@@ -315,95 +377,129 @@ Hours Per Day
 10 Working Days
 ×
 6 Hours Per Day
-
 =
 300 Capacity Hours
 ```
 
-Capacity is displayed separately from story points and issue counts.
+Capacity is maintained separately from issue count and estimated effort.
 
 ---
 
-# ⚖️ Workload Analysis
+# 👥 Workload Analysis
 
-The system calculates workload distribution across team members.
+TracePilot calculates workload distribution across team members.
 
 Example:
 
-| Developer   | Assigned Issues |
+| Team Member | Assigned Issues |
 | ----------- | --------------: |
-| Developer A |               8 |
-| Developer B |               6 |
-| Developer C |               5 |
+| Tester A    |               8 |
+| Tester B    |               6 |
+| Tester C    |               5 |
 | Unassigned  |               2 |
 
-This helps identify workload imbalance during sprint planning.
+This helps administrators understand workload distribution during sprint planning.
 
 ---
 
 # 🔄 Safe Issue Rollover
 
-When a sprint is completed, unfinished issues are never deleted.
+TracePilot prevents unfinished issues from being lost when a sprint is completed.
 
-They can be:
-
-### Option 1 — Return to Backlog
+### Return to Backlog
 
 ```text
-ACTIVE SPRINT
+CURRENT SPRINT
       │
       ▼
 COMPLETE SPRINT
       │
       ▼
-Unfinished Issues
+UNFINISHED ISSUES
       │
       ▼
 PROJECT BACKLOG
 ```
 
-### Option 2 — Move to Another Sprint
+### Move to Another Sprint
 
 ```text
 CURRENT SPRINT
-       │
-       ▼
+      │
+      ▼
 COMPLETE
-       │
-       ▼
+      │
+      ▼
 UNFINISHED ISSUES
-       │
-       ▼
+      │
+      ▼
 NEXT SPRINT
 ```
 
-This ensures:
+The system preserves:
 
-* No data loss
-* No orphaned issues
-* Full traceability
+* Issue information
+* Comments
+* Attachments
+* Status
+* Resolution information
+* Audit history
+* Project relationship
+
+---
+
+# 🗑️ Safe Sprint Deletion
+
+TracePilot protects active workflow data.
+
+Sprints involved in active execution or approval workflows cannot be arbitrarily deleted.
+
+Eligible planned or completed sprints can be safely deleted according to backend validation rules.
+
+Before deletion, linked issues are detached from the sprint instead of being deleted.
+
+```text
+Sprint
+   │
+   ├── Issue A ──┐
+   ├── Issue B ──┤
+   └── Issue C ──┘
+                 │
+                 ▼
+          Sprint Deleted
+                 │
+                 ▼
+       Issues Preserved
+       sprint_id = NULL
+```
+
+This prevents accidental issue data loss.
 
 ---
 
 # 🔔 Real-Time Notifications
 
-TracePilot supports real-time notifications using WebSockets.
+TracePilot uses **WebSockets** for real-time communication.
 
-Notifications can be triggered for important system events such as:
+Notifications can be generated for events such as:
 
+* Sprint assignment
 * Sprint started
-* Sprint completed
+* Sprint submission
+* Sprint approval
+* Changes requested
 * Issue updates
 * Assignment changes
 * Workflow events
+* System notifications
 
-Connected users receive updates without manually refreshing the application.
+Connected users can receive updates without manually refreshing the application.
 
 ---
 
 # 📝 Audit Logging
 
-Important system actions are recorded using immutable audit logs.
+Important system operations are recorded through audit logs.
 
 ### Sprint Audit Actions
 
@@ -412,9 +508,13 @@ SPRINT_CREATED
 SPRINT_UPDATED
 SPRINT_STARTED
 SPRINT_EXTENDED
+SPRINT_SUBMITTED_FOR_APPROVAL
+SPRINT_APPROVED
+SPRINT_CHANGES_REQUESTED
 SPRINT_COMPLETED
 SPRINT_ARCHIVED
 SPRINT_DELETED
+SPRINT_TESTER_ASSIGNED
 ```
 
 ### Other Auditable Activities
@@ -425,14 +525,33 @@ SPRINT_DELETED
 * Assignment changes
 * Project updates
 * User actions
+* Workflow events
 
-Audit logs improve:
+Audit logging improves:
 
 * Traceability
 * Accountability
 * Debugging
-* Compliance
 * Activity monitoring
+* Data integrity
+
+---
+
+# 📎 Comments & Attachments
+
+TracePilot supports issue collaboration through:
+
+### Comments
+
+* Add comments to issues
+* Track comment authors
+* Maintain comment history
+
+### Attachments
+
+* Upload issue-related files
+* Associate files with issues
+* Preserve attachments during sprint rollover
 
 ---
 
@@ -446,7 +565,8 @@ Reports are generated dynamically in memory.
 
 * Sprint information
 * Sprint goal
-* Start and end dates
+* Start date
+* End date
 * Sprint health
 * Completion statistics
 * Issue distribution
@@ -474,24 +594,24 @@ Fetch Sprint Data
 Calculate Analytics
  │
  ▼
-Generate PDF in Memory
+Generate PDF
  │
  ▼
 StreamingResponse
  │
  ▼
-Browser Download
+Browser
 ```
 
-No temporary PDF files need to be permanently stored on the server.
+No permanent temporary PDF file is required on the server.
 
 ---
 
 # 📈 Advanced Analytics & Reporting
 
-The backend provides analytics for projects, issues, developers, and system activity.
+TracePilot provides analytics for issues, projects, sprints, and system activity.
 
-## Analytics Endpoints
+### Analytics Endpoints
 
 | Endpoint                                  | Method | Access        | Description                          |
 | ----------------------------------------- | ------ | ------------- | ------------------------------------ |
@@ -502,55 +622,91 @@ The backend provides analytics for projects, issues, developers, and system acti
 | `/analytics/projects`                     | `GET`  | Authenticated | Project analytics                    |
 | `/analytics/projects/{project_id}`        | `GET`  | Authenticated | Single project analytics             |
 | `/analytics/reports/issues/export`        | `GET`  | Authenticated | CSV issue export                     |
-| `/analytics/developers`                   | `GET`  | ADMIN         | Developer performance metrics        |
 
 ---
 
-# 📊 Developer Analytics
+# 📊 Quality & Defect Analytics
 
-Developer metrics include:
+TracePilot supports analysis of:
 
-* Assigned issues
-* Resolved issues
-* Resolution rate
-* Average resolution time
+* Issue status distribution
+* Severity distribution
+* Issue trends
+* Resolution trends
+* Project statistics
+* Sprint completion
 * Workload distribution
+* Estimated effort
+* Defect activity
 
-Access is restricted to administrators for system-wide metrics.
+These analytics are generated from application/database data rather than static demonstration values.
 
 ---
 
-# 🔒 RBAC Isolation Rules
+# 🔗 GitHub & Webhook Integration
 
-TracePilot applies role-based data isolation.
+TracePilot includes GitHub/webhook integration as part of its development and integration capabilities.
 
-### ADMIN
+The backend provides webhook handling for Git-based workflow events.
+
+Example workflow:
 
 ```text
-✓ System-wide access
-✓ Manage users
-✓ Manage projects
-✓ Manage sprints
-✓ View analytics
-✓ Manage issues
+GitHub
+   │
+   ▼
+Webhook
+   │
+   ▼
+TracePilot API
+   │
+   ▼
+Webhook Processing
+   │
+   ▼
+Issue / Project Workflow
 ```
 
-### DEVELOPER
+Webhook endpoints are protected and validated according to the backend integration configuration.
+
+---
+
+# 🔒 RBAC Isolation
+
+## ADMIN
 
 ```text
-✓ Assigned issue access
-✓ Development workflow
-✓ Limited project access
-✗ System-wide administration
+✓ System administration
+✓ User management
+✓ Project management
+✓ Sprint management
+✓ Issue management
+✓ Analytics
+✓ Reports
+✓ Sprint approval workflow
+✓ Audit access
 ```
 
-### TESTER
+## TESTER
 
 ```text
-✓ Report issues
-✓ Access reported issues
-✓ Testing workflow
-✗ Sprint administration
+✓ Assigned testing workflow
+✓ Issue testing
+✓ Defect reporting
+✓ Sprint work
+✓ Sprint submission
+✓ Relevant project access
+✗ System administration
+✗ User administration
+✗ Sprint approval
+```
+
+## USER
+
+```text
+✓ Standard authenticated access
+✓ Authorized application resources
+✗ Administrative operations
 ```
 
 ---
@@ -633,9 +789,9 @@ backend/
 
 # ⚙️ Installation
 
-## 1️⃣ Clone the Repository
+## 1️⃣ Clone Repository
 
-```bash
+```powershell
 git clone https://github.com/AjayKumarKR07/TracePilot.git
 cd TracePilot/backend
 ```
@@ -668,18 +824,18 @@ pip install -r requirements.txt
 
 # 🔧 Environment Configuration
 
-Copy the environment example file:
+Create your environment file:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Configure required values.
+Configure the required values.
 
 Example:
 
 ```env
-DATABASE_URL=postgresql+asyncpg://username:password@localhost/bugtracker
+DATABASE_URL=postgresql+asyncpg://username:password@localhost/bugtracker_db
 
 SECRET_KEY=your_secret_key
 
@@ -688,7 +844,7 @@ ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=60
 ```
 
-> Never commit your `.env` file to version control.
+> Never commit `.env` files, database credentials, JWT secrets, email credentials, or other sensitive configuration to Git.
 
 ---
 
@@ -699,16 +855,16 @@ Ensure PostgreSQL is running.
 Create the required database:
 
 ```text
-bugtracker
+bugtracker_db
 ```
 
-Update the database URL in your `.env` file.
+Configure the database connection in `.env`.
 
 ---
 
-# 🔄 Run Database Migrations
+# 🔄 Database Migrations
 
-Apply all Alembic migrations:
+Apply migrations:
 
 ```powershell
 alembic upgrade head
@@ -728,13 +884,15 @@ alembic history
 
 ---
 
-# ▶️ Run the Development Server
+# ▶️ Run Development Server
+
+From the `backend` directory:
 
 ```powershell
 uvicorn app.main:app --reload --port 8000
 ```
 
-The API will start at:
+Backend:
 
 ```text
 http://127.0.0.1:8000
@@ -744,7 +902,7 @@ http://127.0.0.1:8000
 
 # 📚 API Documentation
 
-FastAPI automatically provides interactive API documentation.
+FastAPI automatically generates interactive API documentation.
 
 ### Swagger UI
 
@@ -762,13 +920,13 @@ http://127.0.0.1:8000/redoc
 
 # ❤️ Health Check
 
-| Endpoint      | Expected Response             |
-| ------------- | ----------------------------- |
-| `GET /`       | TracePilot API status message |
-| `GET /health` | Backend health status         |
-| `GET /docs`   | Swagger UI                    |
+| Endpoint      | Description           |
+| ------------- | --------------------- |
+| `GET /`       | TracePilot API status |
+| `GET /health` | Backend health        |
+| `GET /docs`   | Swagger UI            |
 
-Example:
+Example health response:
 
 ```json
 {
@@ -781,20 +939,20 @@ Example:
 
 # 🏃 Sprint API Overview
 
-| Endpoint                                | Method   | Description            |
-| --------------------------------------- | -------- | ---------------------- |
-| `/sprints`                              | `POST`   | Create sprint          |
-| `/sprints`                              | `GET`    | List sprints           |
-| `/sprints/{id}`                         | `GET`    | Get sprint             |
-| `/sprints/{id}`                         | `PATCH`  | Update sprint          |
-| `/sprints/{id}/start`                   | `POST`   | Start sprint           |
-| `/sprints/{id}/complete`                | `POST`   | Complete sprint        |
-| `/sprints/{id}/extend`                  | `POST`   | Extend sprint          |
-| `/sprints/{id}/archive`                 | `POST`   | Archive sprint         |
-| `/sprints/{id}`                         | `DELETE` | Delete sprint safely   |
-| `/sprints/{id}/analytics`               | `GET`    | Sprint analytics       |
-| `/sprints/{id}/report`                  | `GET`    | Download PDF report    |
-| `/sprints/project/{project_id}/summary` | `GET`    | Project sprint summary |
+| Endpoint                                | Method   | Description                   |
+| --------------------------------------- | -------- | ----------------------------- |
+| `/sprints`                              | `POST`   | Create sprint                 |
+| `/sprints`                              | `GET`    | List sprints                  |
+| `/sprints/{id}`                         | `GET`    | Get sprint                    |
+| `/sprints/{id}`                         | `PATCH`  | Update sprint                 |
+| `/sprints/{id}/start`                   | `POST`   | Start sprint                  |
+| `/sprints/{id}/complete`                | `POST`   | Complete sprint               |
+| `/sprints/{id}/extend`                  | `POST`   | Extend sprint                 |
+| `/sprints/{id}/archive`                 | `POST`   | Archive sprint                |
+| `/sprints/{id}`                         | `DELETE` | Safely delete eligible sprint |
+| `/sprints/{id}/analytics`               | `GET`    | Sprint analytics              |
+| `/sprints/{id}/report`                  | `GET`    | Download PDF report           |
+| `/sprints/project/{project_id}/summary` | `GET`    | Project sprint summary        |
 
 ---
 
@@ -809,13 +967,13 @@ Example:
 
 # 🧪 Testing
 
-Run backend tests:
+Run the complete backend test suite:
 
 ```powershell
 pytest
 ```
 
-Run tests with detailed output:
+Verbose output:
 
 ```powershell
 pytest -v
@@ -841,17 +999,21 @@ mypy app
 
 # 🛡️ Data Integrity & Safety
 
-TracePilot applies several safeguards:
+TracePilot implements several safeguards:
 
 * Cross-project sprint assignment validation
 * Single active sprint per project
-* Safe sprint deletion rules
+* Controlled sprint lifecycle
+* Sprint approval workflow
+* Safe sprint deletion
+* Issue preservation during sprint deletion
 * Unfinished issue rollover
 * No issue data loss during sprint completion
-* PostgreSQL enum migration support
-* Audit logging for important actions
+* PostgreSQL enum migration compatibility
+* Audit logging
 * Role-based authorization
 * Transactional bulk operations
+* Project-level data validation
 
 ---
 
@@ -871,14 +1033,23 @@ PROJECT
           ▼
         ACTIVE
           │
-          ├── Issue Development
+          ▼
+      IN PROGRESS
+          │
           ├── Testing
+          ├── Issue Updates
           └── Resolution
           │
           ▼
-       COMPLETED
+   AWAITING APPROVAL
           │
-          ├── Rollover Remaining Issues
+          ├──────────────► REQUEST CHANGES
+          │                       │
+          │                       ▼
+          │                  IN PROGRESS
+          │
+          ▼
+       COMPLETED
           │
           ▼
        ARCHIVED
@@ -890,20 +1061,16 @@ PROJECT
 
 ## CSV Reports
 
-Issue data can be exported in CSV format for:
+Issue data can be exported for:
 
 * Project analysis
 * External reporting
 * Management review
 * Spreadsheet analysis
 
----
-
 ## PDF Sprint Reports
 
-Sprint reports provide a structured overview of sprint execution and performance.
-
-Reports include:
+Sprint reports include:
 
 ```text
 Sprint Details
@@ -925,7 +1092,7 @@ Page Numbers
 ## ✅ Completed
 
 * [x] Project foundation
-* [x] PostgreSQL database integration
+* [x] PostgreSQL integration
 * [x] Alembic migrations
 * [x] JWT authentication
 * [x] Email OTP
@@ -943,20 +1110,28 @@ Page Numbers
 * [x] Sprint analytics
 * [x] Burndown data
 * [x] Capacity planning
+* [x] Sprint health calculation
+* [x] Team workload analysis
+* [x] Sprint approval workflow
+* [x] Safe sprint deletion
+* [x] Issue rollover
 * [x] PDF sprint reports
+* [x] GitHub/webhook integration
+* [x] Automated backend test coverage
 
 ## 🚧 Planned Improvements
 
 * [ ] Automated scheduled sprint reminders
-* [ ] Email notification improvements
+* [ ] Improved email notifications
 * [ ] Sprint templates
 * [ ] Advanced velocity forecasting
 * [ ] Machine-learning based issue prioritization
-* [ ] CI/CD integration
+* [ ] Extended CI/CD integration
 * [ ] Docker deployment
 * [ ] Kubernetes deployment
 * [ ] Production monitoring
 * [ ] Performance optimization
+* [ ] Advanced AI-assisted defect analysis
 
 ---
 
@@ -969,6 +1144,8 @@ Page Numbers
 * Advanced Sprint Planning
 * Advanced Backlog Management
 * Sprint Lifecycle Management
+* Tester Assignment
+* Sprint Approval Workflow
 * Capacity Planning
 * Sprint Health Analytics
 * Real Burndown Data
@@ -976,8 +1153,11 @@ Page Numbers
 * Safe Issue Rollover
 * Bulk Sprint Assignment
 * Sprint PDF Reports
-* Improved Audit Logging
+* Real-Time Notifications
+* Audit Logging
 * Enhanced RBAC Validation
+* GitHub/Webhook Integration
+* Advanced Analytics
 
 ---
 
@@ -1015,24 +1195,25 @@ mypy app
 
 # 🔐 Security
 
-Please do not commit:
+Never commit:
 
 * `.env`
 * Database passwords
 * JWT secrets
 * Email credentials
 * API keys
-* Production configuration files
+* Production configuration
+* Private credentials
 
-Use environment variables for all sensitive configuration.
+Use environment variables for sensitive configuration.
 
 ---
 
 # 📄 License
 
-This project is currently intended for educational and development purposes.
+This project is currently intended for **educational and development purposes**.
 
-Add a production license before commercial deployment.
+A production license should be added before commercial deployment.
 
 ---
 
@@ -1040,21 +1221,28 @@ Add a production license before commercial deployment.
 
 **TracePilot Development Team**
 
+GitHub:
+
+`https://github.com/AjayKumarKR07/TracePilot`
+
 ---
 
 # ⭐ Project Status
 
 🟢 **Actively Developed**
 
-TracePilot `v1.0.0` currently provides a complete backend foundation for:
+TracePilot currently provides a comprehensive backend foundation for:
 
-> **Defect Tracking + Project Management + Agile Sprint Planning + Backlog Management + Analytics + Real-Time Notifications + Reporting**
+> **Defect Tracking + Project Management + Agile Sprint Planning + Backlog Management + Sprint Analytics + Real-Time Notifications + Audit Logging + Reporting + GitHub Integration**
 
 ---
 
 <p align="center">
-  Built with ❤️ using FastAPI, PostgreSQL, SQLAlchemy and modern Agile principles.
+
+**🐞 TracePilot**
+
+**Track. Resolve. Deliver.**
+
+Built with ❤️ using **FastAPI, PostgreSQL, SQLAlchemy and modern Agile principles.**
+
 </p>
-
-
-
