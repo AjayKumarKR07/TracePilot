@@ -48,6 +48,59 @@ The backend provides APIs for:
 * 📑 PDF sprint reports
 * 🔄 Issue rollover and sprint management
 * 🔗 GitHub/Webhook integration
+* 🤖 **AI Testing Assistant** (Gemini-powered chatbot inside Tester Dashboard)
+
+---
+
+# 🤖 AI Testing Assistant
+
+The Tester Dashboard includes a built-in AI Testing Assistant powered by **Google Gemini**.
+
+## What it does
+
+| Feature | Description |
+|---|---|
+| **General Chat** | Ask any QA/testing question; AI answers with markdown |
+| **Defect Analysis** | Full structured analysis: root causes, test scenarios, edge cases |
+| **Test Case Generation** | Positive, negative, boundary, regression cases |
+| **Reproduction Steps** | Detailed, step-by-step reproduction guides |
+| **Root Cause Analysis** | Advisory investigation with layered analysis |
+| **Sprint Summary** | AI analysis of sprint health, risks, and focus areas |
+| **Explain Metrics** | Plain-language explanation of TracePilot analytics |
+| **Quick Actions** | One-click prompt templates with issue/sprint context |
+
+> **Advisory only** — The AI never modifies any data. All suggestions must be acted on through the TracePilot UI by the appropriate team member.
+
+## Setup
+
+**Step 1**: Get a free Gemini API key at [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey).
+
+**Step 2**: Edit `backend/.env`:
+
+```env
+AI_ENABLED=true
+GEMINI_API_KEY=your-key-here
+AI_MODEL=gemini-2.5-flash
+```
+
+**Step 3**: Restart the backend server. The AI chatbot will appear live in the Tester Dashboard.
+
+> ⚠️ **Security**: Never commit your `GEMINI_API_KEY` to version control. It is already in `.gitignore` via `.env`.
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/ai/health` | Service availability check |
+| `POST` | `/ai/chat` | General chat with optional issue/sprint context |
+| `POST` | `/ai/analyze-issue` | Structured defect analysis |
+| `POST` | `/ai/generate-test-cases` | Structured test cases |
+| `POST` | `/ai/reproduction-steps` | Detailed reproduction guide |
+| `POST` | `/ai/root-cause` | Root cause analysis |
+| `POST` | `/ai/sprint-summary` | Sprint health analysis |
+| `POST` | `/ai/explain-metrics` | Metrics explanation |
+
+All AI endpoints require **TESTER** or **ADMIN** role.
 
 ---
 

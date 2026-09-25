@@ -34,6 +34,7 @@ from app.routes.users import router as users_router
 from app.routes.websocket import router as ws_router
 from app.routes.sprints import router as sprints_router
 from app.routes.webhooks import router as webhooks_router
+from app.routes.ai import router as ai_router
 
 
 class RootResponse(BaseModel):
@@ -91,6 +92,7 @@ app.include_router(sprints_router)
 app.include_router(webhooks_router)
 app.include_router(collaboration_router)
 app.include_router(export_router)
+app.include_router(ai_router)
 
 
 # -----------------------------------------------------------------

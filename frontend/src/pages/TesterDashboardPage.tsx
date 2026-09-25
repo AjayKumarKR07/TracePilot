@@ -36,6 +36,7 @@ import type { Issue, IssueStatus } from '../types/issue';
 import type { Project } from '../types/project';
 import type { Sprint } from '../types/Sprint';
 import { formatDate, formatRelativeTime } from '../utils/formatters';
+import { AIChatbot } from '../components/ai/AIChatbot';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Workflow Helpers
@@ -1485,6 +1486,14 @@ export const TesterDashboardPage: React.FC = () => {
           </div>
         </section>
       )}
+
+      {/* ── AI TESTING ASSISTANT ── */}
+      <AIChatbot
+        contextIssueId={filteredIssues[0]?.id}
+        contextIssueKey={filteredIssues[0]?.issue_key}
+        contextSprintId={assignedSprints.find((s) => s.status === 'IN_PROGRESS' || s.status === 'ACTIVE')?.id}
+        contextSprintName={assignedSprints.find((s) => s.status === 'IN_PROGRESS' || s.status === 'ACTIVE')?.name}
+      />
     </div>
   );
 };

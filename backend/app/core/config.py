@@ -76,6 +76,15 @@ class Settings(BaseSettings):
     SMTP_USE_TLS: bool = True
 
     # ------------------------------------------------------------------ #
+    # AI Testing Assistant (Phase AI)                                      #
+    # ------------------------------------------------------------------ #
+    AI_ENABLED: bool = False                  # Set to true to enable AI features
+    AI_PROVIDER: str = "gemini"               # Currently only 'gemini' is supported
+    AI_MODEL: str = "gemini-3.8-flash"        # Gemini model to use
+    GEMINI_API_KEY: str = ""                  # Keep secret — never commit this value
+    MAX_MESSAGE_LENGTH: int = 4000            # Max chars per user AI message
+
+    # ------------------------------------------------------------------ #
     # File attachments (Phase 7)                                           #
     # ------------------------------------------------------------------ #
     ATTACHMENT_STORAGE_PATH: str = "storage/attachments"
