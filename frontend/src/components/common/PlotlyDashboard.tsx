@@ -12,6 +12,7 @@ import Plot from 'react-plotly.js';
 import { analyticsApi } from '../../api/analytics';
 import { getApiErrorMessage } from '../../api/client';
 import { LoadingSpinner } from './LoadingSpinner';
+import { BarChart3, PieChart, TrendingUp } from 'lucide-react';
 import type { PlotlyChartsData } from '../../types/analytics';
 
 interface Props {
@@ -151,7 +152,7 @@ export const PlotlyDashboard: React.FC<Props> = () => {
       <div className="card">
         <div className="card-header">
           <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            📈 Defect Trend — Last 14 Days
+            <TrendingUp size={16} style={{ color: '#818cf8' }} /> Defect Trend — Last 14 Days
           </h3>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
             Hover for values · Scroll to zoom · Drag to pan
@@ -180,7 +181,7 @@ export const PlotlyDashboard: React.FC<Props> = () => {
         {/* Severity Donut */}
         <div className="card">
           <div className="card-header">
-            <h3 className="card-title">🍩 Severity Distribution</h3>
+            <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><PieChart size={16} style={{ color: '#818cf8' }} /> Severity Distribution</h3>
           </div>
           <div className="card-body" style={{ padding: '0.5rem' }}>
             <Plot
@@ -201,7 +202,7 @@ export const PlotlyDashboard: React.FC<Props> = () => {
         {/* Workflow Pipeline Bar */}
         <div className="card">
           <div className="card-header">
-            <h3 className="card-title">📊 Workflow Pipeline</h3>
+            <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><BarChart3 size={16} style={{ color: '#818cf8' }} /> Workflow Pipeline</h3>
           </div>
           <div className="card-body" style={{ padding: '0.5rem' }}>
             <Plot

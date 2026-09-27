@@ -8,13 +8,12 @@
 import React from 'react';
 import {
   AlertTriangle,
-  Bug,
-  ClipboardList,
   Code2,
-  Layers,
-  RotateCcw,
-  SearchCode,
+  FileBarChart,
+  ListChecks,
+  SearchCheck,
   Sparkles,
+  TestTube2,
   TrendingUp,
 } from 'lucide-react';
 
@@ -31,7 +30,7 @@ const QUICK_ACTIONS: QuickAction[] = [
   {
     id: 'analyze-issue',
     label: 'Analyze Issue',
-    icon: <Bug size={13} />,
+    icon: <SearchCheck size={13} />,
     buildMessage: (key) =>
       key
         ? `Please analyze defect ${key} and provide your assessment of the root cause, test scenarios, and edge cases.`
@@ -41,7 +40,7 @@ const QUICK_ACTIONS: QuickAction[] = [
   {
     id: 'test-cases',
     label: 'Generate Test Cases',
-    icon: <ClipboardList size={13} />,
+    icon: <TestTube2 size={13} />,
     buildMessage: (key) =>
       key
         ? `Generate comprehensive test cases for defect ${key}, including positive, negative, boundary, and regression cases.`
@@ -51,7 +50,7 @@ const QUICK_ACTIONS: QuickAction[] = [
   {
     id: 'repro-steps',
     label: 'Reproduction Steps',
-    icon: <RotateCcw size={13} />,
+    icon: <ListChecks size={13} />,
     buildMessage: (key) =>
       key
         ? `Provide detailed step-by-step reproduction steps for defect ${key}, including preconditions and evidence to collect.`
@@ -61,7 +60,7 @@ const QUICK_ACTIONS: QuickAction[] = [
   {
     id: 'root-cause',
     label: 'Root Cause',
-    icon: <SearchCode size={13} />,
+    icon: <SearchCheck size={13} />,
     buildMessage: (key) =>
       key
         ? `Perform root cause analysis for defect ${key}. List possible causes, affected layers, and investigation steps.`
@@ -71,7 +70,7 @@ const QUICK_ACTIONS: QuickAction[] = [
   {
     id: 'sprint-summary',
     label: 'Sprint Summary',
-    icon: <Layers size={13} />,
+    icon: <FileBarChart size={13} />,
     buildMessage: (_, sprintName) =>
       sprintName
         ? `Summarize the current state of sprint "${sprintName}", highlight risks, and recommend testing focus areas.`

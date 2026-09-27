@@ -10,6 +10,9 @@ import {
   Lock,
   Mail,
   Shield,
+  ShieldCheck,
+  TestTube2,
+  User as UserIcon,
 } from 'lucide-react';
 import { getApiErrorMessage } from '../../api/client';
 import { useAuth } from '../../hooks/useAuth';
@@ -105,22 +108,22 @@ export const LoginPage: React.FC = () => {
             Different users receive different workspaces after authentication. Your role is determined automatically.
           </p>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <li style={{ display: 'flex', gap: '0.5rem' }}>
-              <span>👤</span>
+            <li style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+              <UserIcon size={14} style={{ color: '#6366f1', flexShrink: 0, marginTop: '0.15rem' }} />
               <div>
                 <strong style={{ color: 'var(--text-primary)' }}>USER</strong>
                 <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.75rem' }}>Report and track software issues.</p>
               </div>
             </li>
-            <li style={{ display: 'flex', gap: '0.5rem' }}>
-              <span>🧪</span>
+            <li style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+              <TestTube2 size={14} style={{ color: '#22c55e', flexShrink: 0, marginTop: '0.15rem' }} />
               <div>
                 <strong style={{ color: 'var(--text-primary)' }}>TESTER</strong>
                 <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.75rem' }}>Investigate, test, and resolve assigned issues.</p>
               </div>
             </li>
-            <li style={{ display: 'flex', gap: '0.5rem' }}>
-              <span>🛡️</span>
+            <li style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+              <ShieldCheck size={14} style={{ color: '#f97316', flexShrink: 0, marginTop: '0.15rem' }} />
               <div>
                 <strong style={{ color: 'var(--text-primary)' }}>ADMIN</strong>
                 <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.75rem' }}>Manage users, projects, issues, workflows, and system activity.</p>

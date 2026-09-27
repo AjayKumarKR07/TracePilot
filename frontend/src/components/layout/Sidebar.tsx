@@ -5,14 +5,13 @@ import {
   BarChart3,
   Bug,
   ClipboardCheck,
-  FlaskConical,
   FolderGit2,
   LayoutDashboard,
-  Layers,
   LogOut,
   Bell,
-  Shield,
-  UserCheck,
+  ShieldCheck,
+  Timer,
+  User,
 } from 'lucide-react';
 
 
@@ -157,7 +156,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
                 className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
                 onClick={onCloseMobile}
               >
-                <Layers size={18} />
+                <Timer size={18} />
                 <span>Sprints &amp; Planning</span>
               </NavLink>
 
@@ -184,7 +183,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
                 className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
                 onClick={onCloseMobile}
               >
-                <Shield size={18} />
+                <ShieldCheck size={18} />
                 <span>Admin Management</span>
               </NavLink>
             </>
@@ -199,7 +198,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
                 className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
                 onClick={onCloseMobile}
               >
-                <FlaskConical size={18} />
+                <LayoutDashboard size={18} />
                 <span>Tester Dashboard</span>
               </NavLink>
 
@@ -208,7 +207,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
                 className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
                 onClick={onCloseMobile}
               >
-                <Layers size={18} />
+                <Timer size={18} />
                 <span>My Sprints</span>
               </NavLink>
 
@@ -239,7 +238,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             onClick={onCloseMobile}
           >
-            <UserCheck size={18} />
+            <User size={18} />
             <span>My Profile</span>
           </NavLink>
         </nav>

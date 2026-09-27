@@ -6,12 +6,12 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
-  FlaskConical,
   Loader2,
   Lock,
   Search,
-  Shield,
-  UserCheck,
+  ShieldCheck,
+  TestTube2,
+  User,
   X,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
@@ -87,9 +87,9 @@ export const ROLE_COLOR_MAP: Record<SwitchableRole, string> = {
 };
 
 const ROLE_ICON: React.FC<{ role: SwitchableRole; size?: number }> = ({ role, size = 15 }) => {
-  if (role === 'ADMIN') return <Shield size={size} />;
-  if (role === 'TESTER') return <FlaskConical size={size} />;
-  return <UserCheck size={size} />;
+  if (role === 'ADMIN') return <ShieldCheck size={size} />;
+  if (role === 'TESTER') return <TestTube2 size={size} />;
+  return <User size={size} />;
 };
 
 export const SwitchRoleModal: React.FC<SwitchRoleModalProps> = ({ isOpen, onClose }) => {

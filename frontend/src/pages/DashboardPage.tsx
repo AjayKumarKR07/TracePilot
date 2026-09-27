@@ -1549,7 +1549,7 @@ export const DashboardPage: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem' }}>
               <PieChart size={18} color="#818cf8" />
               <span style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--text-primary)' }}>
-                📊 Personal Distributions
+                Personal Distributions
               </span>
             </div>
 
