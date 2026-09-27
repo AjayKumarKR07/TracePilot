@@ -36,7 +36,6 @@ function renderMarkdown(text: string): React.ReactNode[] {
   const elements: React.ReactNode[] = [];
   let inCodeBlock = false;
   let codeLines: string[] = [];
-  let codeLang = '';
   let keyCounter = 0;
   const nextKey = () => `md-${keyCounter++}`;
 
@@ -63,7 +62,6 @@ function renderMarkdown(text: string): React.ReactNode[] {
       );
     }
     codeLines = [];
-    codeLang = '';
     inCodeBlock = false;
   };
 
@@ -150,7 +148,7 @@ function renderMarkdown(text: string): React.ReactNode[] {
         flushCode();
       } else {
         inCodeBlock = true;
-        codeLang = line.slice(3).trim();
+        // code-fence language tag captured but not yet used for syntax highlighting
       }
       continue;
     }

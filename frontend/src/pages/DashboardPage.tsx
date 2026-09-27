@@ -42,6 +42,7 @@ import type { Issue, IssueStatus, Priority, Severity } from '../types/issue';
 import type { Project } from '../types/project';
 import { formatDate, formatRelativeTime } from '../utils/formatters';
 import { generateAnalyticsPdfReport } from '../utils/pdfGenerator';
+import { AIChatbot } from '../components/ai/AIChatbot';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Active open statuses (excluding RESOLVED and CLOSED)
@@ -1612,6 +1613,12 @@ export const DashboardPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ── AI ASSISTANT ── */}
+      <AIChatbot
+        contextIssueId={recentIssuesList[0]?.id}
+        contextIssueKey={recentIssuesList[0]?.issue_key}
+      />
 
       {/* ── Reopen Issue Modal ── */}
       {reopenModalIssue && (
