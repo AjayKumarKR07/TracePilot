@@ -152,7 +152,7 @@ async def get_status_distribution(
     if current_user.role == UserRole.USER:
         # Users see only their own reported issues
         query = query.where(Issue.reporter_id == current_user.id)
-    elif current_User.role.in_([UserRole.DEVELOPER, 'TESTER']):
+    elif current_user.role == UserRole.DEVELOPER:
         # Testers see only assigned issues
         query = query.where(Issue.assignee_id == current_user.id)
 
@@ -202,7 +202,7 @@ async def get_severity_distribution(
     if current_user.role == UserRole.USER:
         # Users see only their own reported issues
         query = query.where(Issue.reporter_id == current_user.id)
-    elif current_User.role.in_([UserRole.DEVELOPER, 'TESTER']):
+    elif current_user.role == UserRole.DEVELOPER:
         # Testers see only assigned issues
         query = query.where(Issue.assignee_id == current_user.id)
 
@@ -247,7 +247,7 @@ async def get_priority_distribution(
     if current_user.role == UserRole.USER:
         # Users see only their own reported issues
         query = query.where(Issue.reporter_id == current_user.id)
-    elif current_User.role.in_([UserRole.DEVELOPER, 'TESTER']):
+    elif current_user.role == UserRole.DEVELOPER:
         # Testers see only assigned issues
         query = query.where(Issue.assignee_id == current_user.id)
 
@@ -309,7 +309,7 @@ async def get_issue_trends(
         # Users see only their own reported issues
         created_query = created_query.where(Issue.reporter_id == current_user.id)
         resolved_query = resolved_query.where(Issue.reporter_id == current_user.id)
-    elif current_User.role.in_([UserRole.DEVELOPER, 'TESTER']):
+    elif current_user.role == UserRole.DEVELOPER:
         # Testers see only assigned issues
         created_query = created_query.where(Issue.assignee_id == current_user.id)
         resolved_query = resolved_query.where(Issue.assignee_id == current_user.id)
@@ -410,7 +410,7 @@ async def get_all_projects_analytics(
     if current_user.role == UserRole.USER:
         # Users see only their own reported issues
         issue_query = issue_query.where(Issue.reporter_id == current_user.id)
-    elif current_User.role.in_([UserRole.DEVELOPER, 'TESTER']):
+    elif current_user.role == UserRole.DEVELOPER:
         # Testers see only assigned issues
         issue_query = issue_query.where(Issue.assignee_id == current_user.id)
 
@@ -517,7 +517,7 @@ async def get_project_analytics(
     if current_user.role == UserRole.USER:
         # Users see only their own reported issues
         issue_query = issue_query.where(Issue.reporter_id == current_user.id)
-    elif current_User.role.in_([UserRole.DEVELOPER, 'TESTER']):
+    elif current_user.role == UserRole.DEVELOPER:
         # Testers see only assigned issues
         issue_query = issue_query.where(Issue.assignee_id == current_user.id)
 
@@ -663,7 +663,7 @@ async def export_issues_csv(
     if current_user.role == UserRole.USER:
         # Users see only their own reported issues
         query = query.where(Issue.reporter_id == current_user.id)
-    elif current_User.role.in_([UserRole.DEVELOPER, 'TESTER']):
+    elif current_user.role == UserRole.DEVELOPER:
         # Testers see only assigned issues
         query = query.where(Issue.assignee_id == current_user.id)
 
@@ -772,7 +772,7 @@ async def get_quality_metrics(
     base_q = select(Issue)
     if current_user.role == UserRole.USER:
         base_q = base_q.where(Issue.reporter_id == current_user.id)
-    elif current_User.role.in_([UserRole.DEVELOPER, 'TESTER']):
+    elif current_user.role == UserRole.DEVELOPER:
         base_q = base_q.where(Issue.assignee_id == current_user.id)
     if project_id is not None:
         base_q = base_q.where(Issue.project_id == project_id)
@@ -883,5 +883,6 @@ async def get_quality_metrics(
         open_critical_count=open_critical,
         avg_age_open_days=avg_age_open_days,
     )
+
 
 
