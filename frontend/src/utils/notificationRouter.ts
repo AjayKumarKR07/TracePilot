@@ -16,12 +16,12 @@ export interface NotificationNavTarget {
  * Centralized Notification-to-Route Resolver
  *
  * Implements strict role-based routing and deep linking across TracePilot:
- * 1. Tester sprint notifications → /tester-sprints (?sprintId=ID)
- * 2. Admin sprint approval / submission / review notifications → /admin/sprint-approvals (?sprintId=ID)
- * 3. Admin sprint management notifications → /admin/sprints (?sprintId=ID)
- * 4. Issue assignment / reported notifications → /issues?issueId=ID (open/focus issue)
- * 5. Comment / attachment / issue update notifications → /issues/:id (related issue details)
- * 6. User management notifications → /admin (for Admin) or /profile (for user)
+ * 1. Tester sprint notifications â†’ /tester-sprints (?sprintId=ID)
+ * 2. Admin sprint approval / submission / review notifications â†’ /admin/sprint-approvals (?sprintId=ID)
+ * 3. Admin sprint management notifications â†’ /admin/sprints (?sprintId=ID)
+ * 4. Issue assignment / reported notifications â†’ /issues?issueId=ID (open/focus issue)
+ * 5. Comment / attachment / issue update notifications â†’ /issues/:id (related issue details)
+ * 6. User management notifications â†’ /admin (for Admin) or /profile (for user)
  * 7. Safe fallback to appropriate role dashboard when no valid target exists
  */
 export function getNotificationDestination(
@@ -65,9 +65,9 @@ export function getNotificationDestination(
 
   // Rule 2 & 5: Sprint & Approval notifications
   if (isSprintRelated || isApprovalText) {
-    // TESTER:
-    if (role === 'TESTER') {
-      return withQueryParam('/tester-sprints', 'sprintId', entityId);
+    // DEVELOPER:
+    if (role === 'DEVELOPER') {
+      return withQueryParam('/developer-sprints', 'sprintId', entityId);
     }
 
     // ADMIN:
@@ -90,7 +90,7 @@ export function getNotificationDestination(
     return '/dashboard';
   }
 
-  // Rule 4: Comment / Attachment / Issue status updates → navigate directly to the related issue
+  // Rule 4: Comment / Attachment / Issue status updates â†’ navigate directly to the related issue
   const isCommentOrAttachmentOrStatusUpdate =
     type === 'ISSUE_COMMENTED' ||
     type === 'ISSUE_MENTIONED' ||
@@ -111,7 +111,7 @@ export function getNotificationDestination(
     return '/issues';
   }
 
-  // Rule 3: Issue notifications (e.g. ISSUE_ASSIGNED, ISSUE_REPORTED) → navigate to /issues and focus specific issue
+  // Rule 3: Issue notifications (e.g. ISSUE_ASSIGNED, ISSUE_REPORTED) â†’ navigate to /issues and focus specific issue
   const isIssueRelated =
     entityType === 'ISSUE' ||
     type === 'ISSUE_ASSIGNED' ||
@@ -146,8 +146,8 @@ export function getNotificationDestination(
     const dest = notif.destination.trim();
     if (dest.startsWith('/admin') && role !== 'ADMIN') {
       // Forbidden for non-admin
-    } else if (dest.startsWith('/tester') && role !== 'TESTER') {
-      // Forbidden for non-tester
+    } else if (dest.startsWith('/developer') && role !== 'DEVELOPER') {
+      // Forbidden for non-developer
     } else {
       return dest;
     }
@@ -155,6 +155,7 @@ export function getNotificationDestination(
 
   // Rule 12: Safe fallback to appropriate dashboard per role
   if (role === 'ADMIN') return '/admin-dashboard';
-  if (role === 'TESTER') return '/tester-dashboard';
+  if (role === 'DEVELOPER') return '/developer-dashboard';
   return '/dashboard';
 }
+

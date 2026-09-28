@@ -60,7 +60,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobile }) => {
   const getRoleColor = (role?: string) => {
     switch (role) {
       case 'ADMIN':      return '#f97316';  // orange
-      case 'TESTER':     return '#22c55e';  // green
+      case 'DEVELOPER':  return '#22c55e';  // green
       case 'USER':       return '#6366f1';  // indigo
       default:           return '#6366f1';
     }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { SprintService } from "../services/SprintService";
 import { issuesApi } from "../api/issues";
@@ -158,7 +158,7 @@ const TeamWorkloadChart: React.FC<{ workload: SprintAnalytics["workload"] }> = (
     </div>
   );
   const data = workload.map((wl) => ({
-    name: (wl.tester_name || wl.developer_name || "Tester").split(" ")[0],
+    name: (wl.tester_name || wl.developer_name || "DEVELOPER").split(" ")[0],
     Completed: wl.completed_issues,
     "In Progress": wl.in_progress_issues,
     Open: wl.open_issues,
@@ -207,7 +207,7 @@ const TeamWorkloadChart: React.FC<{ workload: SprintAnalytics["workload"] }> = (
                     color: "#818cf8",
                     fontWeight: 600,
                   }}>
-                    {wl.role || "TESTER"}
+                    {wl.role || "DEVELOPER"}
                   </span>
                 </td>
                 <td style={{ fontWeight: 700 }}>{wl.assigned_issues}</td>
@@ -342,7 +342,7 @@ export const SprintsPage: React.FC = () => {
   const handleDeleteSprint = async (sprint: Sprint) => {
     const isCompleted = sprint.status === 'COMPLETED';
     const confirmMessage = isCompleted
-      ? `Delete completed sprint '${sprint.name}'?\n\n• The sprint itself will be deleted.\n• All linked issues and defect records will remain intact in the system.\n• Issue status, resolution details, comments, and attachments will remain.\n• Issues will simply become unassigned from this sprint.\n\nAre you sure you want to proceed?`
+      ? `Delete completed sprint '${sprint.name}'?\n\nâ€¢ The sprint itself will be deleted.\nâ€¢ All linked issues and defect records will remain intact in the system.\nâ€¢ Issue status, resolution details, comments, and attachments will remain.\nâ€¢ Issues will simply become unassigned from this sprint.\n\nAre you sure you want to proceed?`
       : `Permanently delete planned sprint '${sprint.name}'?`;
     if (!window.confirm(confirmMessage)) return;
     try {
@@ -358,7 +358,7 @@ export const SprintsPage: React.FC = () => {
     setSelectedTesterId("");
     setIsAssignTesterOpen(true);
     try {
-      const res = await usersApi.list({ role: 'TESTER', is_active: true, page_size: 100 });
+      const res = await usersApi.list({ role: 'DEVELOPER', is_active: true, page_size: 100 });
       setTesterList(res.items);
     } catch (err) { console.error(err); }
   };
@@ -446,7 +446,7 @@ export const SprintsPage: React.FC = () => {
                       <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
                         <CheckCircle2 size={20} style={{ color: "#10b981" }} />
                         <span style={{ fontSize: "1rem", fontWeight: 700, color: "#34d399", letterSpacing: "0.02em" }}>
-                          ✓ COMPLETED
+                          âœ“ COMPLETED
                         </span>
                       </div>
                     </div>
@@ -487,7 +487,7 @@ export const SprintsPage: React.FC = () => {
                     color: "#f87171",
                   }}>
                     <AlertTriangle size={18} />
-                    <span>⚠ Sprint has no issues assigned. Add backlog issues before starting/approving this sprint.</span>
+                    <span>âš  Sprint has no issues assigned. Add backlog issues before starting/approving this sprint.</span>
                   </div>
                 )}
 
@@ -688,7 +688,7 @@ export const SprintsPage: React.FC = () => {
               value={selectedTesterId}
               onChange={e => setSelectedTesterId(Number(e.target.value) || "")}
             >
-              <option value="">— Select a tester —</option>
+              <option value="">â€” Select a tester â€”</option>
               {testerList.map(t => (
                 <option key={t.id} value={t.id}>{t.full_name} ({t.email})</option>
               ))}
@@ -712,3 +712,4 @@ export const SprintsPage: React.FC = () => {
     </div>
   );
 };
+

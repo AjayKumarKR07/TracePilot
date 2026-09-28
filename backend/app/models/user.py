@@ -17,29 +17,40 @@ from app.database.base import Base
 class UserRole(str, enum.Enum):
     """Roles available in the system.
 
-    ADMIN  — system administrator, full access
-    TESTER — assigned issue investigator, tester, and verifier
-    USER   — issue reporter (public portal user)
+    ADMIN     — system administrator, full access
+    DEVELOPER — assigned issue investigator, tester, and verifier
+    USER      — issue reporter (public portal user)
+
+    Note: The PostgreSQL 'userrole' enum also contains 'TESTER' for backward
+    compatibility.  Existing TESTER rows are transparently read as DEVELOPER
+    by SafeUserRoleType.  New rows are written as DEVELOPER.
     """
-    ADMIN  = "ADMIN"
-    TESTER = "TESTER"
-    USER   = "USER"
+    ADMIN     = "ADMIN"
+    DEVELOPER = "DEVELOPER"
+    USER      = "USER"
 
 
 class SafeUserRoleType(TypeDecorator):
-    """SQLAlchemy type decorator that maps legacy DB DEVELOPER records to TESTER cleanly prior to database migration."""
+    """SQLAlchemy type decorator that transparently upgrades legacy TESTER DB
+    values to the canonical DEVELOPER role.
+
+    The PostgreSQL 'userrole' enum contains both TESTER and DEVELOPER.
+    All Python code uses DEVELOPER; the DB shim handles both directions.
+    """
 
     impl = Enum("ADMIN", "TESTER", "USER", "DEVELOPER", name="userrole", create_type=True)
     cache_ok = True
 
     def process_result_value(self, value, dialect):
+        """Map DB value → Python UserRole.  TESTER (legacy) → DEVELOPER."""
         if value is None:
             return None
-        if value == "DEVELOPER":
-            return UserRole.TESTER
+        if value == "TESTER":
+            return UserRole.DEVELOPER
         return UserRole(value)
 
     def process_bind_param(self, value, dialect):
+        """Map Python UserRole → DB string.  DEVELOPER is stored as DEVELOPER."""
         if value is None:
             return None
         if isinstance(value, UserRole):

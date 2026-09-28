@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+﻿import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -110,7 +110,7 @@ export const IssueDetailPage: React.FC = () => {
   const fetchTesters = async () => {
     if (user?.role === 'ADMIN') {
       try {
-        const data = await usersApi.list({ role: 'TESTER', is_active: true });
+        const data = await usersApi.list({ role: 'DEVELOPER', is_active: true });
         setTesters(data.items || []);
         if (data.items.length > 0) {
           setSelectedTesterId(data.items[0].id);
@@ -305,7 +305,7 @@ export const IssueDetailPage: React.FC = () => {
     return <ErrorMessage message={error || 'Defect not found'} onRetry={fetchIssueData} />;
   }
 
-  const isAssignedDev = user?.role === 'TESTER' && issue.assignee?.id === user?.id;
+  const isAssignedDev = user?.role === 'DEVELOPER' && issue.assignee?.id === user?.id;
   const isReporter = issue.reporter?.id === user?.id;
   const canReopen = (isReporter || user?.role === 'ADMIN') && ['RESOLVED', 'CLOSED', 'IN_TESTING'].includes(issue.status);
   const canClose = (isReporter || user?.role === 'ADMIN') && issue.status === 'RESOLVED';
@@ -614,7 +614,7 @@ export const IssueDetailPage: React.FC = () => {
                 style={{ backgroundColor: '#10b981', borderColor: '#10b981', fontWeight: '600' }}
               >
                 <CheckCircle2 size={16} />
-                <span>YES — Confirm Resolution</span>
+                <span>YES â€” Confirm Resolution</span>
               </button>
               <button
                 onClick={() => setIsReopenOpen(true)}
@@ -622,7 +622,7 @@ export const IssueDetailPage: React.FC = () => {
                 className="btn btn-outline-danger"
               >
                 <RotateCcw size={16} />
-                <span>NO — Reopen Issue</span>
+                <span>NO â€” Reopen Issue</span>
               </button>
             </div>
           </div>
@@ -867,7 +867,7 @@ export const IssueDetailPage: React.FC = () => {
                                   {att.original_filename}
                                 </div>
                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                  {formatFileSize(att.file_size)} • Uploaded by {att.uploader.full_name} ({formatDate(att.created_at)})
+                                  {formatFileSize(att.file_size)} â€¢ Uploaded by {att.uploader.full_name} ({formatDate(att.created_at)})
                                 </div>
                               </div>
                             </div>
@@ -1013,7 +1013,7 @@ export const IssueDetailPage: React.FC = () => {
                               <span style={{ textDecoration: 'line-through', color: 'var(--text-muted)' }}>
                                 {log.old_values.status}
                               </span>
-                              <span>→</span>
+                              <span>â†’</span>
                               <span style={{ fontWeight: '700', color: 'var(--primary)' }}>
                                 {log.new_values.status}
                               </span>
@@ -1148,7 +1148,7 @@ export const IssueDetailPage: React.FC = () => {
               <div>
                 <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', textTransform: 'uppercase' }}>Project</span>
                 <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
-                  {issue.project.project_key} — {issue.project.name}
+                  {issue.project.project_key} â€” {issue.project.name}
                 </span>
               </div>
 
@@ -1280,7 +1280,7 @@ export const IssueDetailPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Resolve Defect Modal (TESTER only) */}
+      {/* Resolve Defect Modal (DEVELOPER only) */}
       <Modal
         isOpen={isResolveOpen}
         onClose={() => setIsResolveOpen(false)}
@@ -1369,3 +1369,4 @@ export const IssueDetailPage: React.FC = () => {
     </div>
   );
 };
+

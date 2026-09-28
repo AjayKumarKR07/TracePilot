@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+﻿import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -46,14 +46,14 @@ import type { Issue, IssueStatus, Priority, Severity } from '../types/issue';
 import type { UserDetail, UserSortField } from '../types/user';
 import { formatDate, formatRelativeTime } from '../utils/formatters';
 
-// ─────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Types
-// ─────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 type AdminTab = 'overview' | 'issues' | 'workload' | 'analytics' | 'users';
 
-// ─────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Helper: stat bar item
-// ─────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const StatBar: React.FC<{ label: string; value: number; total: number; color: string }> = ({
   label,
   value,
@@ -84,14 +84,14 @@ const StatBar: React.FC<{ label: string; value: number; total: number; color: st
   );
 };
 
-// ─────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Main AdminPage Component
-// ─────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const AdminPage: React.FC = () => {
   const { user: currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
 
-  // ── Overview State ──────────────────────
+  // â”€â”€ Overview State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [dashboardStats, setDashboardStats] = useState<AdminDashboardResponse | null>(null);
   const [statusDist, setStatusDist] = useState<IssueStatusDistributionResponse | null>(null);
   const [severityDist, setSeverityDist] = useState<SeverityDistributionResponse | null>(null);
@@ -99,7 +99,7 @@ export const AdminPage: React.FC = () => {
   const [overviewLoading, setOverviewLoading] = useState(false);
   const [overviewError, setOverviewError] = useState<string | null>(null);
 
-  // ── Issue Management State ───────────────
+  // â”€â”€ Issue Management State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [issues, setIssues] = useState<Issue[]>([]);
   const [issuesTotal, setIssuesTotal] = useState(0);
   const [issuesTotalPages, setIssuesTotalPages] = useState(1);
@@ -119,18 +119,18 @@ export const AdminPage: React.FC = () => {
   const [assignLoading, setAssignLoading] = useState(false);
   const [devsLoading, setDevsLoading] = useState(false);
 
-  // ── Workload State ───────────────────────
+  // â”€â”€ Workload State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [devPerformance, setDevPerformance] = useState<DeveloperAnalyticsItem[]>([]);
   const [testersList, setTestersList] = useState<UserDetail[]>([]);
   const [workloadLoading, setWorkloadLoading] = useState(false);
   const [workloadError, setWorkloadError] = useState<string | null>(null);
 
-  // ── Analytics State ──────────────────────
+  // â”€â”€ Analytics State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [sysAnalytics, setSysAnalytics] = useState<SystemAnalyticsResponse | null>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
 
-  // ── User Management State ────────────────
+  // â”€â”€ User Management State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [usersList, setUsersList] = useState<UserDetail[]>([]);
   const [usersTotal, setUsersTotal] = useState(0);
   const [usersPage, setUsersPage] = useState(1);
@@ -144,13 +144,13 @@ export const AdminPage: React.FC = () => {
   const [usersError, setUsersError] = useState<string | null>(null);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
-  const [targetRole, setTargetRole] = useState<UserRole>('TESTER');
+  const [targetRole, setTargetRole] = useState<UserRole>('DEVELOPER');
   const [roleModalError, setRoleModalError] = useState<string | null>(null);
   const [isSubmittingRole, setIsSubmittingRole] = useState(false);
 
-  // ─────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Data Fetchers
-  // ─────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const fetchOverview = useCallback(async () => {
     setOverviewLoading(true);
     setOverviewError(null);
@@ -198,7 +198,7 @@ export const AdminPage: React.FC = () => {
     try {
       const [perf, testers] = await Promise.all([
         analyticsApi.getDeveloperPerformance(),
-        usersApi.list({ role: 'TESTER', is_active: true, page_size: 50 }),
+        usersApi.list({ role: 'DEVELOPER', is_active: true, page_size: 50 }),
       ]);
       setDevPerformance(perf.items);
       setTestersList(testers.items);
@@ -251,9 +251,9 @@ export const AdminPage: React.FC = () => {
     }
   }, [usersPage, usersSearch, usersRoleFilter, usersActiveFilter, usersSortBy, usersSortDesc]);
 
-  // ─────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Tab-switch effects
-  // ─────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     if (activeTab === 'overview') fetchOverview();
   }, [activeTab, fetchOverview]);
@@ -274,16 +274,16 @@ export const AdminPage: React.FC = () => {
     if (activeTab === 'users') fetchUsers();
   }, [activeTab, usersPage, usersRoleFilter, usersActiveFilter, usersSortBy, usersSortDesc, fetchUsers]);
 
-  // ─────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Issue Assignment Handlers
-  // ─────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const openAssignModal = async (issue: Issue) => {
     setAssignModalIssue(issue);
     setSelectedDevId('');
     setAssignError(null);
     setDevsLoading(true);
     try {
-      const res = await usersApi.list({ role: 'TESTER', is_active: true, page_size: 50 });
+      const res = await usersApi.list({ role: 'DEVELOPER', is_active: true, page_size: 50 });
       setAvailableDevs(res.items);
     } catch (err) {
       setAssignError(getApiErrorMessage(err));
@@ -308,9 +308,9 @@ export const AdminPage: React.FC = () => {
     }
   };
 
-  // ─────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // User Management Handlers
-  // ─────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleOpenRoleModal = (u: UserDetail) => {
     setSelectedUser(u);
     setTargetRole(u.role);
@@ -367,9 +367,9 @@ export const AdminPage: React.FC = () => {
     setUsersPage(1);
   };
 
-  // ─────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Tab configuration
-  // ─────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const tabs: { key: AdminTab; label: string; icon: React.ReactNode }[] = [
     { key: 'overview', label: 'Overview', icon: <BarChart3 size={16} /> },
     { key: 'issues', label: 'Issue Management', icon: <Bug size={16} /> },
@@ -378,9 +378,9 @@ export const AdminPage: React.FC = () => {
     { key: 'users', label: 'User Management', icon: <Users size={16} /> },
   ];
 
-  // ─────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Render
-  // ─────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   return (
     <div>
       {/* Page Header */}
@@ -447,9 +447,9 @@ export const AdminPage: React.FC = () => {
         ))}
       </div>
 
-      {/* ═══════════════════════════════════════ */}
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       {/* TAB 1: OVERVIEW                         */}
-      {/* ═══════════════════════════════════════ */}
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       {activeTab === 'overview' && (
         <>
           {overviewLoading && !dashboardStats && <LoadingSpinner message="Loading overview..." />}
@@ -464,7 +464,7 @@ export const AdminPage: React.FC = () => {
                     <span className="metric-label">Total Users</span>
                     <span className="metric-value">{dashboardStats.users.total}</span>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                      {dashboardStats.users.active} Active · {dashboardStats.users.inactive} Inactive
+                      {dashboardStats.users.active} Active Â· {dashboardStats.users.inactive} Inactive
                     </span>
                   </div>
                   <div className="metric-icon-box metric-icon-purple">
@@ -477,7 +477,7 @@ export const AdminPage: React.FC = () => {
                     <span className="metric-label">Total Issues</span>
                     <span className="metric-value">{dashboardStats.issues.total}</span>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                      {dashboardStats.issues.reported} Reported · {dashboardStats.issues.assigned} Assigned
+                      {dashboardStats.issues.reported} Reported Â· {dashboardStats.issues.assigned} Assigned
                     </span>
                   </div>
                   <div className="metric-icon-box metric-icon-amber">
@@ -492,7 +492,7 @@ export const AdminPage: React.FC = () => {
                       {dashboardStats.issues.in_development + dashboardStats.issues.in_review + dashboardStats.issues.in_testing}
                     </span>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                      Dev · Review · Testing
+                      Dev Â· Review Â· Testing
                     </span>
                   </div>
                   <div className="metric-icon-box metric-icon-indigo">
@@ -505,7 +505,7 @@ export const AdminPage: React.FC = () => {
                     <span className="metric-label">Resolved Issues</span>
                     <span className="metric-value">{dashboardStats.issues.resolved}</span>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                      {dashboardStats.issues.closed} Closed · {dashboardStats.issues.reopened} Reopened
+                      {dashboardStats.issues.closed} Closed Â· {dashboardStats.issues.reopened} Reopened
                     </span>
                   </div>
                   <div className="metric-icon-box metric-icon-emerald">
@@ -533,7 +533,7 @@ export const AdminPage: React.FC = () => {
                       +{dashboardStats.recent.recently_created}
                     </span>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                      Created · ✓{dashboardStats.recent.recently_resolved} Resolved
+                      Created Â· âœ“{dashboardStats.recent.recently_resolved} Resolved
                     </span>
                   </div>
                   <div className="metric-icon-box metric-icon-purple">
@@ -699,9 +699,9 @@ export const AdminPage: React.FC = () => {
         </>
       )}
 
-      {/* ═══════════════════════════════════════ */}
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       {/* TAB 2: ISSUE MANAGEMENT                 */}
-      {/* ═══════════════════════════════════════ */}
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       {activeTab === 'issues' && (
         <div className="card">
           <div className="card-header">
@@ -817,9 +817,9 @@ export const AdminPage: React.FC = () => {
         </div>
       )}
 
-      {/* ═══════════════════════════════════════ */}
-      {/* TAB 3: TESTER WORKLOAD                   */}
-      {/* ═══════════════════════════════════════ */}
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+      {/* TAB 3: DEVELOPER WORKLOAD                   */}
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       {activeTab === 'workload' && (
         <>
           {workloadLoading && <LoadingSpinner message="Loading workload data..." />}
@@ -846,7 +846,7 @@ export const AdminPage: React.FC = () => {
                       <table className="data-table">
                         <thead>
                           <tr>
-                            <th>Tester</th>
+                            <th>DEVELOPER</th>
                             <th>Assigned</th>
                             <th>Resolved</th>
                             <th>Open</th>
@@ -893,7 +893,7 @@ export const AdminPage: React.FC = () => {
                               <td style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                                 {dev.average_resolution_time_hours !== null
                                   ? `${Math.round(dev.average_resolution_time_hours)}h`
-                                  : '—'}
+                                  : 'â€”'}
                               </td>
                             </tr>
                           ))}
@@ -923,7 +923,7 @@ export const AdminPage: React.FC = () => {
                       <table className="data-table">
                         <thead>
                           <tr>
-                            <th>Tester</th>
+                            <th>DEVELOPER</th>
                             <th>Status</th>
                             <th>Email Verified</th>
                             <th>Member Since</th>
@@ -964,9 +964,9 @@ export const AdminPage: React.FC = () => {
         </>
       )}
 
-      {/* ═══════════════════════════════════════ */}
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       {/* TAB 4: ANALYTICS                        */}
-      {/* ═══════════════════════════════════════ */}
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       {activeTab === 'analytics' && (
         <>
           {analyticsLoading && <LoadingSpinner message="Loading analytics..." />}
@@ -1124,9 +1124,9 @@ export const AdminPage: React.FC = () => {
         </>
       )}
 
-      {/* ═══════════════════════════════════════ */}
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       {/* TAB 5: USER MANAGEMENT                  */}
-      {/* ═══════════════════════════════════════ */}
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       {activeTab === 'users' && (
         <div className="card">
           <div className="card-header">
@@ -1158,7 +1158,7 @@ export const AdminPage: React.FC = () => {
               <select className="form-select" style={{ width: 'auto', minWidth: '130px' }} value={usersRoleFilter} onChange={(e) => { setUsersRoleFilter(e.target.value as UserRole | ''); setUsersPage(1); }}>
                 <option value="">All Roles</option>
                 <option value="ADMIN">ADMIN</option>
-                <option value="TESTER">TESTER</option>
+                <option value="DEVELOPER">DEVELOPER</option>
                 <option value="USER">USER</option>
               </select>
               <select className="form-select" style={{ width: 'auto', minWidth: '130px' }} value={usersActiveFilter === '' ? '' : usersActiveFilter ? 'true' : 'false'} onChange={(e) => { setUsersActiveFilter(e.target.value === '' ? '' : e.target.value === 'true'); setUsersPage(1); }}>
@@ -1182,19 +1182,19 @@ export const AdminPage: React.FC = () => {
                       <thead>
                         <tr>
                           <th onClick={() => handleUsersSort('full_name')} style={{ cursor: 'pointer' }}>
-                            User {usersSortBy === 'full_name' ? (usersSortDesc ? '▼' : '▲') : ''}
+                            User {usersSortBy === 'full_name' ? (usersSortDesc ? 'â–¼' : 'â–²') : ''}
                           </th>
                           <th onClick={() => handleUsersSort('role')} style={{ cursor: 'pointer' }}>
-                            Role {usersSortBy === 'role' ? (usersSortDesc ? '▼' : '▲') : ''}
+                            Role {usersSortBy === 'role' ? (usersSortDesc ? 'â–¼' : 'â–²') : ''}
                           </th>
                           <th onClick={() => handleUsersSort('is_active')} style={{ cursor: 'pointer' }}>
-                            Status {usersSortBy === 'is_active' ? (usersSortDesc ? '▼' : '▲') : ''}
+                            Status {usersSortBy === 'is_active' ? (usersSortDesc ? 'â–¼' : 'â–²') : ''}
                           </th>
                           <th onClick={() => handleUsersSort('is_email_verified')} style={{ cursor: 'pointer' }}>
-                            Email Verified {usersSortBy === 'is_email_verified' ? (usersSortDesc ? '▼' : '▲') : ''}
+                            Email Verified {usersSortBy === 'is_email_verified' ? (usersSortDesc ? 'â–¼' : 'â–²') : ''}
                           </th>
                           <th onClick={() => handleUsersSort('created_at')} style={{ cursor: 'pointer' }}>
-                            Created {usersSortBy === 'created_at' ? (usersSortDesc ? '▼' : '▲') : ''}
+                            Created {usersSortBy === 'created_at' ? (usersSortDesc ? 'â–¼' : 'â–²') : ''}
                           </th>
                           <th style={{ textAlign: 'right' }}>Actions</th>
                         </tr>
@@ -1209,7 +1209,7 @@ export const AdminPage: React.FC = () => {
                               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{u.email}</div>
                             </td>
                             <td>
-                              <span className={`user-role-badge ${u.role === 'ADMIN' ? 'role-admin' : u.role === 'TESTER' ? 'role-tester' : 'role-user'}`}>
+                              <span className={`user-role-badge ${u.role === 'ADMIN' ? 'role-admin' : u.role === 'DEVELOPER' ? 'role-developer' : 'role-user'}`}>
                                 {u.role}
                               </span>
                             </td>
@@ -1267,9 +1267,9 @@ export const AdminPage: React.FC = () => {
         </div>
       )}
 
-      {/* ═══════════════════════════════════════ */}
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       {/* ASSIGN ISSUE MODAL                      */}
-      {/* ═══════════════════════════════════════ */}
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <Modal
         isOpen={!!assignModalIssue}
         onClose={() => setAssignModalIssue(null)}
@@ -1288,7 +1288,7 @@ export const AdminPage: React.FC = () => {
               <label className="form-label">Issue</label>
               <div style={{ padding: '0.5rem', backgroundColor: 'var(--bg-surface-elevated)', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem' }}>
                 <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--primary)', fontWeight: '600' }}>{assignModalIssue?.issue_key}</span>{' '}
-                — {assignModalIssue?.title}
+                â€” {assignModalIssue?.title}
               </div>
             </div>
             <div className="form-group">
@@ -1300,7 +1300,7 @@ export const AdminPage: React.FC = () => {
                 onChange={(e) => setSelectedDevId(e.target.value === '' ? '' : Number(e.target.value))}
                 required
               >
-                <option value="">— Select a tester —</option>
+                <option value="">â€” Select a tester â€”</option>
                 {availableDevs.map((dev) => (
                   <option key={dev.id} value={dev.id}>
                     {dev.full_name} ({dev.email})
@@ -1323,9 +1323,9 @@ export const AdminPage: React.FC = () => {
         )}
       </Modal>
 
-      {/* ═══════════════════════════════════════ */}
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       {/* CHANGE ROLE MODAL                       */}
-      {/* ═══════════════════════════════════════ */}
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <Modal
         isOpen={isRoleModalOpen}
         onClose={() => setIsRoleModalOpen(false)}
@@ -1341,7 +1341,7 @@ export const AdminPage: React.FC = () => {
             <label className="form-label" htmlFor="new-role-select">Select New System Role</label>
             <select id="new-role-select" className="form-select" value={targetRole} onChange={(e) => setTargetRole(e.target.value as UserRole)}>
               <option value="ADMIN">ADMIN (Full management access)</option>
-              <option value="TESTER">TESTER (Issue investigation & resolution)</option>
+              <option value="DEVELOPER">DEVELOPER (Issue investigation & resolution)</option>
               <option value="USER">USER (Issue reporting & tracking)</option>
             </select>
             <span className="form-help">
@@ -1361,3 +1361,4 @@ export const AdminPage: React.FC = () => {
     </div>
   );
 };
+

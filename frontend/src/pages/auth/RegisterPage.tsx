@@ -18,22 +18,22 @@ import { useAuth } from '../../hooks/useAuth';
 import { TracePilotLogo } from '../../components/common/TracePilotLogo';
 
 /**
- * RegisterPage — public user registration.
+ * RegisterPage â€” public user registration.
  *
- * The backend UserRole enum: ADMIN | DEVELOPER | TESTER | USER.
+ * The Backend UserRole enum: ADMIN | DEVELOPER | USER.
  * ADMIN cannot be registered publicly.
  *
  * Two roles available for public registration:
- *   - "User" (issue reporter)     → maps to backend USER role
- *   - "Tester" (investigator)     → maps to backend TESTER role
+ *   - "User" (issue reporter)     â†’ maps to backend USER role
+ *   - "Developer (investigator)     â†’ maps to backend DEVELOPER role
  */
 
-type UIRole = 'USER' | 'TESTER_ROLE' | 'ADMIN';
+type UIRole = 'USER' | 'DEVELOPER_ROLE' | 'ADMIN';
 
 interface UIRoleOption {
   id: UIRole;
   label: string;
-  backendRole: 'USER' | 'TESTER' | 'ADMIN';
+  backendRole: 'USER' | 'DEVELOPER' | 'ADMIN';
   icon: React.ReactNode;
   description: string;
   capabilities: string[];
@@ -59,9 +59,9 @@ const ROLE_OPTIONS: UIRoleOption[] = [
     bg: 'rgba(99,102,241,0.1)',
   },
   {
-    id: 'TESTER_ROLE',
-    label: 'Tester',
-    backendRole: 'TESTER',
+    id: 'DEVELOPER_ROLE',
+    label: 'Developer',
+    backendRole: 'DEVELOPER',
     icon: <ShieldCheck size={22} />,
     description: 'Receives issues assigned by Admin, investigates them, updates progress, and resolves issues.',
     capabilities: [
@@ -106,7 +106,7 @@ export const RegisterPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const getBackendRole = (): 'USER' | 'TESTER' | 'ADMIN' =>
+  const getBackendRole = (): 'USER' | 'DEVELOPER' | 'ADMIN' =>
     ROLE_OPTIONS.find((o) => o.id === selectedUIRole)!.backendRole;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -634,3 +634,4 @@ export const RegisterPage: React.FC = () => {
     </div>
   );
 };
+

@@ -1,18 +1,18 @@
-// UserRole values as returned by the backend.
-// Backend enum: ADMIN | TESTER | USER
+﻿// UserRole values as returned by the backend.
+// Backend enum: ADMIN | DEVELOPER | USER
 // Three-role model:
-//   ADMIN     → Administrator (full system control)
-//   TESTER    → Tester (investigates assigned defects)
-//   USER      → User (submits & tracks their own issues)
-export type UserRole = 'ADMIN' | 'TESTER' | 'USER';
+//   ADMIN     -> Administrator (full system control)
+//   DEVELOPER -> Developer (investigates assigned defects, testing workflow)
+//   USER      -> User (submits & tracks their own issues)
+export type UserRole = 'ADMIN' | 'DEVELOPER' | 'USER';
 
 /** Human-readable display label for each backend role. */
 export function getRoleLabel(role: UserRole): string {
   switch (role) {
     case 'ADMIN':
       return 'Administrator';
-    case 'TESTER':
-      return 'Tester';
+    case 'DEVELOPER':
+      return 'Developer';
     case 'USER':
       return 'User';
     default:
@@ -24,11 +24,11 @@ export function getRoleLabel(role: UserRole): string {
 export function getRoleDescription(role: UserRole): string {
   switch (role) {
     case 'ADMIN':
-      return 'Full system access · Manages users, issues & assignments';
-    case 'TESTER':
-      return 'Investigates assigned defects · Updates issue progress';
+      return 'Full system access - Manages users, issues & assignments';
+    case 'DEVELOPER':
+      return 'Investigates assigned bugs - Updates issue progress - Testing workflow';
     case 'USER':
-      return 'Submits & tracks their own issues · Views progress';
+      return 'Submits & tracks their own issues - Views progress';
     default:
       return '';
   }
@@ -41,7 +41,7 @@ export function canReportIssues(role: UserRole): boolean {
 
 /** Returns true if the role works on assigned investigations. */
 export function isInvestigator(role: UserRole): boolean {
-  return role === 'TESTER';
+  return role === 'DEVELOPER';
 }
 
 export interface User {
@@ -54,12 +54,12 @@ export interface User {
   created_at: string;
 }
 
-// Backend RegisterRequest.role accepts USER or TESTER (not ADMIN).
+// Backend RegisterRequest.role accepts USER or DEVELOPER (not ADMIN).
 export interface RegisterRequest {
   full_name: string;
   email: string;
   password: string;
-  role: 'USER' | 'TESTER';
+  role: 'USER' | 'DEVELOPER';
 }
 
 export interface RequestOtpRequest {

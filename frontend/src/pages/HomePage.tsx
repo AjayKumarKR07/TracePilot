@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
@@ -42,7 +42,7 @@ import {
 import { TracePilotLogo } from '../components/common/TracePilotLogo';
 import './HomePage.css';
 
-/* ─── Intersection Observer Hook ─────────────────────────────────── */
+/* â”€â”€â”€ Intersection Observer Hook â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLElement>(null);
   const [inView, setInView] = useState(false);
@@ -61,7 +61,7 @@ function useInView(threshold = 0.15) {
   return { ref, inView };
 }
 
-/* ─── Animated Counter ────────────────────────────────────────────── */
+/* â”€â”€â”€ Animated Counter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function AnimatedCounter({ target, suffix = '', duration = 2000 }: { target: number; suffix?: string; duration?: number }) {
   const [count, setCount] = useState(0);
   const { ref, inView } = useInView(0.3);
@@ -81,14 +81,14 @@ function AnimatedCounter({ target, suffix = '', duration = 2000 }: { target: num
   return <span ref={ref as React.Ref<HTMLSpanElement>}>{count}{suffix}</span>;
 }
 
-/* ─── Mini resolution chart data ─────────────────────────────────── */
+/* â”€â”€â”€ Mini resolution chart data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const resolutionData = [
   { d: 'W1', v: 62 }, { d: 'W2', v: 71 }, { d: 'W3', v: 68 },
   { d: 'W4', v: 79 }, { d: 'W5', v: 85 }, { d: 'W6', v: 91 },
   { d: 'W7', v: 88 }, { d: 'W8', v: 95 }, { d: 'W9', v: 98 },
 ];
 
-/* ─── Burndown mini chart ─────────────────────────────────────────── */
+/* â”€â”€â”€ Burndown mini chart â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const burndownData = [
   { d: 'D1', ideal: 38, actual: 38 }, { d: 'D2', ideal: 32, actual: 34 },
   { d: 'D3', ideal: 26, actual: 29 }, { d: 'D4', ideal: 20, actual: 22 },
@@ -96,18 +96,18 @@ const burndownData = [
   { d: 'D7', ideal: 2, actual: 7 },
 ];
 
-/* ─── Orbit items ─────────────────────────────────────────────────── */
+/* â”€â”€â”€ Orbit items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const orbitItems = [
-  { icon: '🐞', label: 'Issues', angle: 0 },
-  { icon: '🏃', label: 'Sprints', angle: 51.4 },
-  { icon: '📊', label: 'Analytics', angle: 102.8 },
-  { icon: '🔔', label: 'Alerts', angle: 154.2 },
-  { icon: '📁', label: 'Projects', angle: 205.6 },
-  { icon: '👥', label: 'Teams', angle: 257.1 },
-  { icon: '📄', label: 'Reports', angle: 308.5 },
+  { icon: 'ðŸž', label: 'Issues', angle: 0 },
+  { icon: 'ðŸƒ', label: 'Sprints', angle: 51.4 },
+  { icon: 'ðŸ“Š', label: 'Analytics', angle: 102.8 },
+  { icon: 'ðŸ””', label: 'Alerts', angle: 154.2 },
+  { icon: 'ðŸ“', label: 'Projects', angle: 205.6 },
+  { icon: 'ðŸ‘¥', label: 'Teams', angle: 257.1 },
+  { icon: 'ðŸ“„', label: 'Reports', angle: 308.5 },
 ];
 
-/* ─── Demo data ───────────────────────────────────────────────────── */
+/* â”€â”€â”€ Demo data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const demoIssues = [
   { key: 'BUG-1024', title: 'Login authentication failure', severity: 'CRITICAL', status: 'IN PROGRESS', assignee: 'AK', severityColor: '#ef4444', statusColor: '#f59e0b' },
   { key: 'BUG-1025', title: 'Dashboard chart not loading', severity: 'HIGH', status: 'OPEN', assignee: 'SR', severityColor: '#f97316', statusColor: '#6366f1' },
@@ -122,15 +122,15 @@ const demoTeamWorkload = [
 ];
 
 const demoNotifications = [
-  { icon: '🏃', title: 'Sprint Started', body: 'Sprint Alpha is now ACTIVE.', time: 'Just now', accent: '#6366f1', unread: true },
-  { icon: '✅', title: 'Issue Resolved', body: 'BUG-1024 was resolved successfully.', time: '2 minutes ago', accent: '#22c55e', unread: true },
-  { icon: '📊', title: 'Sprint Health Updated', body: 'Sprint Alpha is ON TRACK.', time: '5 minutes ago', accent: '#0ea5e9', unread: false },
-  { icon: '🔔', title: 'New Issue Assigned', body: 'BUG-1028 assigned to you.', time: '12 minutes ago', accent: '#f59e0b', unread: false },
+  { icon: 'ðŸƒ', title: 'Sprint Started', body: 'Sprint Alpha is now ACTIVE.', time: 'Just now', accent: '#6366f1', unread: true },
+  { icon: 'âœ…', title: 'Issue Resolved', body: 'BUG-1024 was resolved successfully.', time: '2 minutes ago', accent: '#22c55e', unread: true },
+  { icon: 'ðŸ“Š', title: 'Sprint Health Updated', body: 'Sprint Alpha is ON TRACK.', time: '5 minutes ago', accent: '#0ea5e9', unread: false },
+  { icon: 'ðŸ””', title: 'New Issue Assigned', body: 'BUG-1028 assigned to you.', time: '12 minutes ago', accent: '#f59e0b', unread: false },
 ];
 
-/* ══════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    HOMEPAGE COMPONENT
-══════════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 export const HomePage: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -185,7 +185,7 @@ export const HomePage: React.FC = () => {
   const getDashboardPath = () => {
     if (!user) return '/login';
     if (user.role === 'ADMIN') return '/admin-dashboard';
-    if (user.role === 'TESTER') return '/tester-dashboard';
+    if (user.role === 'DEVELOPER') return '/developer-dashboard';
     return '/dashboard';
   };
 
@@ -203,9 +203,9 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="lp-root">
-      {/* ═══════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           SCROLL PROGRESS BAR
-      ═══════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div
         className="lp-scroll-progress"
         style={{ width: `${scrollProgress}%` }}
@@ -216,9 +216,9 @@ export const HomePage: React.FC = () => {
         aria-label="Page scroll progress"
       />
 
-      {/* ═══════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           ANIMATED BACKGROUND
-      ═══════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div className="lp-bg" aria-hidden="true">
         <div className="lp-bg-grid" />
         <div className="lp-blob lp-blob-1" />
@@ -236,9 +236,9 @@ export const HomePage: React.FC = () => {
         </div>
       </div>
 
-      {/* ═══════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           NAVBAR
-      ═══════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <header className={`lp-nav${scrolled ? ' lp-nav--scrolled' : ''}`} role="banner">
         <div className="lp-nav-inner">
           {/* Brand */}
@@ -323,7 +323,7 @@ export const HomePage: React.FC = () => {
             ))}
             <div className="lp-mobile-divider" />
             <button type="button" className="lp-mobile-link" onClick={toggleTheme}>
-              {theme === 'dark' ? '☀️ Switch to Light Theme' : '🌙 Switch to Dark Theme'}
+              {theme === 'dark' ? 'â˜€ï¸ Switch to Light Theme' : 'ðŸŒ™ Switch to Dark Theme'}
             </button>
             <button type="button" className="lp-mobile-link" onClick={handleLogin}>Sign In</button>
             <button type="button" className="lp-mobile-link lp-mobile-link--primary" onClick={handleRegister}>
@@ -333,9 +333,9 @@ export const HomePage: React.FC = () => {
         )}
       </header>
 
-      {/* ═══════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           HERO
-      ═══════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <section className="lp-hero" aria-label="Hero">
         {/* Left */}
         <div className="lp-hero-left">
@@ -378,7 +378,7 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Right — 3D floating dashboard cards */}
+        {/* Right â€” 3D floating dashboard cards */}
         <div className="lp-hero-visual" aria-hidden="true">
           <div className="lp-3d-scene">
             {/* Sprint card */}
@@ -449,9 +449,9 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           FEATURES
-      ═══════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <section id="features" className="lp-section" aria-labelledby="features-title">
         <div className="lp-section-inner">
           <div className="lp-section-head">
@@ -468,37 +468,37 @@ export const HomePage: React.FC = () => {
           <div className="lp-features-grid">
             {[
               {
-                emoji: '🐞', icon: <Bug size={20} />, accent: '#6366f1',
+                emoji: 'ðŸž', icon: <Bug size={20} />, accent: '#6366f1',
                 title: 'Intelligent Issue Tracking',
                 desc: 'Track bugs, tasks, and feature requests with powerful filtering, priority management, and severity classification.',
                 action: () => handleProtectedNavigation('/issues'),
               },
               {
-                emoji: '🏃', icon: <GitBranch size={20} />, accent: '#22c55e',
+                emoji: 'ðŸƒ', icon: <GitBranch size={20} />, accent: '#22c55e',
                 title: 'Agile Sprint Management',
                 desc: 'Plan sprints, assign backlog issues, track progress, manage capacity, and safely roll over unfinished work.',
                 action: () => handleProtectedNavigation('/projects'),
               },
               {
-                emoji: '📊', icon: <BarChart3 size={20} />, accent: '#a855f7',
+                emoji: 'ðŸ“Š', icon: <BarChart3 size={20} />, accent: '#a855f7',
                 title: 'Real-Time Analytics',
                 desc: 'Monitor issue trends, resolution performance, tester workload, sprint health, and project progress.',
                 action: () => handleProtectedNavigation('/analytics'),
               },
               {
-                emoji: '📉', icon: <Activity size={20} />, accent: '#0ea5e9',
+                emoji: 'ðŸ“‰', icon: <Activity size={20} />, accent: '#0ea5e9',
                 title: 'Burndown Tracking',
                 desc: 'Visualize sprint progress with ideal versus actual burndown data to keep delivery on schedule.',
                 action: () => scrollToSection('sprints'),
               },
               {
-                emoji: '🔔', icon: <Bell size={20} />, accent: '#f59e0b',
+                emoji: 'ðŸ””', icon: <Bell size={20} />, accent: '#f59e0b',
                 title: 'Real-Time Notifications',
                 desc: 'Stay informed about important issue and sprint activities through live notifications.',
                 action: () => handleProtectedNavigation('/notifications'),
               },
               {
-                emoji: '🔐', icon: <ShieldCheck size={20} />, accent: '#ef4444',
+                emoji: 'ðŸ”', icon: <ShieldCheck size={20} />, accent: '#ef4444',
                 title: 'Role-Based Access',
                 desc: 'Secure workflows with dedicated permissions for Admins, Testers, and Users.',
                 action: () => scrollToSection('roles'),
@@ -510,9 +510,9 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           INTERACTIVE PRODUCT DEMO  [ENHANCEMENT 1]
-      ═══════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <section id="demo" className="lp-section lp-section--alt" aria-labelledby="demo-title">
         <div className="lp-section-inner">
           <div className="lp-section-head">
@@ -527,9 +527,9 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           WORKFLOW
-      ═══════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <section id="workflow" className="lp-section" aria-labelledby="workflow-title">
         <div className="lp-section-inner">
           <div className="lp-section-head">
@@ -542,18 +542,18 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           SPRINT SHOWCASE
-      ═══════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <section id="sprints" className="lp-section lp-section--alt" aria-labelledby="sprints-title">
         <div className="lp-section-inner">
           <SprintShowcase onNavigate={() => handleProtectedNavigation('/projects')} />
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           ANALYTICS SHOWCASE
-      ═══════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <section id="analytics" className="lp-section" aria-labelledby="analytics-title">
         <div className="lp-section-inner">
           <div className="lp-section-head">
@@ -605,9 +605,9 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           ROLE-BASED WORKFLOW  [ENHANCEMENT 2]
-      ═══════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <section id="roles" className="lp-section lp-section--alt" aria-labelledby="roles-title">
         <div className="lp-section-inner">
           <div className="lp-section-head">
@@ -667,9 +667,9 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           REAL-TIME NOTIFICATIONS  [ENHANCEMENT 3]
-      ═══════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <section id="realtime" className="lp-section" aria-labelledby="realtime-title">
         <div className="lp-section-inner">
           <div className="lp-realtime-layout">
@@ -698,7 +698,7 @@ export const HomePage: React.FC = () => {
               </ul>
               <div className="lp-live-badge" aria-label="Live capability preview">
                 <span className="lp-live-dot" aria-hidden="true" />
-                <span>LIVE — Capability Preview</span>
+                <span>LIVE â€” Capability Preview</span>
               </div>
             </div>
 
@@ -708,9 +708,9 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           ORBIT SECTION
-      ═══════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <section className="lp-section lp-section--alt lp-orbit-section" aria-label="TracePilot capabilities orbit">
         <div className="lp-section-inner lp-orbit-inner">
           <div className="lp-section-head">
@@ -745,9 +745,9 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           WHY TRACEPILOT
-      ═══════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <section id="why" className="lp-section" aria-labelledby="why-title">
         <div className="lp-section-inner">
           <div className="lp-section-head">
@@ -783,12 +783,12 @@ export const HomePage: React.FC = () => {
           {/* ENHANCEMENT 6: Capability Highlights */}
           <div className="lp-capabilities">
             {[
-              { emoji: '🐞', title: 'Intelligent Issue Tracking', desc: 'Track defects with severity, priority, assignments, comments, and attachments.' },
-              { emoji: '🏃', title: 'Advanced Sprint Management', desc: 'Plan sprints, track capacity, monitor health, manage rollovers, and generate sprint reports.' },
-              { emoji: '📊', title: 'Actionable Analytics', desc: 'Monitor resolution trends, team workload, project metrics, and sprint performance.' },
-              { emoji: '🔐', title: 'Role-Based Security', desc: 'Controlled workflows for administrators, testers, and reporters.' },
-              { emoji: '🔔', title: 'Real-Time Updates', desc: 'Important system and sprint events delivered through real-time notification infrastructure.' },
-              { emoji: '📝', title: 'Complete Audit Trail', desc: 'Traceable activity records maintained for all important system operations.' },
+              { emoji: 'ðŸž', title: 'Intelligent Issue Tracking', desc: 'Track defects with severity, priority, assignments, comments, and attachments.' },
+              { emoji: 'ðŸƒ', title: 'Advanced Sprint Management', desc: 'Plan sprints, track capacity, monitor health, manage rollovers, and generate sprint reports.' },
+              { emoji: 'ðŸ“Š', title: 'Actionable Analytics', desc: 'Monitor resolution trends, team workload, project metrics, and sprint performance.' },
+              { emoji: 'ðŸ”', title: 'Role-Based Security', desc: 'Controlled workflows for administrators, testers, and reporters.' },
+              { emoji: 'ðŸ””', title: 'Real-Time Updates', desc: 'Important system and sprint events delivered through real-time notification infrastructure.' },
+              { emoji: 'ðŸ“', title: 'Complete Audit Trail', desc: 'Traceable activity records maintained for all important system operations.' },
             ].map(({ emoji, title, desc }) => (
               <div key={title} className="lp-capability-item">
                 <span className="lp-capability-emoji" aria-hidden="true">{emoji}</span>
@@ -802,9 +802,9 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           FINAL CTA
-      ═══════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <section className="lp-cta-section" aria-labelledby="cta-title">
         <div className="lp-cta-bg-glow" aria-hidden="true" />
         <div className="lp-cta-inner">
@@ -829,9 +829,9 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           FOOTER
-      ═══════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <footer className="lp-footer" role="contentinfo">
         <div className="lp-footer-inner">
           <div className="lp-footer-brand-col">
@@ -871,7 +871,7 @@ export const HomePage: React.FC = () => {
         </div>
 
         <div className="lp-footer-bottom">
-          <span>© {new Date().getFullYear()} TracePilot. All rights reserved.</span>
+          <span>Â© {new Date().getFullYear()} TracePilot. All rights reserved.</span>
           <div className="lp-footer-bottom-links">
             <button type="button" className="lp-footer-link" onClick={handleLogin}>Privacy</button>
             <button type="button" className="lp-footer-link" onClick={handleLogin}>Terms</button>
@@ -882,7 +882,7 @@ export const HomePage: React.FC = () => {
   );
 };
 
-/* ─── Feature Card Sub-component ─────────────────────────────────── */
+/* â”€â”€â”€ Feature Card Sub-component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 interface FeatureCardProps {
   emoji: string;
   icon: React.ReactNode;
@@ -928,7 +928,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon, accent, title, desc, on
   );
 };
 
-/* ─── Workflow Timeline Sub-component ────────────────────────────── */
+/* â”€â”€â”€ Workflow Timeline Sub-component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const workflowSteps = [
   { icon: <CheckSquare size={18} />, label: 'BACKLOG', desc: 'All issues and feature requests collected and prioritized', accent: '#6366f1' },
   { icon: <Layers size={18} />, label: 'SPRINT PLANNING', desc: 'Team selects backlog items, estimates effort, assigns capacity', accent: '#8b5cf6' },
@@ -965,7 +965,7 @@ const WorkflowTimeline: React.FC = () => {
   );
 };
 
-/* ─── Sprint Showcase Sub-component ──────────────────────────────── */
+/* â”€â”€â”€ Sprint Showcase Sub-component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 interface SprintShowcaseProps { onNavigate: () => void; }
 const SprintShowcase: React.FC<SprintShowcaseProps> = ({ onNavigate }) => {
   const { ref, inView } = useInView(0.15);
@@ -982,7 +982,7 @@ const SprintShowcase: React.FC<SprintShowcaseProps> = ({ onNavigate }) => {
             <span style={{ background: '#f97316' }} />
             <span style={{ background: '#22c55e' }} />
           </div>
-          <span className="lp-sp-url">TracePilot · Sprint Dashboard</span>
+          <span className="lp-sp-url">TracePilot Â· Sprint Dashboard</span>
         </div>
 
         <div className="lp-sp-body">
@@ -1038,7 +1038,7 @@ const SprintShowcase: React.FC<SprintShowcaseProps> = ({ onNavigate }) => {
           <span className="lp-gradient-text">Deliver Faster.</span>
         </h2>
         <p className="lp-sprint-copy-body">
-          TracePilot's sprint management gives your team complete visibility into every iteration — from planning to retrospective.
+          TracePilot's sprint management gives your team complete visibility into every iteration â€” from planning to retrospective.
         </p>
         <ul className="lp-sprint-features">
           {[
@@ -1064,7 +1064,7 @@ const SprintShowcase: React.FC<SprintShowcaseProps> = ({ onNavigate }) => {
   );
 };
 
-/* ─── Product Demo Sub-component [ENHANCEMENT 1] ─────────────────── */
+/* â”€â”€â”€ Product Demo Sub-component [ENHANCEMENT 1] â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 type DemoTab = 'issues' | 'sprint' | 'analytics';
 
 const ProductDemo: React.FC = () => {
@@ -1115,7 +1115,7 @@ const ProductDemo: React.FC = () => {
             <span style={{ background: '#22c55e' }} />
           </div>
           <span className="lp-demo-url">
-            TracePilot · {activeTab === 'issues' ? 'Issues' : activeTab === 'sprint' ? 'Sprint Dashboard' : 'Analytics'}
+            TracePilot Â· {activeTab === 'issues' ? 'Issues' : activeTab === 'sprint' ? 'Sprint Dashboard' : 'Analytics'}
           </span>
           <span className="lp-chart-demo-tag">DEMO</span>
         </div>
@@ -1179,7 +1179,7 @@ const DemoSprintPanel: React.FC = () => (
     <div className="lp-demo-sprint-hdr">
       <div>
         <div className="lp-demo-sprint-name">Sprint Alpha</div>
-        <div className="lp-demo-sprint-dates">Sep 1 – Sep 14, 2026</div>
+        <div className="lp-demo-sprint-dates">Sep 1 â€“ Sep 14, 2026</div>
       </div>
       <span className="lp-fc-tag lp-fc-tag--green">ON TRACK</span>
     </div>
@@ -1255,7 +1255,7 @@ const DemoAnalyticsPanel: React.FC = () => (
   </div>
 );
 
-/* ─── Role Card [ENHANCEMENT 2] ──────────────────────────────────── */
+/* â”€â”€â”€ Role Card [ENHANCEMENT 2] â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 interface RoleCardProps {
   icon: React.ReactNode;
   accent: string;
@@ -1308,7 +1308,7 @@ const RoleCard: React.FC<RoleCardProps> = ({ icon, accent, role, subtitle, badge
   );
 };
 
-/* ─── Notification Panel [ENHANCEMENT 3] ─────────────────────────── */
+/* â”€â”€â”€ Notification Panel [ENHANCEMENT 3] â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const NotificationPanel: React.FC = () => {
   const { ref, inView } = useInView(0.15);
   return (
@@ -1346,10 +1346,11 @@ const NotificationPanel: React.FC = () => {
       </div>
       <div className="lp-notif-footer">
         <BookOpen size={12} aria-hidden="true" />
-        Example real-time events — live notifications available after sign-in
+        Example real-time events â€” live notifications available after sign-in
       </div>
     </div>
   );
 };
 
 export default HomePage;
+

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Activity,
@@ -48,9 +48,9 @@ import type { Sprint } from '../types/Sprint';
 import type { UserDetail } from '../types/user';
 import { formatDate, formatRelativeTime } from '../utils/formatters';
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Bar Row Helper
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface BarRowProps {
   label: string;
@@ -79,9 +79,9 @@ const BarRow: React.FC<BarRowProps> = ({ label, count, total, color }) => {
   );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Metric Card
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface MetricCardProps {
   label: string;
@@ -142,9 +142,9 @@ const MetricCard: React.FC<MetricCardProps> = ({
   </div>
 );
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Main Component
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const AdminDashboardPage: React.FC = () => {
   const { user: currentUser } = useAuth();
@@ -260,7 +260,7 @@ export const AdminDashboardPage: React.FC = () => {
     setSelectedIssueId(issueId);
     setAssignModalOpen(true);
     try {
-      const res = await usersApi.list({ role: 'TESTER', is_active: true, page_size: 100 });
+      const res = await usersApi.list({ role: 'DEVELOPER', is_active: true, page_size: 100 });
       setTesters(res.items);
     } catch (err) {
       console.error(err);
@@ -371,9 +371,9 @@ export const AdminDashboardPage: React.FC = () => {
   return (
     <div className="page-container" style={{ maxWidth: '1440px', margin: '0 auto', paddingBottom: '3rem' }}>
       
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* 1. HEADER SECTION                                                     */}
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <header
         className="page-header"
         style={{
@@ -521,7 +521,7 @@ export const AdminDashboardPage: React.FC = () => {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                 <span style={{ fontSize: '0.68rem', color: '#f97316', fontWeight: 700 }}>ADMIN</span>
-                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>• {currentUser?.email}</span>
+                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>â€¢ {currentUser?.email}</span>
               </div>
             </div>
           </div>
@@ -539,9 +539,9 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
       </header>
 
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* 2. QUICK ACTIONS BAR                                                  */}
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div
         style={{
           display: 'flex',
@@ -596,16 +596,16 @@ export const AdminDashboardPage: React.FC = () => {
         </Link>
       </div>
 
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* 3. KPI SECTION (8 Real Metrics)                                       */}
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
         <MetricCard
           label="Total Projects"
           value={stats.projects.total}
           icon={<FolderGit2 size={22} />}
           iconClass="icon-purple"
-          subtitle={`${stats.projects.active} Active • ${stats.projects.inactive} Inactive`}
+          subtitle={`${stats.projects.active} Active â€¢ ${stats.projects.inactive} Inactive`}
         />
         <MetricCard
           label="Total Issues"
@@ -628,14 +628,14 @@ export const AdminDashboardPage: React.FC = () => {
           icon={<AlertTriangle size={22} />}
           iconClass="icon-red"
           valueColor="#ef4444"
-          subtitle={`${stats.severity.blocker} Blocker • ${stats.severity.critical.toLocaleString()} Critical`}
+          subtitle={`${stats.severity.blocker} Blocker â€¢ ${stats.severity.critical.toLocaleString()} Critical`}
         />
         <MetricCard
           label="Active Sprints"
           value={(stats.sprints?.active || 0) + (stats.sprints?.in_progress || 0)}
           icon={<PlayCircle size={22} />}
           iconClass="icon-green"
-          subtitle={`${stats.sprints?.in_progress || 0} In Progress • ${stats.sprints?.active || 0} Active`}
+          subtitle={`${stats.sprints?.in_progress || 0} In Progress â€¢ ${stats.sprints?.active || 0} Active`}
         />
         <MetricCard
           label="Awaiting Approval"
@@ -663,9 +663,9 @@ export const AdminDashboardPage: React.FC = () => {
         />
       </div>
 
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* 4. MAIN "TRACEPILOT PROCESS" SECTION (Visual Centerpiece)            */}
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section
         className="card"
         style={{
@@ -712,10 +712,10 @@ export const AdminDashboardPage: React.FC = () => {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem' }}>
             <span style={{ padding: '0.2rem 0.6rem', borderRadius: '999px', background: 'rgba(14,165,233,0.15)', color: '#38bdf8', fontWeight: 600 }}>USER / IMPORT</span>
-            <span style={{ color: 'var(--text-muted)' }}>→</span>
+            <span style={{ color: 'var(--text-muted)' }}>â†’</span>
             <span style={{ padding: '0.2rem 0.6rem', borderRadius: '999px', background: 'rgba(99,102,241,0.15)', color: '#818cf8', fontWeight: 600 }}>ADMIN PLAN & REVIEW</span>
-            <span style={{ color: 'var(--text-muted)' }}>→</span>
-            <span style={{ padding: '0.2rem 0.6rem', borderRadius: '999px', background: 'rgba(16,185,129,0.15)', color: '#34d399', fontWeight: 600 }}>TESTER EXECUTION</span>
+            <span style={{ color: 'var(--text-muted)' }}>â†’</span>
+            <span style={{ padding: '0.2rem 0.6rem', borderRadius: '999px', background: 'rgba(16,185,129,0.15)', color: '#34d399', fontWeight: 600 }}>DEVELOPER EXECUTION</span>
           </div>
         </div>
 
@@ -911,7 +911,7 @@ export const AdminDashboardPage: React.FC = () => {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#34d399', background: 'rgba(16,185,129,0.2)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
-                  STEP 7 [TESTER]
+                  STEP 7 [DEVELOPER]
                 </span>
                 <PlayCircle size={15} style={{ color: '#34d399' }} />
               </div>
@@ -939,7 +939,7 @@ export const AdminDashboardPage: React.FC = () => {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#34d399', background: 'rgba(16,185,129,0.2)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
-                  STEP 8 [TESTER]
+                  STEP 8 [DEVELOPER]
                 </span>
                 <Activity size={15} style={{ color: '#34d399' }} />
               </div>
@@ -967,7 +967,7 @@ export const AdminDashboardPage: React.FC = () => {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#818cf8', background: 'rgba(99,102,241,0.25)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
-                  STEP 9 [TESTER]
+                  STEP 9 [DEVELOPER]
                 </span>
                 <ClipboardCheck size={15} style={{ color: '#818cf8' }} />
               </div>
@@ -1041,7 +1041,7 @@ export const AdminDashboardPage: React.FC = () => {
                   Admin specifies feedback in comment modal. Sprint returns to <strong>IN_PROGRESS</strong> for tester rework.
                 </p>
                 <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#f59e0b' }}>
-                  Result: Returns to IN_PROGRESS → Tester fixes → Resubmit for Admin review
+                  Result: Returns to IN_PROGRESS â†’ Tester fixes â†’ Resubmit for Admin review
                 </div>
               </div>
             </div>
@@ -1049,9 +1049,9 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
       </section>
 
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* 5. SPRINT STATUS PIPELINE                                             */}
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="card" style={{ marginBottom: '2.5rem' }}>
         <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
@@ -1185,9 +1185,9 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
       </section>
 
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* 6. ROLE RESPONSIBILITY CARD                                           */}
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div
         style={{
           display: 'grid',
@@ -1203,11 +1203,11 @@ export const AdminDashboardPage: React.FC = () => {
             <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>ADMIN</h3>
           </div>
           <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <div>• <strong>Manage:</strong> Oversee projects, members & permissions</div>
-            <div>• <strong>Plan:</strong> Create sprint milestones & capacity</div>
-            <div>• <strong>Assign:</strong> Designate dedicated QA testers to sprints</div>
-            <div>• <strong>Monitor:</strong> Live velocity, burndown & defect health</div>
-            <div>• <strong>Review & Decide:</strong> Approve sprint or request rework</div>
+            <div>â€¢ <strong>Manage:</strong> Oversee projects, members & permissions</div>
+            <div>â€¢ <strong>Plan:</strong> Create sprint milestones & capacity</div>
+            <div>â€¢ <strong>Assign:</strong> Designate dedicated QA testers to sprints</div>
+            <div>â€¢ <strong>Monitor:</strong> Live velocity, burndown & defect health</div>
+            <div>â€¢ <strong>Review & Decide:</strong> Approve sprint or request rework</div>
           </div>
         </div>
 
@@ -1215,13 +1215,13 @@ export const AdminDashboardPage: React.FC = () => {
         <div style={{ padding: '1.25rem', borderRadius: '12px', background: 'var(--bg-surface)', border: '1px solid rgba(16,185,129,0.25)', borderTop: '4px solid #10b981' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
             <UserCheck size={18} style={{ color: '#34d399' }} />
-            <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>TESTER</h3>
+            <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>DEVELOPER</h3>
           </div>
           <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <div>• <strong>Begin Work:</strong> Kick off assigned ACTIVE sprints</div>
-            <div>• <strong>Work Issues:</strong> Validate fixes, retest, and update statuses</div>
-            <div>• <strong>Submit:</strong> Request admin approval upon testing completion</div>
-            <div>• <strong>Rework:</strong> Address admin feedback when changes requested</div>
+            <div>â€¢ <strong>Begin Work:</strong> Kick off assigned ACTIVE sprints</div>
+            <div>â€¢ <strong>Work Issues:</strong> Validate fixes, retest, and update statuses</div>
+            <div>â€¢ <strong>Submit:</strong> Request admin approval upon testing completion</div>
+            <div>â€¢ <strong>Rework:</strong> Address admin feedback when changes requested</div>
           </div>
         </div>
 
@@ -1232,9 +1232,9 @@ export const AdminDashboardPage: React.FC = () => {
             <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>USER</h3>
           </div>
           <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <div>• <strong>Report:</strong> Submit defect tickets with reproducible steps</div>
-            <div>• <strong>Track:</strong> Follow defect lifecycle from triage to resolution</div>
-            <div>• <strong>Verify:</strong> Confirm resolution in production environments</div>
+            <div>â€¢ <strong>Report:</strong> Submit defect tickets with reproducible steps</div>
+            <div>â€¢ <strong>Track:</strong> Follow defect lifecycle from triage to resolution</div>
+            <div>â€¢ <strong>Verify:</strong> Confirm resolution in production environments</div>
           </div>
         </div>
 
@@ -1245,17 +1245,17 @@ export const AdminDashboardPage: React.FC = () => {
             <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>SYSTEM</h3>
           </div>
           <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <div>• <strong>WebSockets:</strong> Instant notifications and real-time updates</div>
-            <div>• <strong>Audit Logs:</strong> Immutable tracking for all entity operations</div>
-            <div>• <strong>Smart Priority:</strong> Automated Severity × Urgency score</div>
-            <div>• <strong>PostgreSQL:</strong> ACIDS transactional persistence with 10k Kaggle bugs</div>
+            <div>â€¢ <strong>WebSockets:</strong> Instant notifications and real-time updates</div>
+            <div>â€¢ <strong>Audit Logs:</strong> Immutable tracking for all entity operations</div>
+            <div>â€¢ <strong>Smart Priority:</strong> Automated Severity Ã— Urgency score</div>
+            <div>â€¢ <strong>PostgreSQL:</strong> ACIDS transactional persistence with 10k Kaggle bugs</div>
           </div>
         </div>
       </div>
 
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* 7. SPRINTS AWAITING APPROVAL (High-Priority Action Section)           */}
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section
         id="approvals-section"
         className="card"
@@ -1374,7 +1374,7 @@ export const AdminDashboardPage: React.FC = () => {
 
                         <div style={{ display: 'flex', gap: '1.25rem', fontSize: '0.78rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
                           <span>
-                            Assigned Tester: <strong style={{ color: '#34d399' }}>{sprint.assigned_tester_name || '—'}</strong>
+                            Assigned Tester: <strong style={{ color: '#34d399' }}>{sprint.assigned_tester_name || 'â€”'}</strong>
                           </span>
                           <span>
                             Start: <strong style={{ color: 'var(--text-primary)' }}>{formatDate(sprint.start_date)}</strong>
@@ -1404,7 +1404,7 @@ export const AdminDashboardPage: React.FC = () => {
                           disabled={sprintActionLoading === sprint.id}
                           onClick={() => handleApproveSprint(sprint.id)}
                           style={{ fontSize: '0.8rem', padding: '0.45rem 0.95rem', fontWeight: 600 }}
-                          title="Approve Sprint → Transitions to COMPLETED"
+                          title="Approve Sprint â†’ Transitions to COMPLETED"
                         >
                           <ThumbsUp size={14} /> Approve Sprint
                         </button>
@@ -1416,7 +1416,7 @@ export const AdminDashboardPage: React.FC = () => {
                             setRequestChangesComment('');
                           }}
                           style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem' }}
-                          title="Request changes → Returns to IN_PROGRESS"
+                          title="Request changes â†’ Returns to IN_PROGRESS"
                         >
                           <RotateCcw size={14} /> Request Changes
                         </button>
@@ -1453,9 +1453,9 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
       </section>
 
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* 8. ACTIVE SPRINTS SECTION                                             */}
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="card" style={{ marginBottom: '2.5rem' }}>
         <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
@@ -1564,9 +1564,9 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
       </section>
 
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* 9. BACKLOG & DEFECT OVERVIEW                                          */}
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="card" style={{ marginBottom: '2.5rem' }}>
         <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
@@ -1679,9 +1679,9 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
       </section>
 
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* 10. ANALYTICS WORKSPACE CALLOUT                                       */}
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div
         className="card"
         style={{
@@ -1730,9 +1730,9 @@ export const AdminDashboardPage: React.FC = () => {
         </Link>
       </div>
 
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* 11. DUAL COLUMN: QUEUE + WORKLOAD vs HEALTH & AUDIT                   */}
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '1.5rem', marginTop: '2rem', alignItems: 'start' }}>
         {/* Left Column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -2035,9 +2035,9 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* 12. MODALS                                                            */}
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
 
       {/* Assign Tester Modal */}
       <Modal isOpen={assignModalOpen} onClose={() => setAssignModalOpen(false)} title="Assign Tester to Issue">
@@ -2157,10 +2157,11 @@ export const AdminDashboardPage: React.FC = () => {
             onClick={() => setToastMessage(null)}
             style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.1rem', marginLeft: '0.5rem' }}
           >
-            ×
+            Ã—
           </button>
         </div>
       )}
     </div>
   );
 };
+

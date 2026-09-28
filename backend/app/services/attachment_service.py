@@ -1,5 +1,5 @@
-"""
-Attachment service — Phase 7.
+﻿"""
+Attachment service â€” Phase 7.
 
 Handles file upload validation, secure storage, and metadata management
 for issue attachments.
@@ -26,9 +26,9 @@ Transaction safety:
   - If a physical deletion fails, an error is raised (never silent failure).
 
 RBAC:
-  ADMIN     → any issue
-  TESTER    → assigned or reported issues
-  USER      → own reported issues only
+  ADMIN     â†’ any issue
+  TESTER    â†’ assigned or reported issues
+  USER      â†’ own reported issues only
 """
 
 import math
@@ -53,7 +53,7 @@ from app.models.notification import NotificationType
 
 
 # --------------------------------------------------------------------------- #
-# Blocked extensions — reject regardless of MIME type                         #
+# Blocked extensions â€” reject regardless of MIME type                         #
 # --------------------------------------------------------------------------- #
 
 _BLOCKED_EXTENSIONS: frozenset[str] = frozenset({
@@ -63,7 +63,7 @@ _BLOCKED_EXTENSIONS: frozenset[str] = frozenset({
     ".gadget", ".cpl", ".inf", ".reg", ".hta", ".url",
 })
 
-# Mapping: allowed MIME → expected magic bytes prefix (raw bytes)
+# Mapping: allowed MIME â†’ expected magic bytes prefix (raw bytes)
 _MAGIC_BYTES: dict[str, list[bytes]] = {
     "image/png":      [b"\x89PNG\r\n\x1a\n"],
     "image/jpeg":     [b"\xff\xd8\xff"],
@@ -85,7 +85,7 @@ def _get_storage_root() -> Path:
     if configured.is_absolute():
         root = configured
     else:
-        # Resolve relative to backend/ (two levels up from this file: services/ → app/ → backend/)
+        # Resolve relative to backend/ (two levels up from this file: services/ â†’ app/ â†’ backend/)
         backend_dir = Path(__file__).resolve().parent.parent.parent
         root = backend_dir / configured
     root.mkdir(parents=True, exist_ok=True)
@@ -178,7 +178,7 @@ async def _validate_upload(file: UploadFile, content: bytes) -> tuple[str, str]:
             detail=f"File extension '{ext}' is not permitted.",
         )
 
-    # MIME → extension consistency check (extra guard)
+    # MIME â†’ extension consistency check (extra guard)
     mime_to_exts: dict[str, set[str]] = {
         "image/png":      {".png"},
         "image/jpeg":     {".jpg", ".jpeg"},
@@ -230,9 +230,9 @@ async def _get_issue_or_404(issue_id: int, db: AsyncSession) -> Issue:
 def _check_issue_access(issue: Issue, current_user: User) -> None:
     """Enforce issue visibility rules for attachments.
 
-    ADMIN     → any issue
-    TESTER    → issues assigned to them OR that they reported
-    USER      → only issues they reported
+    ADMIN     â†’ any issue
+    TESTER    â†’ issues assigned to them OR that they reported
+    USER      â†’ only issues they reported
     """
     if current_user.role == UserRole.ADMIN:
         return
@@ -242,7 +242,7 @@ def _check_issue_access(issue: Issue, current_user: User) -> None:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You can only upload attachments to issues you reported.",
             )
-    elif current_user.role == UserRole.TESTER:
+    elif current_user.role == UserRole.DEVELOPER:
         if issue.assignee_id != current_user.id and issue.reporter_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -362,7 +362,7 @@ async def save_attachment(
             },
         )
     except Exception:
-        # DB failed — clean up physical file to avoid orphan
+        # DB failed â€” clean up physical file to avoid orphan
         try:
             file_path.unlink(missing_ok=True)
         except OSError:
@@ -434,7 +434,7 @@ async def get_attachment(
     """Return (IssueAttachment, resolved file Path) for download.
 
     Verifies access and that the physical file exists.
-    The physical path is returned only to the route handler for FileResponse —
+    The physical path is returned only to the route handler for FileResponse â€”
     it is NEVER serialised into a JSON response.
     """
     attachment = await _get_attachment_or_404(attachment_id, db)
@@ -527,3 +527,4 @@ async def delete_attachment(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to delete physical file: {e}",
             )
+

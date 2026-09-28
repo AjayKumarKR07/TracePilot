@@ -1,4 +1,4 @@
-"""
+﻿"""
 AI / Chatbot API routes for TracePilot.
 
 RBAC:
@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/ai", tags=["AI Assistant"])
 
 # Roles that can use the AI assistant
-_AI_ALLOWED_ROLES = [UserRole.TESTER, UserRole.ADMIN]
+_AI_ALLOWED_ROLES = [UserRole.DEVELOPER, UserRole.ADMIN]
 
 
 # --------------------------------------------------------------------------- #
@@ -308,7 +308,7 @@ async def root_cause_analysis(
     """
     Perform advisory root cause analysis.
     Returns possible causes (with appropriate uncertainty), investigation steps, logs to check.
-    Does NOT claim certainty — uses cautious, investigative language.
+    Does NOT claim certainty â€” uses cautious, investigative language.
     """
     result = await ai_service.root_cause_analysis(body.description, body.issue_id, db)
     logger.info("AI root_cause: user=%s issue_id=%s success=%s", current_user.id, body.issue_id, result.success)
@@ -352,3 +352,4 @@ async def explain_metrics(
     result = await ai_service.explain_metrics(body.metrics_context, body.question)
     logger.info("AI explain_metrics: user=%s success=%s", current_user.id, result.success)
     return _ai_response_to_dict(result)
+

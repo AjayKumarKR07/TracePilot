@@ -1,10 +1,10 @@
-"""
-Admin dashboard service — Phase 6.
+﻿"""
+Admin dashboard service â€” Phase 6.
 
 Computes system-wide statistics using efficient SQL aggregation queries.
 
 Design principles:
-  - All counts use SQL func.count() + case() — zero Python-level iteration.
+  - All counts use SQL func.count() + case() â€” zero Python-level iteration.
   - Single query per entity type (user/project/issue) to minimise round-trips.
   - No sensitive data (password_hash, tokens, OTPs) is ever read or returned.
 """
@@ -116,7 +116,7 @@ async def _user_stats(db: AsyncSession) -> UserStats:
             func.count(case((User.is_active == True, 1))).label("active"),        # noqa: E712
             func.count(case((User.is_active == False, 1))).label("inactive"),     # noqa: E712
             func.count(case((User.role == UserRole.ADMIN, 1))).label("admins"),
-            func.count(case((User.role.in_([UserRole.TESTER, "DEVELOPER"]), 1))).label("testers"),
+            func.count(case((User.role.in_([UserRole.DEVELOPER, "DEVELOPER"]), 1))).label("testers"),
             func.count(case((User.role == UserRole.USER, 1))).label("users"),
             func.count(case((User.is_email_verified == True, 1))).label("verified"),   # noqa: E712
             func.count(case((User.is_email_verified == False, 1))).label("unverified"),  # noqa: E712
@@ -333,5 +333,6 @@ async def _backlog_stats(db: AsyncSession) -> BacklogStats:
         closed=row.closed,
         kaggle_count=row.kaggle_count,
     )
+
 
 

@@ -24,7 +24,7 @@ interface SwitchRoleModalProps {
 }
 
 /** The strictly allowed 3 roles for Switch Role feature. */
-export type SwitchableRole = 'ADMIN' | 'TESTER' | 'USER';
+export type SwitchableRole = 'ADMIN' | 'DEVELOPER' | 'USER';
 
 export interface SwitchRoleOption {
   role: SwitchableRole;
@@ -48,11 +48,11 @@ export const SWITCH_ROLES: SwitchRoleOption[] = [
     color: 'var(--danger)',
   },
   {
-    role: 'TESTER',
-    name: 'Tester',
-    badge: 'TESTER',
-    dashboardName: 'Tester Dashboard',
-    dashboardPath: '/tester-dashboard',
+    role: 'DEVELOPER',
+    name: 'DEVELOPER',
+    badge: 'DEVELOPER',
+    dashboardName: 'Developer Dashboard',
+    dashboardPath: '/developer-dashboard',
     description: 'QA defect verification, issue lifecycle progression, and sprint execution.',
     color: 'var(--primary)',
   },
@@ -72,8 +72,8 @@ export function getDashboardPath(role: SwitchableRole): string {
   switch (role) {
     case 'ADMIN':
       return '/admin-dashboard';
-    case 'TESTER':
-      return '/tester-dashboard';
+    case 'DEVELOPER':
+      return '/developer-dashboard';
     case 'USER':
     default:
       return '/dashboard';
@@ -82,13 +82,13 @@ export function getDashboardPath(role: SwitchableRole): string {
 
 export const ROLE_COLOR_MAP: Record<SwitchableRole, string> = {
   ADMIN: 'var(--danger)',
-  TESTER: 'var(--primary)',
+  DEVELOPER: 'var(--primary)',
   USER: 'var(--success)',
 };
 
 const ROLE_ICON: React.FC<{ role: SwitchableRole; size?: number }> = ({ role, size = 15 }) => {
   if (role === 'ADMIN') return <ShieldCheck size={size} />;
-  if (role === 'TESTER') return <TestTube2 size={size} />;
+  if (role === 'DEVELOPER') return <TestTube2 size={size} />;
   return <User size={size} />;
 };
 
@@ -123,7 +123,7 @@ export const SwitchRoleModal: React.FC<SwitchRoleModalProps> = ({ isOpen, onClos
       const validUsers = resp.items.filter(
         (u) =>
           u.is_active &&
-          (u.role === 'ADMIN' || u.role === 'TESTER' || u.role === 'USER')
+          (u.role === 'ADMIN' || u.role === 'DEVELOPER' || u.role === 'USER')
       );
       setUsers(validUsers);
     } catch {
@@ -249,7 +249,7 @@ export const SwitchRoleModal: React.FC<SwitchRoleModalProps> = ({ isOpen, onClos
           overflow: 'hidden',
         }}
       >
-        {/* ── Top Header Bar ── */}
+        {/* â”€â”€ Top Header Bar â”€â”€ */}
         <div
           style={{
             display: 'flex',
@@ -372,7 +372,7 @@ export const SwitchRoleModal: React.FC<SwitchRoleModalProps> = ({ isOpen, onClos
           </button>
         </div>
 
-        {/* ── Active Session Pill (Visible in Step 1) ── */}
+        {/* â”€â”€ Active Session Pill (Visible in Step 1) â”€â”€ */}
         {!selectedRole && !pendingUser && user && (
           <div
             style={{
@@ -444,7 +444,7 @@ export const SwitchRoleModal: React.FC<SwitchRoleModalProps> = ({ isOpen, onClos
           </div>
         )}
 
-        {/* ── Error Banner ── */}
+        {/* â”€â”€ Error Banner â”€â”€ */}
         {error && (
           <div
             style={{
@@ -462,9 +462,9 @@ export const SwitchRoleModal: React.FC<SwitchRoleModalProps> = ({ isOpen, onClos
           </div>
         )}
 
-        {/* ══════════════════════════════════════════════════════════════════════ */}
-        {/* STEP 1: ROLE SELECTION (ONLY ADMIN, TESTER, USER)                     */}
-        {/* ══════════════════════════════════════════════════════════════════════ */}
+        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+        {/* STEP 1: ROLE SELECTION (ONLY ADMIN, DEVELOPER, USER)                  */}
+        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
         {!selectedRole && !pendingUser && (
           <div
             style={{
@@ -660,9 +660,9 @@ export const SwitchRoleModal: React.FC<SwitchRoleModalProps> = ({ isOpen, onClos
           </div>
         )}
 
-        {/* ══════════════════════════════════════════════════════════════════════ */}
+        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
         {/* STEP 2: AUTHORIZED USER SELECTION WITHIN CHOSEN ROLE                  */}
-        {/* ══════════════════════════════════════════════════════════════════════ */}
+        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
         {selectedRole && !pendingUser && activeRoleOption && (
           <div
             style={{
@@ -730,7 +730,7 @@ export const SwitchRoleModal: React.FC<SwitchRoleModalProps> = ({ isOpen, onClos
                 <input
                   ref={searchRef}
                   type="text"
-                  placeholder={`Search ${activeRoleOption.name}s by name or email…`}
+                  placeholder={`Search ${activeRoleOption.name}s by name or emailâ€¦`}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   style={{
@@ -780,7 +780,7 @@ export const SwitchRoleModal: React.FC<SwitchRoleModalProps> = ({ isOpen, onClos
                     size={18}
                     style={{ animation: 'swrSpin 1s linear infinite', color: 'var(--primary)' }}
                   />
-                  Loading active {activeRoleOption.name} accounts…
+                  Loading active {activeRoleOption.name} accountsâ€¦
                 </div>
               ) : filteredUsers.length === 0 ? (
                 <div
@@ -977,9 +977,9 @@ export const SwitchRoleModal: React.FC<SwitchRoleModalProps> = ({ isOpen, onClos
           </div>
         )}
 
-        {/* ══════════════════════════════════════════════════════════════════════ */}
+        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
         {/* STEP 3: CONFIRMATION PROMPT                                           */}
-        {/* ══════════════════════════════════════════════════════════════════════ */}
+        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
         {pendingUser && (
           <div
             style={{
@@ -1176,7 +1176,7 @@ export const SwitchRoleModal: React.FC<SwitchRoleModalProps> = ({ isOpen, onClos
                 {switching !== null ? (
                   <>
                     <Loader2 size={14} style={{ animation: 'swrSpin 1s linear infinite' }} />
-                    <span>Switching…</span>
+                    <span>Switchingâ€¦</span>
                   </>
                 ) : (
                   <>
@@ -1189,7 +1189,7 @@ export const SwitchRoleModal: React.FC<SwitchRoleModalProps> = ({ isOpen, onClos
           </div>
         )}
 
-        {/* ── Bottom Close Footer (Step 1 only) ── */}
+        {/* â”€â”€ Bottom Close Footer (Step 1 only) â”€â”€ */}
         {!selectedRole && !pendingUser && (
           <div
             style={{
@@ -1235,3 +1235,4 @@ export const SwitchRoleModal: React.FC<SwitchRoleModalProps> = ({ isOpen, onClos
     </>
   );
 };
+

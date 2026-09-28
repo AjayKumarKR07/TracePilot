@@ -61,15 +61,18 @@ class IssueStatus(str, enum.Enum):
 # Enforced by the issue service — not a DB constraint.                #
 # ------------------------------------------------------------------ #
 
-# Tester-driven transitions (from → set of allowed targets)
-TESTER_TRANSITIONS: dict[IssueStatus, set[IssueStatus]] = {
+# Developer-driven transitions (from → set of allowed targets)
+DEVELOPER_TRANSITIONS: dict[IssueStatus, set[IssueStatus]] = {
     IssueStatus.ASSIGNED:       {IssueStatus.IN_DEVELOPMENT},
     IssueStatus.IN_DEVELOPMENT: {IssueStatus.IN_REVIEW},
     IssueStatus.IN_REVIEW:      {IssueStatus.IN_TESTING, IssueStatus.IN_DEVELOPMENT},
     IssueStatus.REOPENED:       {IssueStatus.IN_DEVELOPMENT},
 }
 
-# Tester / Admin can reopen
+# Keep legacy alias for any code that still imports TESTER_TRANSITIONS
+TESTER_TRANSITIONS = DEVELOPER_TRANSITIONS
+
+# Developer / Admin can reopen
 REOPENABLE_STATUSES: set[IssueStatus] = {
     IssueStatus.RESOLVED,
     IssueStatus.CLOSED,

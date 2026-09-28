@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import {
   FileDown,
@@ -38,7 +38,7 @@ export const IssuesPage: React.FC = () => {
   const [searchParams] = useSearchParams();
 
   const isUser = user?.role === 'USER';
-  const isTester = user?.role === 'TESTER';
+  const isDeveloper = user?.role === 'DEVELOPER';
   const isAdmin = user?.role === 'ADMIN';
   const canReport = isUser;
 
@@ -286,11 +286,11 @@ export const IssuesPage: React.FC = () => {
       <div className="page-header">
         <div>
           <h1 className="page-title">
-            {isUser ? 'My Submitted Issues' : isTester ? 'My Assigned Issues' : 'Issues & Defects'}
+            {isUser ? 'My Submitted Issues' : isDeveloper ? 'My Assigned Issues' : 'Issues & Defects'}
           </h1>
           <p className="page-subtitle">
             {isAdmin && 'Showing all defects and issues across the entire organization'}
-            {isTester && 'Showing defects assigned to you for investigation'}
+            {isDeveloper && 'Showing defects assigned to you for investigation'}
             {isUser && 'Showing issues you reported and their current progress'}
           </p>
         </div>
@@ -340,12 +340,12 @@ export const IssuesPage: React.FC = () => {
             fontWeight: '500',
           }}
         >
-          <span>✅ {successMsg}</span>
+          <span>âœ… {successMsg}</span>
           <button
             onClick={() => setSuccessMsg(null)}
             style={{ background: 'none', border: 'none', color: 'var(--success)', cursor: 'pointer', fontSize: '1.1rem', lineHeight: 1 }}
           >
-            ×
+            Ã—
           </button>
         </div>
       )}
@@ -431,7 +431,7 @@ export const IssuesPage: React.FC = () => {
                 <option value="">All Projects</option>
                 {projects.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.project_key} — {p.name}
+                    {p.project_key} â€” {p.name}
                   </option>
                 ))}
               </select>
@@ -542,7 +542,7 @@ export const IssuesPage: React.FC = () => {
                 {focusedIssue.issue_key}
               </span>{' '}
               <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                — {focusedIssue.title}
+                â€” {focusedIssue.title}
               </span>
             </div>
           </div>
@@ -574,7 +574,7 @@ export const IssuesPage: React.FC = () => {
           description={
             searchQuery || statusFilter || severityFilter
               ? 'No defects match your selected filter criteria.'
-              : isTester
+              : isDeveloper
               ? 'No issues have been assigned to you yet.'
               : isUser
               ? 'You have not reported any issues yet. Click "Report New Issue" to get started.'
@@ -716,7 +716,7 @@ export const IssuesPage: React.FC = () => {
             >
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.project_key} — {p.name}
+                  {p.project_key} â€” {p.name}
                 </option>
               ))}
             </select>
@@ -886,3 +886,4 @@ export const IssuesPage: React.FC = () => {
     </div>
   );
 };
+

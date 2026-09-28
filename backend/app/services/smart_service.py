@@ -1,8 +1,8 @@
-"""
-Smart service — mentor-spec Smart Priority Calculator and Smart Developer Matcher.
+﻿"""
+Smart service â€” mentor-spec Smart Priority Calculator and Smart Developer Matcher.
 
 Feature 1: Smart Priority Calculator
-  Formula: Priority Score = severity_weight × category_urgency_weight
+  Formula: Priority Score = severity_weight Ã— category_urgency_weight
 
   Severity weights:
     CRITICAL = 4, MAJOR = 3, MINOR = 2, TRIVIAL = 1
@@ -13,12 +13,12 @@ Feature 1: Smart Priority Calculator
     Low urgency   (1): UI, Colors, Typo/Typos
 
   Final priority:
-    Score >= 10 → URGENT
-    Score  7–9  → HIGH
-    Score  4–6  → MEDIUM
-    Score < 4   → LOW
+    Score >= 10 â†’ URGENT
+    Score  7â€“9  â†’ HIGH
+    Score  4â€“6  â†’ MEDIUM
+    Score < 4   â†’ LOW
 
-  Test: CRITICAL (4) × Security (3) = 12 → URGENT ✓
+  Test: CRITICAL (4) Ã— Security (3) = 12 â†’ URGENT âœ“
 
 Feature 2: Smart Developer Matcher
   - Analyzes issue title/description for tech keywords
@@ -56,7 +56,7 @@ _SEVERITY_WEIGHTS: dict[str, int] = {
     "BLOCKER":  4,
 }
 
-# Category → urgency weight (case-insensitive key lookup)
+# Category â†’ urgency weight (case-insensitive key lookup)
 _CATEGORY_WEIGHTS: dict[str, int] = {
     "security":  3,
     "database":  3,
@@ -80,7 +80,7 @@ def _resolve_category_weight(category: str) -> tuple[int, str]:
     for cat_key, cat_weight in _CATEGORY_WEIGHTS.items():
         if cat_key in key or key in cat_key:
             return cat_weight, cat_key.capitalize()
-    # Unknown category — default medium urgency
+    # Unknown category â€” default medium urgency
     return 2, category.strip()
 
 
@@ -94,10 +94,10 @@ async def calculate_priority(
 ) -> PriorityCalcResponse:
     """
     Mentor formula:
-      priority_score = severity_weight × category_urgency_weight
+      priority_score = severity_weight Ã— category_urgency_weight
 
     Thresholds:
-      >= 10 → URGENT | 7–9 → HIGH | 4–6 → MEDIUM | < 4 → LOW
+      >= 10 â†’ URGENT | 7â€“9 â†’ HIGH | 4â€“6 â†’ MEDIUM | < 4 â†’ LOW
     """
     sev_upper = request.severity.upper().strip()
     severity_weight = _SEVERITY_WEIGHTS.get(sev_upper, 2)  # default MINOR
@@ -117,16 +117,16 @@ async def calculate_priority(
         priority = "LOW"
 
     explanation = (
-        f"severity={request.severity.upper()} (weight={severity_weight}) × "
+        f"severity={request.severity.upper()} (weight={severity_weight}) Ã— "
         f"category={resolved_category} (weight={category_urgency_weight}) = "
-        f"score {priority_score} → {priority}"
+        f"score {priority_score} â†’ {priority}"
     )
 
     reasoning = [
-        f"Severity [{request.severity.upper()}] → severity_weight = {severity_weight}",
-        f"Category [{resolved_category}] → category_urgency_weight = {category_urgency_weight}",
-        f"Priority Score = {severity_weight} × {category_urgency_weight} = {priority_score}",
-        f"Score {priority_score} → Priority: {priority}",
+        f"Severity [{request.severity.upper()}] â†’ severity_weight = {severity_weight}",
+        f"Category [{resolved_category}] â†’ category_urgency_weight = {category_urgency_weight}",
+        f"Priority Score = {severity_weight} Ã— {category_urgency_weight} = {priority_score}",
+        f"Score {priority_score} â†’ Priority: {priority}",
     ]
 
     confidence = "HIGH" if priority_score >= 10 else "MEDIUM" if priority_score >= 5 else "LOW"
@@ -146,7 +146,7 @@ async def calculate_priority(
 
 
 # --------------------------------------------------------------------------- #
-# Keyword → skill domain mapping                                               #
+# Keyword â†’ skill domain mapping                                               #
 # --------------------------------------------------------------------------- #
 
 # These keywords are extracted from issue titles/descriptions
@@ -261,7 +261,7 @@ async def suggest_assignee(
     # Fetch all active TESTER users
     users_result = await db.execute(
         select(User).where(
-            User.role == UserRole.TESTER,
+            User.role == UserRole.DEVELOPER,
             User.is_active == True,  # noqa: E712
         )
     )
@@ -310,7 +310,7 @@ async def suggest_assignee(
         avg_hours = float(row.avg_hours) if (row and row.avg_hours is not None) else None
         resolution_rate = round((resolved / assigned * 100), 2) if assigned > 0 else 0.0
 
-        # ── Skill/keyword match score (0–50 pts) ──────────────────────────
+        # â”€â”€ Skill/keyword match score (0â€“50 pts) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         # Simulate developer skill domains from their name/email heuristic
         # In a real system this would come from a skills table
         dev_text = f"{user.full_name} {user.email}".lower()
@@ -328,10 +328,10 @@ async def suggest_assignee(
             keyword_score = 20.0
             dev_keywords_found = ["General Bug Experience"]
 
-        # ── Workload score (0–30 pts — fewer open = better) ──────────────
+        # â”€â”€ Workload score (0â€“30 pts â€” fewer open = better) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         workload_pts = max(0.0, 30.0 - (open_cnt * 5.0))
 
-        # ── Resolution rate score (0–20 pts) ──────────────────────────────
+        # â”€â”€ Resolution rate score (0â€“20 pts) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         rate_pts = (resolution_rate / 100.0) * 20.0
 
         match_score = round(min(100.0, keyword_score + workload_pts + rate_pts), 2)
@@ -344,9 +344,9 @@ async def suggest_assignee(
         )
 
         reasons = [
-            f"Keyword match: {', '.join(dev_keywords_found) if dev_keywords_found else 'none'} → +{keyword_score:.1f} pts",
-            f"Workload: {open_cnt} open issues → +{workload_pts:.1f} pts",
-            f"Resolution rate: {resolution_rate:.1f}% → +{rate_pts:.1f} pts",
+            f"Keyword match: {', '.join(dev_keywords_found) if dev_keywords_found else 'none'} â†’ +{keyword_score:.1f} pts",
+            f"Workload: {open_cnt} open issues â†’ +{workload_pts:.1f} pts",
+            f"Resolution rate: {resolution_rate:.1f}% â†’ +{rate_pts:.1f} pts",
         ]
 
         suggestions.append(
@@ -380,3 +380,4 @@ async def suggest_assignee(
         issue_key=issue.issue_key,
         suggestions=suggestions,
     )
+

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from '../components/common/ProtectedRoute';
 import { RoleProtectedRoute } from '../components/common/RoleProtectedRoute';
@@ -19,9 +19,9 @@ import { CreateIssuePage } from '../pages/CreateIssuePage';
 import { NotificationsPage } from '../pages/NotificationsPage';
 import { ProfilePage } from '../pages/ProfilePage';
 import { ProjectsPage } from '../pages/ProjectsPage';
-import { TesterDashboardPage } from '../pages/TesterDashboardPage';
-import { TesterIssuesPage } from '../pages/TesterIssuesPage';
-import { TesterSprintsPage } from '../pages/TesterSprintsPage';
+import { DeveloperDashboardPage } from '../pages/DeveloperDashboardPage';
+import { DeveloperIssuesPage } from '../pages/DeveloperIssuesPage';
+import { DeveloperSprintsPage } from '../pages/DeveloperSprintsPage';
 import { SprintsPage } from '../pages/SprintsPage';
 import { BacklogPage } from '../pages/BacklogPage';
 
@@ -59,12 +59,15 @@ export const AppRoutes: React.FC = () => {
               <Route path="/admin-sprint-approvals" element={<AdminSprintApprovalsPage />} />
             </Route>
 
-
-            {/* Tester Protected Routes */}
-            <Route element={<RoleProtectedRoute allowedRoles={['TESTER']} />}>
-              <Route path="/tester-dashboard" element={<TesterDashboardPage />} />
-              <Route path="/tester-sprints" element={<TesterSprintsPage />} />
-              <Route path="/tester-issues" element={<TesterIssuesPage />} />
+            {/* Developer Protected Routes */}
+            <Route element={<RoleProtectedRoute allowedRoles={['DEVELOPER']} />}>
+              <Route path="/developer-dashboard" element={<DeveloperDashboardPage />} />
+              <Route path="/developer-sprints" element={<DeveloperSprintsPage />} />
+              <Route path="/developer-issues" element={<DeveloperIssuesPage />} />
+              {/* Legacy redirects -- keep old /tester-* links working */}
+              <Route path="/tester-dashboard" element={<Navigate to="/developer-dashboard" replace />} />
+              <Route path="/tester-sprints" element={<Navigate to="/developer-sprints" replace />} />
+              <Route path="/tester-issues" element={<Navigate to="/developer-issues" replace />} />
             </Route>
           </Route>
         </Route>

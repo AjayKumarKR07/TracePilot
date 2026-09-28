@@ -1,19 +1,19 @@
-"""
+﻿"""
 Issue / Defect management routes.
 
 RBAC summary:
-  POST   /issues                        → USER, ADMIN (reporters)
-  GET    /issues                        → ALL (role-filtered in service)
-  GET    /issues/{id}                   → ALL (ownership check in service)
-  PATCH  /issues/{id}                   → USER (own issues), ADMIN
-  PATCH  /issues/{id}/assign            → ADMIN
-  PATCH  /issues/{id}/status            → TESTER (assigned)
-  PATCH  /issues/{id}/resolve           → TESTER (assigned)
-  PATCH  /issues/{id}/reopen            → USER (own) | TESTER (own) | ADMIN
+  POST   /issues                        â†’ USER, ADMIN (reporters)
+  GET    /issues                        â†’ ALL (role-filtered in service)
+  GET    /issues/{id}                   â†’ ALL (ownership check in service)
+  PATCH  /issues/{id}                   â†’ USER (own issues), ADMIN
+  PATCH  /issues/{id}/assign            â†’ ADMIN
+  PATCH  /issues/{id}/status            â†’ DEVELOPER (assigned)
+  PATCH  /issues/{id}/resolve           â†’ DEVELOPER (assigned)
+  PATCH  /issues/{id}/reopen            â†’ USER (own) | TESTER (own) | ADMIN
 
   Smart features (Milestone 3):
-  POST   /issues/calculate-priority     → ALL authenticated
-  GET    /issues/{id}/suggest-assignee  → ADMIN only
+  POST   /issues/calculate-priority     â†’ ALL authenticated
+  GET    /issues/{id}/suggest-assignee  â†’ ADMIN only
 """
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, status
@@ -44,18 +44,18 @@ router = APIRouter(prefix="/issues", tags=["Issues"])
 
 
 # --------------------------------------------------------------------------- #
-# Smart Priority Calculator (STATIC — before dynamic routes)                   #
+# Smart Priority Calculator (STATIC â€” before dynamic routes)                   #
 # --------------------------------------------------------------------------- #
 
 @router.post(
     "/calculate-priority",
     response_model=PriorityCalcResponse,
-    summary="Smart Priority Calculator (mentor formula: severity_weight × category_urgency_weight)",
+    summary="Smart Priority Calculator (mentor formula: severity_weight Ã— category_urgency_weight)",
     description=(
-        "Mentor formula: priority_score = severity_weight × category_urgency_weight.\n"
+        "Mentor formula: priority_score = severity_weight Ã— category_urgency_weight.\n"
         "Severity: CRITICAL=4, MAJOR=3, MINOR=2, TRIVIAL=1.\n"
         "Category: Security/Database=3, API/Backend=2, UI/Colors/Typo=1.\n"
-        "Thresholds: >=10→URGENT, 7-9→HIGH, 4-6→MEDIUM, <4→LOW."
+        "Thresholds: >=10â†’URGENT, 7-9â†’HIGH, 4-6â†’MEDIUM, <4â†’LOW."
     ),
 )
 async def calculate_priority(
@@ -70,7 +70,7 @@ async def calculate_priority(
 @router.post(
     "/triage-recommendation",
     response_model=PriorityCalcResponse,
-    summary="[Alias] Triage recommendation — same as /calculate-priority",
+    summary="[Alias] Triage recommendation â€” same as /calculate-priority",
     description="Mentor-required alias for POST /issues/calculate-priority.",
 )
 async def triage_recommendation(
@@ -91,7 +91,7 @@ async def triage_recommendation(
 async def create_issue(
     body: IssueCreate,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(require_role(UserRole.USER, UserRole.TESTER, UserRole.ADMIN)),
+    current_user: User = Depends(require_role(UserRole.USER, UserRole.DEVELOPER, UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db),
 ) -> IssueDetailResponse:
     """Report a new defect. **USER, TESTER, or ADMIN.**
@@ -192,7 +192,7 @@ async def update_issue(
     db: AsyncSession = Depends(get_db),
 ) -> IssueDetailResponse:
     """Update permitted fields on an issue.
-    **TESTER** can update their own reported issues.
+    **DEVELOPER** can update their own reported issues.
     **ADMIN** can update any issue.
     Protected fields (reporter_id, issue_key, project_id, created_at) are never modifiable.
     """
@@ -241,18 +241,18 @@ async def update_issue_status(
     issue_id: int,
     body: IssueStatusUpdate,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(require_role(UserRole.TESTER, UserRole.ADMIN)),
+    current_user: User = Depends(require_role(UserRole.DEVELOPER, UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db),
 ) -> IssueDetailResponse:
     """Transition an issue through the investigation workflow.
-    **TESTER** — must be assigned to the issue.
-    **ADMIN** — can force-change status on any issue.
+    **DEVELOPER -- must be assigned to the issue.
+    **ADMIN** â€” can force-change status on any issue.
 
     Valid transitions:
-    - ASSIGNED → IN_DEVELOPMENT
-    - IN_DEVELOPMENT → IN_REVIEW
-    - IN_REVIEW → IN_TESTING or IN_DEVELOPMENT
-    - REOPENED → IN_DEVELOPMENT
+    - ASSIGNED â†’ IN_DEVELOPMENT
+    - IN_DEVELOPMENT â†’ IN_REVIEW
+    - IN_REVIEW â†’ IN_TESTING or IN_DEVELOPMENT
+    - REOPENED â†’ IN_DEVELOPMENT
     """
     from app.services.websocket_manager import ws_manager
     detail, notifications = await issue_service.update_issue_status(issue_id, body, current_user, db)
@@ -283,10 +283,10 @@ async def resolve_issue(
     issue_id: int,
     body: IssueResolve,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(require_role(UserRole.TESTER)),
+    current_user: User = Depends(require_role(UserRole.DEVELOPER)),
     db: AsyncSession = Depends(get_db),
 ) -> IssueDetailResponse:
-    """Mark an assigned issue as RESOLVED. **TESTER** — must be assigned."""
+    """Mark an assigned issue as RESOLVED. **DEVELOPER -- must be assigned."""
     from app.services.websocket_manager import ws_manager
     detail, notifications = await issue_service.resolve_issue(issue_id, body, current_user, db)
     for notif in notifications:
@@ -320,10 +320,10 @@ async def reopen_issue(
     db: AsyncSession = Depends(get_db),
 ) -> IssueDetailResponse:
     """Reopen a resolved, closed, or in-testing issue.
-    - **TESTER**: can reopen their own reported issues
+    - **DEVELOPER**: can reopen their own reported issues
     - **ADMIN**: can reopen any issue
     """
-    if current_user.role not in (UserRole.USER, UserRole.TESTER, UserRole.ADMIN):
+    if current_user.role not in (UserRole.USER, UserRole.DEVELOPER, UserRole.ADMIN):
         from fastapi import HTTPException
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -402,7 +402,7 @@ async def get_issue_activity(
 ) -> list[AuditLogResponse]:
     """Get audit history timeline for a specific issue.
     - **USER**: own reported issues
-    - **TESTER**: assigned or reported issues
+    - **DEVELOPER**: assigned or reported issues
     - **ADMIN**: all issues
     """
     return await issue_service.get_issue_activity(issue_id, current_user, db)
@@ -426,13 +426,13 @@ async def bulk_assign_sprint(
 
 
 # --------------------------------------------------------------------------- #
-# Smart Tester Matcher / Smart Assignee Matcher (DYNAMIC — after static)      #
+# Smart Tester Matcher / Smart Assignee Matcher (DYNAMIC â€” after static)      #
 # --------------------------------------------------------------------------- #
 
 @router.get(
     "/{issue_id}/suggest-assignee",
     response_model=DeveloperMatchResponse,
-    summary="Smart Assignee Matcher — ranked tester suggestions",
+    summary="Smart Assignee Matcher â€” ranked tester suggestions",
     description=(
         "Return a ranked list of active TESTER users for the given issue, "
         "scored by resolution rate, current workload, and average resolution speed."
@@ -445,3 +445,4 @@ async def suggest_assignee(
 ) -> DeveloperMatchResponse:
     """Return ranked assignee suggestions for an issue. **ADMIN only.**"""
     return await smart_service.suggest_assignee(issue_id, db)
+

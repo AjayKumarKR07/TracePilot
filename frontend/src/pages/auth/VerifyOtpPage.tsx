@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { CheckCircle, Mail, ShieldCheck, ArrowRight, RotateCw, ArrowLeft } from 'lucide-react';
 import { getApiErrorMessage } from '../../api/client';
@@ -59,7 +59,7 @@ export const VerifyOtpPage: React.FC = () => {
       setSuccessMsg('Verification successful! Entering workspace...');
       // Determine redirect based on the authenticated role
       const freshUser: User | null = storage.getUser<User>();
-      const role: UserRole = freshUser?.role ?? 'TESTER';
+      const role: UserRole = freshUser?.role ?? 'DEVELOPER';
       const redirect = getRoleRedirect(role, from);
       setTimeout(() => {
         navigate(redirect, { replace: true });
@@ -246,3 +246,4 @@ export const VerifyOtpPage: React.FC = () => {
     </div>
   );
 };
+

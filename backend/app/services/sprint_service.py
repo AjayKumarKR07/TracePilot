@@ -724,7 +724,7 @@ async def get_sprint_analytics(db: AsyncSession, sprint_id: int) -> SprintAnalyt
             select(User)
             .where(
                 User.is_active == True,
-                User.role == UserRole.TESTER,
+                User.role == UserRole.DEVELOPER,
                 User.id.notin_(seen_user_ids)
             )
             .order_by(User.id)
@@ -930,24 +930,24 @@ async def remove_issue_from_sprint(db: AsyncSession, sprint_id: int, issue_id: i
 async def assign_tester(
     db: AsyncSession, sprint_id: int, tester_id: int, actor: User
 ) -> Sprint:
-    """Assign a tester to a sprint. ADMIN only."""
+    """Assign a developer to a sprint. ADMIN only."""
     sprint = await get_sprint_by_id(db, sprint_id)
 
-    # Validate tester exists and has TESTER role
-    tester_result = await db.execute(select(User).where(User.id == tester_id))
-    tester = tester_result.scalar_one_or_none()
-    if not tester:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tester user not found")
-    if tester.role != UserRole.TESTER:
+    # Validate developer exists and has DEVELOPER role
+    developer_result = await db.execute(select(User).where(User.id == tester_id))
+    developer = developer_result.scalar_one_or_none()
+    if not developer:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Developer user not found")
+    if developer.role != UserRole.DEVELOPER:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"User '{tester.full_name}' does not have TESTER role"
+            detail=f"User '{developer.full_name}' does not have DEVELOPER role"
         )
 
     old_tester_id = sprint.assigned_tester_id
     sprint.assigned_tester_id = tester_id
 
-    # Move PLANNED → ACTIVE automatically when tester is assigned
+    # Move PLANNED → ACTIVE automatically when developer is assigned
     if sprint.status == SprintStatus.PLANNED:
         sprint.status = SprintStatus.ACTIVE
         sprint.actual_start_date = datetime.now(timezone.utc)
@@ -955,12 +955,12 @@ async def assign_tester(
     await create_audit_log(
         db=db, actor=actor, action=AuditAction.SPRINT_TESTER_ASSIGNED,
         entity_type="SPRINT", entity_id=sprint.id, entity_key=sprint.name,
-        description=f"Sprint '{sprint.name}' assigned to tester '{tester.full_name}'",
+        description=f"Sprint '{sprint.name}' assigned to developer '{developer.full_name}'",
         old_values={"assigned_tester_id": old_tester_id},
-        new_values={"assigned_tester_id": tester_id, "tester_name": tester.full_name},
+        new_values={"assigned_tester_id": tester_id, "developer_name": developer.full_name},
     )
 
-    # Real-time notification to assigned tester
+    # Real-time notification to assigned developer
     notif = await notification_service.create_notification(
         db=db,
         user_id=tester_id,
@@ -979,7 +979,7 @@ async def assign_tester(
         user_ids=admin_ids,
         notification_type=NotificationType.SPRINT_STARTED,
         title="Sprint Assigned",
-        message=f"Sprint '{sprint.name}' assigned to tester '{tester.full_name}'.",
+        message=f"Sprint '{sprint.name}' assigned to developer '{developer.full_name}'.",
         actor_id=actor.id,
         entity_type="SPRINT",
         entity_id=sprint.id,
@@ -1000,14 +1000,14 @@ async def submit_for_approval(db: AsyncSession, sprint_id: int, actor: User) -> 
     sprint = await get_sprint_by_id(db, sprint_id)
 
     # Must be the assigned tester (or an admin acting on behalf)
-    if actor.role == UserRole.TESTER and sprint.assigned_tester_id != actor.id:
+    if actor.role == UserRole.DEVELOPER and sprint.assigned_tester_id != actor.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You are not the assigned tester for this sprint"
         )
 
-    # Only IN_PROGRESS → READY_FOR_APPROVAL is allowed.
-    # Tester must first use "Begin Work" (ACTIVE → IN_PROGRESS) before submitting.
+    # Only IN_PROGRESS â†’ READY_FOR_APPROVAL is allowed.
+    # Tester must first use "Begin Work" (ACTIVE â†’ IN_PROGRESS) before submitting.
     if sprint.status != SprintStatus.IN_PROGRESS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -1065,7 +1065,7 @@ async def submit_for_approval(db: AsyncSession, sprint_id: int, actor: User) -> 
 
 
 async def approve_sprint(db: AsyncSession, sprint_id: int, actor: User) -> Sprint:
-    """Admin approves a READY_FOR_APPROVAL sprint → COMPLETED."""
+    """Admin approves a READY_FOR_APPROVAL sprint â†’ COMPLETED."""
     sprint = await get_sprint_by_id(db, sprint_id)
 
     if sprint.status != SprintStatus.READY_FOR_APPROVAL:
@@ -1148,7 +1148,7 @@ async def approve_sprint(db: AsyncSession, sprint_id: int, actor: User) -> Sprin
 async def request_changes(
     db: AsyncSession, sprint_id: int, comment: str | None, actor: User
 ) -> Sprint:
-    """Admin requests changes on a READY_FOR_APPROVAL sprint → IN_PROGRESS."""
+    """Admin requests changes on a READY_FOR_APPROVAL sprint â†’ IN_PROGRESS."""
     sprint = await get_sprint_by_id(db, sprint_id)
 
     if sprint.status != SprintStatus.READY_FOR_APPROVAL:
@@ -1290,11 +1290,11 @@ async def get_all_sprints(
 async def begin_work(
     db: AsyncSession, sprint_id: int, actor: User
 ) -> Sprint:
-    """Tester begins work on an ACTIVE sprint → IN_PROGRESS."""
+    """Tester begins work on an ACTIVE sprint â†’ IN_PROGRESS."""
     sprint = await get_sprint_by_id(db, sprint_id)
 
     # Only the assigned tester (or admin) may begin work
-    if actor.role == UserRole.TESTER and sprint.assigned_tester_id != actor.id:
+    if actor.role == UserRole.DEVELOPER and sprint.assigned_tester_id != actor.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You are not the assigned tester for this sprint"
@@ -1336,3 +1336,4 @@ async def begin_work(
         await _broadcast_ws_notification(n.user_id, n)
 
     return await get_sprint_by_id(db, sprint.id)
+

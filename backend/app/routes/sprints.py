@@ -1,4 +1,4 @@
-from typing import Sequence
+﻿from typing import Sequence
 from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.responses import StreamingResponse
@@ -207,27 +207,27 @@ async def assign_tester(
     current_user: User = Depends(require_role(UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
-    """Assign a tester to a sprint. Moves PLANNED → ACTIVE automatically. ADMIN only."""
+    """Assign a tester to a sprint. Moves PLANNED â†’ ACTIVE automatically. ADMIN only."""
     return await sprint_service.assign_tester(db, sprint_id, body.tester_id, actor=current_user)
 
 
 @router.post("/{sprint_id}/submit-for-approval", response_model=SprintRead)
 async def submit_for_approval(
     sprint_id: int,
-    current_user: User = Depends(require_role(UserRole.TESTER, UserRole.ADMIN)),
+    current_user: User = Depends(require_role(UserRole.DEVELOPER, UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
-    """Tester submits a sprint for admin approval. Moves IN_PROGRESS → READY_FOR_APPROVAL."""
+    """Tester submits a sprint for admin approval. Moves IN_PROGRESS â†’ READY_FOR_APPROVAL."""
     return await sprint_service.submit_for_approval(db, sprint_id, actor=current_user)
 
 
 @router.post("/{sprint_id}/begin-work", response_model=SprintRead)
 async def begin_work(
     sprint_id: int,
-    current_user: User = Depends(require_role(UserRole.TESTER, UserRole.ADMIN)),
+    current_user: User = Depends(require_role(UserRole.DEVELOPER, UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
-    """Tester begins work on an ACTIVE sprint. Moves ACTIVE → IN_PROGRESS. TESTER/ADMIN only."""
+    """Tester begins work on an ACTIVE sprint. Moves ACTIVE â†’ IN_PROGRESS. TESTER/ADMIN only."""
     return await sprint_service.begin_work(db, sprint_id, actor=current_user)
 
 
@@ -237,7 +237,7 @@ async def approve_sprint(
     current_user: User = Depends(require_role(UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
-    """Admin approves a sprint. Moves READY_FOR_APPROVAL → COMPLETED. ADMIN only."""
+    """Admin approves a sprint. Moves READY_FOR_APPROVAL â†’ COMPLETED. ADMIN only."""
     return await sprint_service.approve_sprint(db, sprint_id, actor=current_user)
 
 
@@ -248,13 +248,13 @@ async def request_changes(
     current_user: User = Depends(require_role(UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
-    """Admin requests changes. Moves READY_FOR_APPROVAL → IN_PROGRESS. ADMIN only."""
+    """Admin requests changes. Moves READY_FOR_APPROVAL â†’ IN_PROGRESS. ADMIN only."""
     return await sprint_service.request_changes(db, sprint_id, body.comment, actor=current_user)
 
 
 @router.get("/assigned", response_model=list[SprintRead])
 async def get_assigned_sprints(
-    current_user: User = Depends(require_role(UserRole.TESTER, UserRole.ADMIN)),
+    current_user: User = Depends(require_role(UserRole.DEVELOPER, UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
     """Get all sprints assigned to the current tester."""
@@ -287,5 +287,6 @@ async def get_sprint_by_id_endpoint(
 ):
     """Get a single sprint by ID with full Agile metrics."""
     return await sprint_service.get_sprint_details(db, sprint_id)
+
 
 

@@ -45,7 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
     switch (role) {
       case 'ADMIN':
         return 'role-badge-admin';
-      case 'TESTER':
+      case 'DEVELOPER':
         return 'role-badge-tester';
       case 'USER':
         return 'role-badge-user';
@@ -190,20 +190,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
           )}
 
 
-          {/* TESTER: Tester-specific Navigation */}
-          {user?.role === 'TESTER' && (
+          {/* DEVELOPER: Developer-specific Navigation */}
+          {user?.role === 'DEVELOPER' && (
             <>
               <NavLink
-                to="/tester-dashboard"
+                to="/developer-dashboard"
                 className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
                 onClick={onCloseMobile}
               >
                 <LayoutDashboard size={18} />
-                <span>Tester Dashboard</span>
+                <span>Developer Dashboard</span>
               </NavLink>
 
               <NavLink
-                to="/tester-sprints"
+                to="/developer-sprints"
                 className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
                 onClick={onCloseMobile}
               >
@@ -212,7 +212,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
               </NavLink>
 
               <NavLink
-                to="/tester-issues"
+                to="/developer-issues"
                 className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
                 onClick={onCloseMobile}
               >
@@ -264,7 +264,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
         </div>
       </aside>
 
-      {/* Switch Role Modal — rendered outside aside so z-index stacking works */}
+      {/* Switch Role Modal â€” rendered outside aside so z-index stacking works */}
       <SwitchRoleModal
         isOpen={switchRoleOpen}
         onClose={() => setSwitchRoleOpen(false)}
@@ -272,3 +272,4 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
     </>
   );
 };
+

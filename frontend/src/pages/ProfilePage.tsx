@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import {
   Bell,
   Calendar,
@@ -386,7 +386,7 @@ export const ProfilePage: React.FC = () => {
                     <li>Export personal defect analytics and audit reports to PDF and CSV.</li>
                   </>
                 )}
-                {profile.role === 'TESTER' && (
+                {profile.role === 'DEVELOPER' && (
                   <>
                     <li>Investigate assigned defects across projects.</li>
                     <li>Advance defect investigation status (`In Development`, `In Review`, `In Testing`).</li>
@@ -674,7 +674,7 @@ export const ProfilePage: React.FC = () => {
             </div>
             {prefsSuccessMsg && (
               <span style={{ fontSize: '0.8rem', color: '#34d399', fontWeight: '600' }}>
-                ✓ {prefsSuccessMsg}
+                âœ“ {prefsSuccessMsg}
               </span>
             )}
           </div>
@@ -814,3 +814,4 @@ export const ProfilePage: React.FC = () => {
     </div>
   );
 };
+

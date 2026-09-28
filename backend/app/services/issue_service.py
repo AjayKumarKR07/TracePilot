@@ -1,5 +1,5 @@
 """
-Issue service — business logic for defect management.
+Issue service â€” business logic for defect management.
 
 Keeps all DB queries, key generation, and workflow enforcement
 out of route handlers. All functions are async + AsyncSession.
@@ -175,7 +175,7 @@ async def create_issue(body: IssueCreate, reporter: User, db: AsyncSession) -> t
         user_ids=admin_ids,
         notification_type=NotificationType.ISSUE_REPORTED,
         title="New issue reported",
-        message=f"New issue reported by {reporter.full_name}: {issue_key} — {body.title}",
+        message=f"New issue reported by {reporter.full_name}: {issue_key} â€” {body.title}",
         actor_id=reporter.id,
         entity_type="ISSUE",
         entity_id=issue.id,
@@ -199,7 +199,7 @@ async def get_issue_detail(
                 detail="You can only view issues you reported.",
             )
         elif (
-            current_user.role == UserRole.TESTER
+            current_user.role == UserRole.DEVELOPER
             and issue.assignee_id != current_user.id
             and issue.reporter_id != current_user.id
         ):
@@ -232,9 +232,9 @@ async def list_issues(
     """Return paginated issues with role-based visibility enforcement.
 
     Role filters:
-      ADMIN     — sees all issues
-      TESTER    — only issues assigned to them (assignee_id)
-      USER      — only issues they personally reported (reporter_id)
+      ADMIN     â€” sees all issues
+      TESTER    â€” only issues assigned to them (assignee_id)
+      USER      â€” only issues they personally reported (reporter_id)
     """
     query = select(Issue)
 
@@ -242,10 +242,10 @@ async def list_issues(
     if current_user.role == UserRole.USER:
         # Users can only see their own submitted issues
         query = query.where(Issue.reporter_id == current_user.id)
-    elif current_user.role == UserRole.TESTER:
+    elif current_user.role == UserRole.DEVELOPER:
         # Testers see only issues assigned to them
         query = query.where(Issue.assignee_id == current_user.id)
-    # ADMIN sees all — no base filter
+    # ADMIN sees all â€” no base filter
 
     # ---- Optional filters ------------------------------------------------- #
     if status_filter is not None:
@@ -329,14 +329,14 @@ async def update_issue(
     """USER/TESTER: update their own reported issue's metadata fields."""
     issue = await _get_issue_or_404(issue_id, db)
 
-    # Ownership check — only reporters can update issue metadata
-    if current_user.role in (UserRole.USER, UserRole.TESTER) and issue.reporter_id != current_user.id:
+    # Ownership check â€” only reporters can update issue metadata
+    if current_user.role in (UserRole.USER, UserRole.DEVELOPER) and issue.reporter_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only update issues you reported.",
         )
 
-    # Protected statuses — cannot update resolved/closed issues
+    # Protected statuses â€” cannot update resolved/closed issues
     if issue.status in (IssueStatus.RESOLVED, IssueStatus.CLOSED):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -428,21 +428,21 @@ async def assign_issue(
     """
     issue = await _get_issue_or_404(issue_id, db)
 
-    # Validate target user exists and has TESTER role
+    # Validate target user exists and has DEVELOPER role
     target_assignee_id = body.tester_id or body.developer_id
     dev_result = await db.execute(select(User).where(User.id == target_assignee_id))
-    tester: User | None = dev_result.scalar_one_or_none()
-    if tester is None:
+    developer: User | None = dev_result.scalar_one_or_none()
+    if developer is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"User {target_assignee_id} not found.",
         )
-    if tester.role != UserRole.TESTER:
+    if developer.role != UserRole.DEVELOPER:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Issues can only be assigned to a TESTER.",
+            detail="Issues can only be assigned to a DEVELOPER.",
         )
-    if not tester.is_active:
+    if not developer.is_active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot assign issue to an inactive user.",
@@ -467,7 +467,7 @@ async def assign_issue(
         entity_key=issue.issue_key,
         description=(
             f"Admin {current_user.full_name!r} assigned issue {issue.issue_key} "
-            f"to {tester.full_name!r}"
+            f"to {developer.full_name!r}"
         ),
         old_values={
             "assignee_id": old_assignee_id,
@@ -475,13 +475,13 @@ async def assign_issue(
         },
         new_values={
             "assignee_id": target_assignee_id,
-            "assignee_name": tester.full_name,
+            "assignee_name": developer.full_name,
             "status": issue.status,
         },
     )
 
-    # Notify the assigned tester and reporter (actor = admin, never notified)
-    notify_recipients = [tester.id]
+    # Notify the assigned developer and reporter (actor = admin, never notified)
+    notify_recipients = [developer.id]
     if issue.reporter_id and issue.reporter_id != current_user.id:
         notify_recipients.append(issue.reporter_id)
 
@@ -489,8 +489,8 @@ async def assign_issue(
         db=db,
         user_ids=notify_recipients,
         notification_type=NotificationType.ISSUE_ASSIGNED,
-        title="Issue assigned to tester",
-        message=f"Issue {issue.issue_key} has been assigned to {tester.full_name}.",
+        title="Issue assigned to developer",
+        message=f"Issue {issue.issue_key} has been assigned to {developer.full_name}.",
         actor_id=current_user.id,
         entity_type="ISSUE",
         entity_id=issue.id,
@@ -673,7 +673,7 @@ async def reopen_issue(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Users can only reopen issues they reported.",
         )
-    elif current_user.role == UserRole.TESTER and issue.assignee_id != current_user.id and issue.reporter_id != current_user.id:
+    elif current_user.role == UserRole.DEVELOPER and issue.assignee_id != current_user.id and issue.reporter_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Testers can only reopen issues assigned to or reported by them.",
@@ -805,7 +805,7 @@ async def get_issue_activity(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Users can only view activity on issues they reported.",
         )
-    elif current_user.role == UserRole.TESTER and issue.assignee_id != current_user.id and issue.reporter_id != current_user.id:
+    elif current_user.role == UserRole.DEVELOPER and issue.assignee_id != current_user.id and issue.reporter_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Testers can only view activity on issues assigned to or reported by them.",
@@ -891,4 +891,5 @@ async def bulk_update_issues_sprint(
         
     await db.commit()
     return updated_count
+
 

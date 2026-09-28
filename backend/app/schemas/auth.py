@@ -29,8 +29,8 @@ class RegisterRequest(BaseModel):
     @classmethod
     def validate_role(cls, v: UserRole) -> UserRole:
         """Enforce valid application roles for registration."""
-        if v not in (UserRole.USER, UserRole.TESTER, UserRole.ADMIN):
-            raise ValueError("Role must be USER, TESTER, or ADMIN.")
+        if v not in (UserRole.USER, UserRole.DEVELOPER, UserRole.ADMIN):
+            raise ValueError("Role must be USER, DEVELOPER, or ADMIN.")
         return v
 
 

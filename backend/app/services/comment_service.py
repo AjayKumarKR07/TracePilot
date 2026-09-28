@@ -1,12 +1,12 @@
-"""
-Comment service — Phase 7.
+﻿"""
+Comment service â€” Phase 7.
 
 Business logic for issue comment CRUD operations.
 
 RBAC (mirrors existing issue visibility):
-  ADMIN     → can comment on / view comments for any issue
-  TESTER    → can comment on / view comments for assigned or reported issues
-  USER      → can comment on / view comments for their own reported issues
+  ADMIN     â†’ can comment on / view comments for any issue
+  TESTER    â†’ can comment on / view comments for assigned or reported issues
+  USER      â†’ can comment on / view comments for their own reported issues
 
 Update / Delete ownership:
   Only the original author can edit/delete their comment.
@@ -61,9 +61,9 @@ async def _get_issue_or_404(issue_id: int, db: AsyncSession) -> Issue:
 def _check_issue_access(issue: Issue, current_user: User) -> None:
     """Enforce the existing issue visibility rules for comments.
 
-    ADMIN      → any issue
-    TESTER     → issues assigned to them OR that they reported
-    USER       → only issues they reported
+    ADMIN      â†’ any issue
+    TESTER     â†’ issues assigned to them OR that they reported
+    USER       â†’ only issues they reported
 
     Raises HTTP 403 if access is denied.
     """
@@ -75,7 +75,7 @@ def _check_issue_access(issue: Issue, current_user: User) -> None:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You can only comment on issues you reported.",
             )
-    elif current_user.role == UserRole.TESTER:
+    elif current_user.role == UserRole.DEVELOPER:
         if issue.assignee_id != current_user.id and issue.reporter_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -122,7 +122,7 @@ async def create_comment(
 ) -> tuple[CommentResponse, list]:
     """Create a new comment on an issue.
 
-    The author is always set from the authenticated JWT user — never from
+    The author is always set from the authenticated JWT user â€” never from
     request body input.
 
     Returns (CommentResponse, list_of_notifications) for WebSocket dispatch.
@@ -330,3 +330,4 @@ async def delete_comment(
         description=audit_desc,
         old_values=old_vals,
     )
+

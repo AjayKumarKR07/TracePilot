@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   AlertCircle,
@@ -23,8 +23,8 @@ import { TracePilotLogo } from '../../components/common/TracePilotLogo';
 
 /**
  * Determines post-login redirect path based on user role.
- * ADMIN → /admin (their primary workspace)
- * TESTER / DEVELOPER → /dashboard
+ * ADMIN â†’ /admin (their primary workspace)
+ * DEVELOPER â†’ /dashboard
  * If the user had tried to access a specific page (from), honour it.
  */
 function getRoleRedirect(role: UserRole, requestedFrom: string): string {
@@ -32,7 +32,7 @@ function getRoleRedirect(role: UserRole, requestedFrom: string): string {
     return requestedFrom;
   }
   if (role === 'ADMIN') return '/admin-dashboard';
-  if (role === 'TESTER') return '/tester-dashboard';
+  if (role === 'DEVELOPER') return '/developer-dashboard';
   return '/dashboard';
 }
 
@@ -68,7 +68,7 @@ export const LoginPage: React.FC = () => {
       await login({ email: email.trim(), password });
       // Read the freshly stored user to determine role-based redirect
       const freshUser: User | null = storage.getUser<User>();
-      const role: UserRole = freshUser?.role ?? 'TESTER';
+      const role: UserRole = freshUser?.role ?? 'DEVELOPER';
       navigate(getRoleRedirect(role, from), { replace: true });
     } catch (err: unknown) {
       setError(getApiErrorMessage(err));
@@ -118,7 +118,7 @@ export const LoginPage: React.FC = () => {
             <li style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
               <TestTube2 size={14} style={{ color: '#22c55e', flexShrink: 0, marginTop: '0.15rem' }} />
               <div>
-                <strong style={{ color: 'var(--text-primary)' }}>TESTER</strong>
+                <strong style={{ color: 'var(--text-primary)' }}>DEVELOPER</strong>
                 <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.75rem' }}>Investigate, test, and resolve assigned issues.</p>
               </div>
             </li>
@@ -196,7 +196,7 @@ export const LoginPage: React.FC = () => {
           </div>
         )}
 
-        {/* ── PASSWORD LOGIN FORM ── */}
+        {/* â”€â”€ PASSWORD LOGIN FORM â”€â”€ */}
         <form onSubmit={handlePasswordLogin}>
           <div className="form-group">
             <label className="form-label" htmlFor="login-email">
@@ -330,9 +330,11 @@ export const LoginPage: React.FC = () => {
           }}
         >
           <Shield size={12} />
-          <span>Secure authentication · TracePilot</span>
+          <span>Secure authentication Â· TracePilot</span>
         </div>
       </div>
     </div>
   );
 };
+
+

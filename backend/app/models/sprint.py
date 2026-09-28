@@ -16,8 +16,8 @@ from app.database.base import Base
 class SprintStatus(str, enum.Enum):
     PLANNED             = "PLANNED"
     ACTIVE              = "ACTIVE"
-    IN_PROGRESS         = "IN_PROGRESS"          # Tester actively working (post-assign)
-    READY_FOR_APPROVAL  = "READY_FOR_APPROVAL"   # Tester submitted, awaiting admin review
+    IN_PROGRESS         = "IN_PROGRESS"          # Developer actively working (post-assign)
+    READY_FOR_APPROVAL  = "READY_FOR_APPROVAL"   # Developer submitted, awaiting admin review
     COMPLETED           = "COMPLETED"
     ARCHIVED            = "ARCHIVED"
 
@@ -128,9 +128,10 @@ class Sprint(Base):
 
     @property
     def assigned_tester_name(self) -> str | None:
-        tester = self.__dict__.get("assigned_tester")
-        if tester and hasattr(tester, "full_name"):
-            return tester.full_name
+        """Name of the assigned developer (column kept as assigned_tester_id for DB compat)."""
+        developer = self.__dict__.get("assigned_tester")
+        if developer and hasattr(developer, "full_name"):
+            return developer.full_name
         return None
 
     def __repr__(self) -> str:

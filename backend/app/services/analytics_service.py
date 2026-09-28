@@ -1,5 +1,5 @@
-"""
-Analytics and reporting service — Phase 9.
+﻿"""
+Analytics and reporting service â€” Phase 9.
 
 Computes system-wide, project-level, developer-performance, and time-series
 metrics using efficient SQL aggregation queries. All endpoints query live
@@ -152,7 +152,7 @@ async def get_status_distribution(
     if current_user.role == UserRole.USER:
         # Users see only their own reported issues
         query = query.where(Issue.reporter_id == current_user.id)
-    elif current_user.role == UserRole.TESTER:
+    elif current_User.role.in_([UserRole.DEVELOPER, 'TESTER']):
         # Testers see only assigned issues
         query = query.where(Issue.assignee_id == current_user.id)
 
@@ -202,7 +202,7 @@ async def get_severity_distribution(
     if current_user.role == UserRole.USER:
         # Users see only their own reported issues
         query = query.where(Issue.reporter_id == current_user.id)
-    elif current_user.role == UserRole.TESTER:
+    elif current_User.role.in_([UserRole.DEVELOPER, 'TESTER']):
         # Testers see only assigned issues
         query = query.where(Issue.assignee_id == current_user.id)
 
@@ -247,7 +247,7 @@ async def get_priority_distribution(
     if current_user.role == UserRole.USER:
         # Users see only their own reported issues
         query = query.where(Issue.reporter_id == current_user.id)
-    elif current_user.role == UserRole.TESTER:
+    elif current_User.role.in_([UserRole.DEVELOPER, 'TESTER']):
         # Testers see only assigned issues
         query = query.where(Issue.assignee_id == current_user.id)
 
@@ -309,7 +309,7 @@ async def get_issue_trends(
         # Users see only their own reported issues
         created_query = created_query.where(Issue.reporter_id == current_user.id)
         resolved_query = resolved_query.where(Issue.reporter_id == current_user.id)
-    elif current_user.role == UserRole.TESTER:
+    elif current_User.role.in_([UserRole.DEVELOPER, 'TESTER']):
         # Testers see only assigned issues
         created_query = created_query.where(Issue.assignee_id == current_user.id)
         resolved_query = resolved_query.where(Issue.assignee_id == current_user.id)
@@ -410,7 +410,7 @@ async def get_all_projects_analytics(
     if current_user.role == UserRole.USER:
         # Users see only their own reported issues
         issue_query = issue_query.where(Issue.reporter_id == current_user.id)
-    elif current_user.role == UserRole.TESTER:
+    elif current_User.role.in_([UserRole.DEVELOPER, 'TESTER']):
         # Testers see only assigned issues
         issue_query = issue_query.where(Issue.assignee_id == current_user.id)
 
@@ -517,7 +517,7 @@ async def get_project_analytics(
     if current_user.role == UserRole.USER:
         # Users see only their own reported issues
         issue_query = issue_query.where(Issue.reporter_id == current_user.id)
-    elif current_user.role == UserRole.TESTER:
+    elif current_User.role.in_([UserRole.DEVELOPER, 'TESTER']):
         # Testers see only assigned issues
         issue_query = issue_query.where(Issue.assignee_id == current_user.id)
 
@@ -558,7 +558,7 @@ async def get_developer_performance(
     """Return assignment, resolution, and time metrics for all testers."""
     dev_res = await db.execute(
         select(User)
-        .where(User.role == UserRole.TESTER)
+        .where(User.role.in_([UserRole.DEVELOPER, 'TESTER']))
         .order_by(User.id)
     )
     developers = dev_res.scalars().all()
@@ -663,7 +663,7 @@ async def export_issues_csv(
     if current_user.role == UserRole.USER:
         # Users see only their own reported issues
         query = query.where(Issue.reporter_id == current_user.id)
-    elif current_user.role == UserRole.TESTER:
+    elif current_User.role.in_([UserRole.DEVELOPER, 'TESTER']):
         # Testers see only assigned issues
         query = query.where(Issue.assignee_id == current_user.id)
 
@@ -732,14 +732,14 @@ async def export_issues_csv(
 
 
 # --------------------------------------------------------------------------- #
-# I. Quality Metrics — Milestone 2                                             #
+# I. Quality Metrics â€” Milestone 2                                             #
 # --------------------------------------------------------------------------- #
 
 async def get_quality_metrics(
     db: AsyncSession,
     current_user: User,
     project_id: int | None = None,
-) -> "QualityMetricsResponse":  # noqa: F821 — imported below to avoid circular
+) -> "QualityMetricsResponse":  # noqa: F821 â€” imported below to avoid circular
     """
     Compute Fix Rate, MTTR, Defect Leakage Rate, and Backlog Health Score.
 
@@ -760,11 +760,11 @@ async def get_quality_metrics(
         (CRITICAL, BLOCKER) / total critical+blocker issues * 100.
 
     backlog_health_score:
-        Composite score 0–100 where 100 = perfectly healthy backlog.
-        Formula: 100 − (critical_open_weight + age_weight)
+        Composite score 0â€“100 where 100 = perfectly healthy backlog.
+        Formula: 100 âˆ’ (critical_open_weight + age_weight)
           critical_open_weight = min(40, open_critical * 4)
           age_weight           = min(40, avg_age_days * 0.5)
-        The remaining 20 pts are deducted if fix_rate < 50 (scale 0–20).
+        The remaining 20 pts are deducted if fix_rate < 50 (scale 0â€“20).
     """
     from app.schemas.analytics import QualityMetricsResponse
 
@@ -772,12 +772,12 @@ async def get_quality_metrics(
     base_q = select(Issue)
     if current_user.role == UserRole.USER:
         base_q = base_q.where(Issue.reporter_id == current_user.id)
-    elif current_user.role == UserRole.TESTER:
+    elif current_User.role.in_([UserRole.DEVELOPER, 'TESTER']):
         base_q = base_q.where(Issue.assignee_id == current_user.id)
     if project_id is not None:
         base_q = base_q.where(Issue.project_id == project_id)
 
-    # ── Total / resolved / closed counts ──────────────────────────────────────
+    # â”€â”€ Total / resolved / closed counts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     counts_result = await db.execute(
         base_q.with_only_columns(
             func.count().label("total"),
@@ -827,10 +827,10 @@ async def get_quality_metrics(
     open_critical: int = row.open_critical or 0
     reopened_critical: int = row.reopened_critical or 0
 
-    # ── Fix Rate ──────────────────────────────────────────────────────────────
+    # â”€â”€ Fix Rate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     fix_rate = round((resolved + closed) / total * 100, 2) if total > 0 else 0.0
 
-    # ── MTTR ──────────────────────────────────────────────────────────────────
+    # â”€â”€ MTTR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     mttr_result = await db.execute(
         base_q.with_only_columns(
             func.avg(
@@ -846,13 +846,13 @@ async def get_quality_metrics(
     if mttr_row.avg_hours is not None:
         mttr_hours = round(float(mttr_row.avg_hours), 2)
 
-    # ── Defect Leakage Rate ───────────────────────────────────────────────────
+    # â”€â”€ Defect Leakage Rate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     defect_leakage_rate = (
         round(reopened_critical / total_critical * 100, 2)
         if total_critical > 0 else 0.0
     )
 
-    # ── Average Age of Open Issues ────────────────────────────────────────────
+    # â”€â”€ Average Age of Open Issues â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     age_result = await db.execute(
         base_q.with_only_columns(
             func.avg(
@@ -869,7 +869,7 @@ async def get_quality_metrics(
     age_row = age_result.one()
     avg_age_open_days: float = round(float(age_row.avg_days), 2) if age_row.avg_days else 0.0
 
-    # ── Backlog Health Score ──────────────────────────────────────────────────
+    # â”€â”€ Backlog Health Score â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     critical_weight = min(40.0, open_critical * 4.0)
     age_weight = min(40.0, avg_age_open_days * 0.5)
     fix_rate_penalty = max(0.0, (50.0 - fix_rate) / 50.0 * 20.0) if fix_rate < 50 else 0.0
@@ -883,4 +883,5 @@ async def get_quality_metrics(
         open_critical_count=open_critical,
         avg_age_open_days=avg_age_open_days,
     )
+
 
