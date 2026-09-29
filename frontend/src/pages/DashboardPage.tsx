@@ -3,26 +3,35 @@ import { Link } from 'react-router-dom';
 import {
   Activity,
   AlertCircle,
+  AlertOctagon,
   ArrowRight,
+  BarChart3,
+  Bell,
   Bug,
   CheckCheck,
   CheckCircle2,
+  CircleAlert,
   Clock,
   Eye,
   FileDown,
   HeartPulse,
+  History,
+  MessageSquare,
   PieChart,
   PlusCircle,
   RefreshCw,
   RotateCcw,
   Search,
+  ShieldCheck,
   Sparkles,
+  TrendingUp,
   X,
   Zap,
 } from 'lucide-react';
 import { analyticsApi } from '../api/analytics';
 import { getApiErrorMessage } from '../api/client';
 import { issuesApi } from '../api/issues';
+import { notificationsApi } from '../api/notifications';
 import { projectsApi } from '../api/projects';
 import { ErrorMessage } from '../components/common/ErrorMessage';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
@@ -38,7 +47,9 @@ import type {
   ProjectAnalyticsResponse,
   SeverityDistributionResponse,
 } from '../types/analytics';
+import type { AuditLogItem } from '../types/audit';
 import type { Issue, IssueStatus, Priority, Severity } from '../types/issue';
+import type { NotificationItem } from '../types/notification';
 import type { Project } from '../types/project';
 import { formatDate, formatRelativeTime } from '../utils/formatters';
 import { generateAnalyticsPdfReport } from '../utils/pdfGenerator';
@@ -153,6 +164,16 @@ export const DashboardPage: React.FC = () => {
   const [severityFilter, setSeverityFilter] = useState<Severity | 'ALL'>('ALL');
   const [priorityFilter, setPriorityFilter] = useState<Priority | 'ALL'>('ALL');
 
+  // ── Timeline State (Feature 2) ──
+  const [selectedTimelineIssueId, setSelectedTimelineIssueId] = useState<number | null>(null);
+  const [timelineEvents, setTimelineEvents] = useState<AuditLogItem[]>([]);
+  const [timelineLoading, setTimelineLoading] = useState<boolean>(false);
+  const [timelineError, setTimelineError] = useState<string | null>(null);
+
+  // ── Activity Feed State (Feature 4) ──
+  const [activityFeed, setActivityFeed] = useState<NotificationItem[]>([]);
+  const [activityLoading, setActivityLoading] = useState<boolean>(false);
+
   // Project map for instant lookups
   const projectMap = useMemo(() => {
     const map = new Map<number, Project>();
@@ -196,6 +217,38 @@ export const DashboardPage: React.FC = () => {
   useEffect(() => {
     loadDashboardData();
   }, [loadDashboardData]);
+
+  // Load activity feed (notifications) once on mount
+  useEffect(() => {
+    setActivityLoading(true);
+    notificationsApi
+      .list({ page_size: 20 })
+      .then((res) => setActivityFeed(res.items || []))
+      .catch(() => setActivityFeed([]))
+      .finally(() => setActivityLoading(false));
+  }, []);
+
+  // Load timeline when selected issue changes
+  useEffect(() => {
+    if (selectedTimelineIssueId === null) return;
+    setTimelineLoading(true);
+    setTimelineError(null);
+    issuesApi
+      .getActivity(selectedTimelineIssueId)
+      .then((events) => setTimelineEvents(events))
+      .catch((err) => setTimelineError(getApiErrorMessage(err)))
+      .finally(() => setTimelineLoading(false));
+  }, [selectedTimelineIssueId]);
+
+  // Auto-select the most recent issue for timeline on first load
+  useEffect(() => {
+    if (userIssues.length > 0 && selectedTimelineIssueId === null) {
+      const sorted = [...userIssues].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setSelectedTimelineIssueId(sorted[0].id);
+    }
+  }, [userIssues, selectedTimelineIssueId]);
 
   // Real-Time auto-refresh on WebSocket notifications without polling
   const lastNotificationIdRef = useRef<number | null>(null);
@@ -396,6 +449,78 @@ export const DashboardPage: React.FC = () => {
         { label: '15+ Days', count: buckets.days15plus, pct: totalOpen ? Math.round((buckets.days15plus / totalOpen) * 100) : 0, color: '#f87171' },
       ],
     };
+  }, [userIssues]);
+
+  // ─────────────────────────────────────────────────────────────────
+  // Issue Health Categories (Feature 1)
+  // ─────────────────────────────────────────────────────────────────
+  const issueHealthCategories = useMemo(() => {
+    const now = Date.now();
+    const critical: Issue[] = [];
+    const attention: Issue[] = [];
+    const healthy: Issue[] = [];
+
+    userIssues.forEach((issue) => {
+      const isOpen = ACTIVE_OPEN_STATUSES.includes(issue.status);
+      const ageMs = now - new Date(issue.updated_at || issue.created_at).getTime();
+      const ageDays = ageMs / (1000 * 60 * 60 * 24);
+      const isCriticalSeverity = issue.severity === 'CRITICAL' || issue.severity === 'BLOCKER';
+      const isUrgentPriority = issue.priority === 'URGENT';
+      const isReopened = issue.status === 'REOPENED';
+
+      if (!isOpen && issue.status !== 'REOPENED') {
+        // Resolved / Closed — healthy
+        healthy.push(issue);
+        return;
+      }
+
+      // CRITICAL: blocker/critical severity open, OR reopened, OR stuck >14 days
+      if (
+        (isOpen && isCriticalSeverity) ||
+        isReopened ||
+        (isOpen && ageDays > 14)
+      ) {
+        critical.push(issue);
+        return;
+      }
+
+      // ATTENTION: urgent priority open, OR stuck >7 days
+      if ((isOpen && isUrgentPriority) || (isOpen && ageDays > 7)) {
+        attention.push(issue);
+        return;
+      }
+
+      // HEALTHY: open but progressing normally
+      healthy.push(issue);
+    });
+
+    const total = userIssues.length;
+    let overallStatus: 'HEALTHY' | 'ATTENTION NEEDED' | 'CRITICAL' = 'HEALTHY';
+    let overallColor = '#34d399';
+    if (critical.length > 0) {
+      overallStatus = 'CRITICAL';
+      overallColor = '#ef4444';
+    } else if (attention.length > 0) {
+      overallStatus = 'ATTENTION NEEDED';
+      overallColor = '#f59e0b';
+    }
+
+    return { critical, attention, healthy, total, overallStatus, overallColor };
+  }, [userIssues]);
+
+  // ─────────────────────────────────────────────────────────────────
+  // Average Resolution Time (Feature 3)
+  // ─────────────────────────────────────────────────────────────────
+  const avgResolutionDays = useMemo(() => {
+    const resolved = userIssues.filter(
+      (i) => (i.status === 'RESOLVED' || i.status === 'CLOSED') && i.updated_at && i.created_at
+    );
+    if (resolved.length === 0) return null;
+    const totalMs = resolved.reduce((sum, i) => {
+      return sum + (new Date(i.updated_at).getTime() - new Date(i.created_at).getTime());
+    }, 0);
+    const avgMs = totalMs / resolved.length;
+    return Math.round(avgMs / (1000 * 60 * 60 * 24));
   }, [userIssues]);
 
   // ─────────────────────────────────────────────────────────────────
@@ -1612,6 +1737,491 @@ export const DashboardPage: React.FC = () => {
             )}
           </div>
         </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {/* ── NEW FEATURE SECTIONS (2-column responsive grid)           ── */}
+      {/* ══════════════════════════════════════════════════════════════ */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '1.25rem',
+        }}
+      >
+        {/* ── FEATURE 1: ISSUE HEALTH ── */}
+        <section className="card" style={{ padding: '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <ShieldCheck size={18} color={issueHealthCategories.overallColor} />
+              <span style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--text-primary)' }}>
+                Issue Health
+              </span>
+            </div>
+            {totalIssueCount > 0 && (
+              <span
+                style={{
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  padding: '0.2rem 0.6rem',
+                  borderRadius: '999px',
+                  backgroundColor: `${issueHealthCategories.overallColor}22`,
+                  color: issueHealthCategories.overallColor,
+                  border: `1px solid ${issueHealthCategories.overallColor}44`,
+                }}
+              >
+                {issueHealthCategories.overallStatus}
+              </span>
+            )}
+          </div>
+
+          {totalIssueCount === 0 ? (
+            <div style={{ padding: '2rem 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+              <ShieldCheck size={28} style={{ opacity: 0.3, marginBottom: '0.5rem', display: 'block', margin: '0 auto 0.5rem' }} />
+              No issue health data yet.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+              {[
+                {
+                  label: 'Healthy',
+                  count: issueHealthCategories.healthy.length,
+                  color: '#34d399',
+                  icon: <CheckCircle2 size={15} />,
+                  description: 'Resolved, closed, or progressing normally',
+                  statusFilter: undefined as IssueStatus | undefined,
+                },
+                {
+                  label: 'Attention Needed',
+                  count: issueHealthCategories.attention.length,
+                  color: '#f59e0b',
+                  icon: <CircleAlert size={15} />,
+                  description: 'Urgent priority or open >7 days',
+                  statusFilter: undefined as IssueStatus | undefined,
+                },
+                {
+                  label: 'Critical',
+                  count: issueHealthCategories.critical.length,
+                  color: '#ef4444',
+                  icon: <AlertOctagon size={15} />,
+                  description: 'Blocker/critical severity, reopened, or stuck >14 days',
+                  statusFilter: 'REOPENED' as IssueStatus,
+                },
+              ].map((row) => (
+                <div
+                  key={row.label}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0.65rem 0.85rem',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: `${row.color}11`,
+                    border: `1px solid ${row.color}33`,
+                    cursor: row.count > 0 ? 'pointer' : 'default',
+                  }}
+                  onClick={() => {
+                    if (row.count > 0) {
+                      if (row.statusFilter) setStatusFilter(row.statusFilter);
+                      document.getElementById('my-recent-issues')?.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ color: row.color }}>{row.icon}</span>
+                    <div>
+                      <div style={{ fontSize: '0.82rem', fontWeight: '600', color: 'var(--text-primary)' }}>
+                        {row.label}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{row.description}</div>
+                    </div>
+                  </div>
+                  <span style={{ fontSize: '1.25rem', fontWeight: '800', color: row.color }}>
+                    {row.count}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* ── FEATURE 3: PERSONAL INSIGHTS ── */}
+        <section className="card" style={{ padding: '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+            <BarChart3 size={18} color="#818cf8" />
+            <span style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--text-primary)' }}>
+              My Issue Insights
+            </span>
+          </div>
+
+          {totalIssueCount === 0 ? (
+            <div style={{ padding: '2rem 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+              <BarChart3 size={28} style={{ opacity: 0.3, marginBottom: '0.5rem', display: 'block', margin: '0 auto 0.5rem' }} />
+              Your issue insights will appear here after you report issues.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {/* Key Metrics Row */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+                {[
+                  { label: 'Total', value: totalIssueCount, color: '#818cf8' },
+                  { label: 'Open', value: openIssuesCount, color: '#fbbf24' },
+                  { label: 'Resolved', value: resolvedCount + closedCount, color: '#34d399' },
+                ].map((m) => (
+                  <div
+                    key={m.label}
+                    style={{
+                      textAlign: 'center',
+                      padding: '0.5rem',
+                      backgroundColor: 'var(--bg-surface-elevated)',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-subtle)',
+                    }}
+                  >
+                    <div style={{ fontSize: '1.2rem', fontWeight: '800', color: m.color }}>{m.value}</div>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{m.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Resolution Rate Bar */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.775rem', marginBottom: '0.25rem' }}>
+                  <span style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <TrendingUp size={12} /> Resolution Rate
+                  </span>
+                  <span style={{ fontWeight: '700', color: resolutionRate >= 75 ? '#34d399' : '#818cf8' }}>{resolutionRate}%</span>
+                </div>
+                <div style={{ height: '6px', backgroundColor: 'var(--border-subtle)', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${resolutionRate}%`, backgroundColor: resolutionRate >= 75 ? '#34d399' : '#818cf8', borderRadius: '3px', transition: 'width 0.5s ease' }} />
+                </div>
+              </div>
+
+              {/* Avg Resolution Time */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '0.5rem 0.75rem',
+                  backgroundColor: 'var(--bg-surface-elevated)',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--border-subtle)',
+                }}
+              >
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <Clock size={13} /> Avg Resolution Time
+                </span>
+                <span style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-primary)' }}>
+                  {avgResolutionDays === null ? '—' : `${avgResolutionDays}d`}
+                </span>
+              </div>
+
+              {/* Critical Issues Count */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '0.5rem 0.75rem',
+                  backgroundColor: issueHealthCategories.critical.length > 0 ? 'rgba(239,68,68,0.06)' : 'var(--bg-surface-elevated)',
+                  borderRadius: 'var(--radius-sm)',
+                  border: `1px solid ${issueHealthCategories.critical.length > 0 ? 'rgba(239,68,68,0.3)' : 'var(--border-subtle)'}`,
+                }}
+              >
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <AlertOctagon size={13} /> Critical / Blocker Open
+                </span>
+                <span style={{ fontSize: '0.85rem', fontWeight: '700', color: issueHealthCategories.critical.length > 0 ? '#ef4444' : '#34d399' }}>
+                  {issueHealthCategories.critical.length}
+                </span>
+              </div>
+
+              {/* Status Distribution mini-bars */}
+              <div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.35rem' }}>Status Breakdown</div>
+                {([
+                  { label: 'Reported', value: (statusDist?.REPORTED || 0) + (statusDist?.TRIAGED || 0), color: '#fbbf24' },
+                  { label: 'In Progress', value: (statusDist?.IN_DEVELOPMENT || 0) + (statusDist?.IN_REVIEW || 0) + (statusDist?.IN_TESTING || 0) + (statusDist?.ASSIGNED || 0), color: '#38bdf8' },
+                  { label: 'Resolved/Closed', value: (statusDist?.RESOLVED || 0) + (statusDist?.CLOSED || 0), color: '#34d399' },
+                  { label: 'Reopened', value: statusDist?.REOPENED || 0, color: '#f87171' },
+                ] as { label: string; value: number; color: string }[]).filter((r) => r.value > 0).map((row) => (
+                  <div key={row.label} style={{ marginBottom: '0.3rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', marginBottom: '0.1rem' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>{row.label}</span>
+                      <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{row.value}</span>
+                    </div>
+                    <div style={{ height: '4px', backgroundColor: 'var(--border-subtle)', borderRadius: '2px', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${totalIssueCount > 0 ? Math.round((row.value / totalIssueCount) * 100) : 0}%`, backgroundColor: row.color, borderRadius: '2px' }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      </div>
+
+      {/* ── 2nd Row: Timeline + Activity Feed ── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '1.25rem',
+        }}
+      >
+        {/* ── FEATURE 2: MY ISSUE TIMELINE ── */}
+        <section className="card" style={{ padding: '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+            <History size={18} color="#818cf8" />
+            <span style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--text-primary)' }}>
+              My Issue Timeline
+            </span>
+          </div>
+
+          {userIssues.length === 0 ? (
+            <div style={{ padding: '2rem 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+              <History size={28} style={{ opacity: 0.3, marginBottom: '0.5rem', display: 'block', margin: '0 auto 0.5rem' }} />
+              Report an issue to start tracking its lifecycle.
+            </div>
+          ) : (
+            <>
+              {/* Issue Selector */}
+              <select
+                value={selectedTimelineIssueId ?? ''}
+                onChange={(e) => setSelectedTimelineIssueId(Number(e.target.value))}
+                style={{
+                  width: '100%',
+                  padding: '0.4rem 0.65rem',
+                  fontSize: '0.82rem',
+                  background: 'var(--bg-input)',
+                  border: '1px solid var(--border-muted)',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--text-primary)',
+                  cursor: 'pointer',
+                  marginBottom: '1rem',
+                }}
+              >
+                {[...userIssues]
+                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                  .slice(0, 30)
+                  .map((iss) => (
+                    <option key={iss.id} value={iss.id}>
+                      {iss.issue_key} — {iss.title.slice(0, 40)}{iss.title.length > 40 ? '…' : ''}
+                    </option>
+                  ))}
+              </select>
+
+              {/* Selected issue header */}
+              {selectedTimelineIssueId && (() => {
+                const iss = userIssues.find((i) => i.id === selectedTimelineIssueId);
+                if (!iss) return null;
+                return (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      marginBottom: '1rem',
+                      padding: '0.5rem 0.75rem',
+                      backgroundColor: 'var(--bg-surface-elevated)',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-subtle)',
+                    }}
+                  >
+                    <Link
+                      to={`/issues/${iss.id}`}
+                      style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)', textDecoration: 'none' }}
+                    >
+                      {iss.issue_key}
+                    </Link>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {iss.title}
+                    </span>
+                    <StatusBadge status={iss.status} />
+                  </div>
+                );
+              })()}
+
+              {/* Timeline events */}
+              {timelineLoading ? (
+                <div style={{ padding: '1.5rem 0', display: 'flex', justifyContent: 'center' }}>
+                  <LoadingSpinner message="Loading timeline…" />
+                </div>
+              ) : timelineError ? (
+                <p style={{ fontSize: '0.82rem', color: '#f87171', textAlign: 'center' }}>{timelineError}</p>
+              ) : timelineEvents.length === 0 ? (
+                <div style={{ padding: '1.5rem 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
+                  No activity recorded yet for this issue.
+                </div>
+              ) : (
+                <div style={{ position: 'relative', paddingLeft: '1.5rem' }}>
+                  {/* Vertical line */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      left: '0.45rem',
+                      top: '0.5rem',
+                      bottom: '0.5rem',
+                      width: '2px',
+                      backgroundColor: 'var(--border-subtle)',
+                    }}
+                  />
+                  {timelineEvents.map((evt, idx) => {
+                    const isLast = idx === timelineEvents.length - 1;
+                    let dotColor = '#818cf8';
+                    if (evt.action === 'ISSUE_RESOLVED') dotColor = '#34d399';
+                    else if (evt.action === 'ISSUE_REOPENED') dotColor = '#f87171';
+                    else if (evt.action === 'ISSUE_CREATED') dotColor = '#818cf8';
+                    else if (evt.action === 'ISSUE_ASSIGNED') dotColor = '#38bdf8';
+                    else if (evt.action === 'ISSUE_STATUS_CHANGED') dotColor = '#fbbf24';
+                    return (
+                      <div key={evt.id} style={{ position: 'relative', marginBottom: isLast ? 0 : '0.85rem' }}>
+                        {/* Dot */}
+                        <div
+                          style={{
+                            position: 'absolute',
+                            left: '-1.12rem',
+                            top: '0.25rem',
+                            width: '10px',
+                            height: '10px',
+                            borderRadius: '50%',
+                            backgroundColor: dotColor,
+                            border: '2px solid var(--bg-surface)',
+                            zIndex: 1,
+                          }}
+                        />
+                        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.35 }}>
+                          {evt.description}
+                        </div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>
+                          {evt.actor ? `${evt.actor.full_name} · ` : ''}{formatRelativeTime(evt.created_at)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+        </section>
+
+        {/* ── FEATURE 4: RECENT ACTIVITY FEED ── */}
+        <section className="card" style={{ padding: '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Activity size={18} color="#818cf8" />
+              <span style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--text-primary)' }}>
+                Recent Activity
+              </span>
+            </div>
+            {activityFeed.filter((n) => !n.is_read).length > 0 && (
+              <span
+                style={{
+                  fontSize: '0.68rem',
+                  fontWeight: 700,
+                  padding: '0.15rem 0.5rem',
+                  borderRadius: '999px',
+                  backgroundColor: 'rgba(239,68,68,0.15)',
+                  color: '#f87171',
+                }}
+              >
+                {activityFeed.filter((n) => !n.is_read).length} unread
+              </span>
+            )}
+          </div>
+
+          {activityLoading ? (
+            <div style={{ padding: '1.5rem 0', display: 'flex', justifyContent: 'center' }}>
+              <LoadingSpinner message="Loading activity…" />
+            </div>
+          ) : activityFeed.length === 0 ? (
+            <div style={{ padding: '2rem 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+              <Bell size={28} style={{ opacity: 0.3, marginBottom: '0.5rem', display: 'block', margin: '0 auto 0.5rem' }} />
+              No recent activity.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+              {activityFeed.slice(0, 12).map((notif, idx) => {
+                let icon = <Bell size={14} />;
+                let dotColor = '#818cf8';
+                if (notif.notification_type === 'ISSUE_STATUS_CHANGED') { icon = <Activity size={14} />; dotColor = '#fbbf24'; }
+                else if (notif.notification_type === 'ISSUE_RESOLVED') { icon = <CheckCircle2 size={14} />; dotColor = '#34d399'; }
+                else if (notif.notification_type === 'ISSUE_REOPENED') { icon = <RotateCcw size={14} />; dotColor = '#f87171'; }
+                else if (notif.notification_type === 'ISSUE_COMMENTED') { icon = <MessageSquare size={14} />; dotColor = '#38bdf8'; }
+                else if (notif.notification_type === 'ISSUE_ASSIGNED') { icon = <Activity size={14} />; dotColor = '#818cf8'; }
+                else if (notif.notification_type === 'ATTACHMENT_ADDED') { icon = <FileDown size={14} />; dotColor = '#a78bfa'; }
+                else if (notif.notification_type === 'ISSUE_REPORTED') { icon = <Bug size={14} />; dotColor = '#818cf8'; }
+
+                return (
+                  <div
+                    key={notif.id}
+                    style={{
+                      display: 'flex',
+                      gap: '0.65rem',
+                      padding: '0.6rem 0',
+                      borderBottom: idx < Math.min(activityFeed.length, 12) - 1 ? '1px solid var(--border-subtle)' : 'none',
+                      opacity: notif.is_read ? 0.7 : 1,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '50%',
+                        backgroundColor: `${dotColor}22`,
+                        border: `1px solid ${dotColor}44`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        color: dotColor,
+                      }}
+                    >
+                      {icon}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: '0.8rem',
+                          fontWeight: notif.is_read ? 400 : 600,
+                          color: 'var(--text-primary)',
+                          lineHeight: 1.35,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                        title={notif.message}
+                      >
+                        {notif.entity_key && (
+                          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--primary)', marginRight: '0.3rem', fontSize: '0.75rem' }}>
+                            {notif.entity_key}
+                          </span>
+                        )}
+                        {notif.title}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>
+                        {formatRelativeTime(notif.created_at)}
+                        {!notif.is_read && (
+                          <span style={{ marginLeft: '0.4rem', width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#818cf8', display: 'inline-block', verticalAlign: 'middle' }} />
+                        )}
+                      </div>
+                    </div>
+                    {notif.entity_id && notif.entity_type === 'ISSUE' && (
+                      <Link
+                        to={`/issues/${notif.entity_id}`}
+                        style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', flexShrink: 0 }}
+                        title="View issue"
+                      >
+                        <Eye size={13} />
+                      </Link>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
       </div>
 
       {/* ── AI ASSISTANT ── */}
