@@ -57,6 +57,9 @@ import { UserActionCenter } from '../components/dashboard/UserActionCenter';
 import { UserIssueTrend } from '../components/dashboard/UserIssueTrend';
 import { IssueQualityCard } from '../components/dashboard/IssueQualityCard';
 import { RecentIssueActivity } from '../components/dashboard/RecentIssueActivity';
+import { UserSlaTracker } from '../components/dashboard/UserSlaTracker';
+import { UserIssueDistribution } from '../components/dashboard/UserIssueDistribution';
+import { UserResolutionPerformance } from '../components/dashboard/UserResolutionPerformance';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Active open statuses (excluding RESOLVED and CLOSED)
@@ -166,6 +169,9 @@ export const DashboardPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<IssueStatus | 'ALL'>('ALL');
   const [severityFilter, setSeverityFilter] = useState<Severity | 'ALL'>('ALL');
   const [priorityFilter, setPriorityFilter] = useState<Priority | 'ALL'>('ALL');
+  const [projectFilter, setProjectFilter] = useState<number | 'ALL'>('ALL');
+  const [dateFilter, setDateFilter] = useState<'ALL' | '7d' | '30d' | '90d'>('ALL');
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'updated' | 'priority' | 'severity'>('newest');
 
   // ── Timeline State (Feature 2) ──
   const [selectedTimelineIssueId, setSelectedTimelineIssueId] = useState<number | null>(null);
@@ -384,33 +390,60 @@ export const DashboardPage: React.FC = () => {
   // ─────────────────────────────────────────────────────────────────
   // Filtered Recent Issues
   // ─────────────────────────────────────────────────────────────────
+  const PRIORITY_SORT_ORDER: Record<string, number> = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+  const SEVERITY_SORT_ORDER: Record<string, number> = { BLOCKER: 0, CRITICAL: 1, MAJOR: 2, MINOR: 3 };
+
   const filteredIssues = useMemo(() => {
-    return userIssues.filter((issue) => {
-      // Status filter
+    const cutoffMs: Record<string, number> = { '7d': 7, '30d': 30, '90d': 90 };
+    const nowMs = Date.now();
+
+    const filtered = userIssues.filter((issue) => {
       if (statusFilter !== 'ALL' && issue.status !== statusFilter) return false;
-      // Severity filter
       if (severityFilter !== 'ALL' && issue.severity !== severityFilter) return false;
-      // Priority filter
       if (priorityFilter !== 'ALL' && issue.priority !== priorityFilter) return false;
-      // Search query
+      if (projectFilter !== 'ALL' && issue.project_id !== projectFilter) return false;
+      if (dateFilter !== 'ALL') {
+        const days = cutoffMs[dateFilter] ?? 0;
+        const cutoff = nowMs - days * 24 * 60 * 60 * 1000;
+        if (new Date(issue.created_at).getTime() < cutoff) return false;
+      }
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const matchKey = issue.issue_key.toLowerCase().includes(q);
         const matchTitle = issue.title.toLowerCase().includes(q);
         const matchProj = (projectMap.get(issue.project_id)?.name || '').toLowerCase().includes(q);
-        return matchKey || matchTitle || matchProj;
+        if (!matchKey && !matchTitle && !matchProj) return false;
       }
       return true;
     });
-  }, [userIssues, statusFilter, severityFilter, priorityFilter, searchQuery, projectMap]);
 
-  // Recent issues sorted by creation/update descending
-  const recentIssuesList = useMemo(() => {
-    return [...filteredIssues].sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
-  }, [filteredIssues]);
+    return filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'oldest':
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case 'updated':
+          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+        case 'priority':
+          return (PRIORITY_SORT_ORDER[a.priority] ?? 9) - (PRIORITY_SORT_ORDER[b.priority] ?? 9);
+        case 'severity':
+          return (SEVERITY_SORT_ORDER[a.severity] ?? 9) - (SEVERITY_SORT_ORDER[b.severity] ?? 9);
+        default: // newest
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
+  }, [userIssues, statusFilter, severityFilter, priorityFilter, projectFilter, dateFilter, sortBy, searchQuery, projectMap]);
+
+  // Alias for backwards compatibility (sorted list used by other sections)
+  const recentIssuesList = filteredIssues;
+
+  const hasActiveFilters =
+    !!searchQuery ||
+    statusFilter !== 'ALL' ||
+    severityFilter !== 'ALL' ||
+    priorityFilter !== 'ALL' ||
+    projectFilter !== 'ALL' ||
+    dateFilter !== 'ALL' ||
+    sortBy !== 'newest';
 
   // ─────────────────────────────────────────────────────────────────
   // Personal Issue Aging (User-Specific Open Issues in 5 Buckets)
@@ -1036,20 +1069,93 @@ export const DashboardPage: React.FC = () => {
             <option value="LOW">Low</option>
           </select>
 
-          {(searchQuery || statusFilter !== 'ALL' || severityFilter !== 'ALL' || priorityFilter !== 'ALL') && (
+          {/* Project Filter */}
+          <select
+            value={projectFilter}
+            onChange={(e) => setProjectFilter(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
+            style={{
+              padding: '0.35rem 0.65rem',
+              fontSize: '0.8rem',
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-muted)',
+              borderRadius: 'var(--radius-sm)',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+              minWidth: '120px',
+            }}
+          >
+            <option value="ALL">All Projects</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+
+          {/* Date Filter */}
+          <select
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value as typeof dateFilter)}
+            style={{
+              padding: '0.35rem 0.65rem',
+              fontSize: '0.8rem',
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-muted)',
+              borderRadius: 'var(--radius-sm)',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+              minWidth: '110px',
+            }}
+          >
+            <option value="ALL">All Time</option>
+            <option value="7d">Last 7 Days</option>
+            <option value="30d">Last 30 Days</option>
+            <option value="90d">Last 90 Days</option>
+          </select>
+
+          {/* Sort */}
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+            style={{
+              padding: '0.35rem 0.65rem',
+              fontSize: '0.8rem',
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-muted)',
+              borderRadius: 'var(--radius-sm)',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+              minWidth: '120px',
+            }}
+          >
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="updated">Recently Updated</option>
+            <option value="priority">By Priority</option>
+            <option value="severity">By Severity</option>
+          </select>
+
+          {hasActiveFilters && (
             <button
               onClick={() => {
                 setSearchQuery('');
                 setStatusFilter('ALL');
                 setSeverityFilter('ALL');
                 setPriorityFilter('ALL');
+                setProjectFilter('ALL');
+                setDateFilter('ALL');
+                setSortBy('newest');
               }}
               className="btn btn-ghost btn-sm"
-              style={{ fontSize: '0.75rem', padding: '0.3rem 0.55rem' }}
+              style={{ fontSize: '0.75rem', padding: '0.3rem 0.55rem', whiteSpace: 'nowrap' }}
             >
-              Clear Filters
+              <X size={12} /> Clear Filters
             </button>
           )}
+        </div>
+
+        {/* Result count */}
+        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.6rem' }}>
+          Showing {Math.min(filteredIssues.length, 8)} of {filteredIssues.length} issue{filteredIssues.length !== 1 ? 's' : ''}
+          {filteredIssues.length < userIssues.length && ` (${userIssues.length} total)`}
         </div>
 
         {/* High-density Recent Issues Table */}
@@ -2064,7 +2170,7 @@ export const DashboardPage: React.FC = () => {
         </section>
       </div>
 
-      {/* ── Issue Trend + Issue Quality ── */}
+      {/* ── Issue Trend + Personal Resolution Performance ── */}
       <div
         style={{
           display: 'grid',
@@ -2073,11 +2179,32 @@ export const DashboardPage: React.FC = () => {
         }}
       >
         <UserIssueTrend userIssues={userIssues} />
-        <IssueQualityCard userIssues={userIssues} />
+        <UserResolutionPerformance userIssues={userIssues} />
       </div>
 
-      {/* ── Recent Issue Activity (Comments / Attachments) ── */}
-      <RecentIssueActivity userIssues={userIssues} />
+      {/* ── Resolution SLA + Priority & Severity Distribution ── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '1.25rem',
+        }}
+      >
+        <UserSlaTracker userIssues={userIssues} />
+        <UserIssueDistribution userIssues={userIssues} />
+      </div>
+
+      {/* ── Issue Quality + Recent Issue Activity ── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '1.25rem',
+        }}
+      >
+        <IssueQualityCard userIssues={userIssues} />
+        <RecentIssueActivity userIssues={userIssues} />
+      </div>
 
       {/* ── AI ASSISTANT ── */}
       <AIChatbot
