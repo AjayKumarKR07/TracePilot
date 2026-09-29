@@ -26,7 +26,6 @@ import {
   Sparkles,
   TrendingUp,
   X,
-  Zap,
 } from 'lucide-react';
 import { analyticsApi } from '../api/analytics';
 import { getApiErrorMessage } from '../api/client';
@@ -54,6 +53,10 @@ import type { Project } from '../types/project';
 import { formatDate, formatRelativeTime } from '../utils/formatters';
 import { generateAnalyticsPdfReport } from '../utils/pdfGenerator';
 import { AIChatbot } from '../components/ai/AIChatbot';
+import { UserActionCenter } from '../components/dashboard/UserActionCenter';
+import { UserIssueTrend } from '../components/dashboard/UserIssueTrend';
+import { IssueQualityCard } from '../components/dashboard/IssueQualityCard';
+import { RecentIssueActivity } from '../components/dashboard/RecentIssueActivity';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Active open statuses (excluding RESOLVED and CLOSED)
@@ -331,12 +334,8 @@ export const DashboardPage: React.FC = () => {
       ? Math.round(((resolvedCount + closedCount) / totalIssueCount) * 100)
       : 0;
 
-  // ─────────────────────────────────────────────────────────────────
-  // Action Required Issues (Resolved awaiting confirmation or Reopened)
-  // ─────────────────────────────────────────────────────────────────
-  const actionRequiredIssues = useMemo(() => {
-    return userIssues.filter((iss) => iss.status === 'RESOLVED' || iss.status === 'REOPENED');
-  }, [userIssues]);
+
+
 
   // ─────────────────────────────────────────────────────────────────
   // Quick Actions: Confirm Resolution & Reopen
@@ -770,177 +769,18 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── 1. ACTION REQUIRED SECTION (Top priority) ── */}
-      {actionRequiredIssues.length > 0 ? (
-        <section
-          className="card"
-          style={{
-            border: '1px solid rgba(245, 158, 11, 0.4)',
-            backgroundColor: 'rgba(245, 158, 11, 0.05)',
-            padding: '1.25rem',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '1rem',
-              flexWrap: 'wrap',
-              gap: '0.5rem',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Zap size={18} color="#f59e0b" />
-              <h2 style={{ fontSize: '1.05rem', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
-                Action Required ({actionRequiredIssues.length})
-              </h2>
-            </div>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Defects waiting for your verification &amp; confirmation
-            </span>
-          </div>
+      {/* ── 1. ACTION CENTER (replaces old Action Required) ── */}
+      <UserActionCenter
+        userIssues={userIssues}
+        notifications={activityFeed}
+        isActionSubmitting={isActionSubmitting}
+        onConfirmClose={handleConfirmClose}
+        onReopenIssue={(issue) => {
+          setReopenModalIssue(issue);
+        }}
+      />
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-              gap: '0.85rem',
-            }}
-          >
-            {actionRequiredIssues.map((issue) => (
-              <div
-                key={issue.id}
-                style={{
-                  backgroundColor: 'var(--bg-surface-elevated)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '1rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  gap: '0.75rem',
-                }}
-              >
-                <div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      marginBottom: '0.4rem',
-                    }}
-                  >
-                    <Link
-                      to={`/issues/${issue.id}`}
-                      style={{
-                        fontFamily: 'var(--font-mono)',
-                        fontWeight: '700',
-                        color: 'var(--primary)',
-                        fontSize: '0.85rem',
-                        textDecoration: 'none',
-                      }}
-                    >
-                      {issue.issue_key}
-                    </Link>
-                    <StatusBadge status={issue.status} />
-                  </div>
 
-                  <h3
-                    style={{
-                      fontSize: '0.92rem',
-                      fontWeight: '600',
-                      color: 'var(--text-primary)',
-                      margin: '0 0 0.35rem 0',
-                    }}
-                  >
-                    {issue.title}
-                  </h3>
-
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.35 }}>
-                    {issue.status === 'RESOLVED'
-                      ? 'The tester marked this defect resolved. Please verify the fix in your environment.'
-                      : 'This defect was reopened and is awaiting renewed inspection.'}
-                  </p>
-                </div>
-
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: '0.5rem',
-                    flexWrap: 'wrap',
-                    paddingTop: '0.55rem',
-                    borderTop: '1px solid var(--border-subtle)',
-                  }}
-                >
-                  {issue.status === 'RESOLVED' && (
-                    <>
-                      <button
-                        onClick={() => handleConfirmClose(issue.id)}
-                        disabled={isActionSubmitting}
-                        className="btn btn-primary btn-sm"
-                        style={{
-                          backgroundColor: '#10b981',
-                          borderColor: '#10b981',
-                          flex: 1,
-                          justifyContent: 'center',
-                          fontSize: '0.78rem',
-                        }}
-                        title="Confirm fix is working and close defect"
-                      >
-                        <CheckCircle2 size={13} />
-                        <span>Confirm Resolution</span>
-                      </button>
-
-                      <button
-                        onClick={() => setReopenModalIssue(issue)}
-                        disabled={isActionSubmitting}
-                        className="btn btn-outline-danger btn-sm"
-                        style={{ flex: 1, justifyContent: 'center', fontSize: '0.78rem' }}
-                        title="Reopen defect if problem still persists"
-                      >
-                        <RotateCcw size={13} />
-                        <span>Reopen Issue</span>
-                      </button>
-                    </>
-                  )}
-
-                  <Link
-                    to={`/issues/${issue.id}`}
-                    className="btn btn-secondary btn-sm"
-                    style={{ justifyContent: 'center', fontSize: '0.78rem' }}
-                  >
-                    <Eye size={13} />
-                    <span>View Details</span>
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : (
-        <section
-          className="card"
-          style={{
-            border: '1px solid rgba(16, 185, 129, 0.25)',
-            backgroundColor: 'rgba(16, 185, 129, 0.04)',
-            padding: '1rem 1.25rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-          }}
-        >
-          <CheckCircle2 size={20} color="#34d399" style={{ flexShrink: 0 }} />
-          <div style={{ flex: 1 }}>
-            <span style={{ fontSize: '0.88rem', fontWeight: '600', color: '#34d399', display: 'block' }}>
-              You&apos;re all caught up!
-            </span>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-              None of your reported defects currently require your confirmation or follow-up.
-            </span>
-          </div>
-        </section>
-      )}
 
       {/* ── 2. LIVE KPI CARDS (Clean labels without numbers) ── */}
       <div
@@ -2223,6 +2063,21 @@ export const DashboardPage: React.FC = () => {
           )}
         </section>
       </div>
+
+      {/* ── Issue Trend + Issue Quality ── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '1.25rem',
+        }}
+      >
+        <UserIssueTrend userIssues={userIssues} />
+        <IssueQualityCard userIssues={userIssues} />
+      </div>
+
+      {/* ── Recent Issue Activity (Comments / Attachments) ── */}
+      <RecentIssueActivity userIssues={userIssues} />
 
       {/* ── AI ASSISTANT ── */}
       <AIChatbot
