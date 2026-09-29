@@ -164,7 +164,7 @@ class TestDashboardUserCounts:
     def test_creating_new_user_increments_total(self):
         before = self._dashboard()["users"]["total"]
         email = f"counter_{secrets.token_hex(6)}.p6dash@example.com"
-        _run_sync(_ensure_verified_user(email=email, full_name="Counter User", role=UserRole.TESTER))
+        _run_sync(_ensure_verified_user(email=email, full_name="Counter User", role=UserRole.DEVELOPER))
         after = self._dashboard()["users"]["total"]
         assert after >= before + 1
 

@@ -52,8 +52,8 @@ def _u(tag: str) -> str:
 def _setup_p6_users() -> None:
     """Ensure a fixed set of Phase 6 test users exist."""
     users = [
-        (_u("tester_a"), "Tester A P6", UserRole.TESTER),
-        (_u("tester_b"), "Tester B P6", UserRole.TESTER),
+        (_u("tester_a"), "Tester A P6", UserRole.DEVELOPER),
+        (_u("tester_b"), "Tester B P6", UserRole.DEVELOPER),
         (_u("user_a"),   "User A P6",   UserRole.USER),
     ]
     for email, name, role in users:
@@ -370,7 +370,7 @@ class TestActivateDeactivate:
     def _create_temp_user(self) -> tuple[int, str]:
         """Create a fresh inactive TESTER for activate/deactivate tests."""
         email = f"temp_user_{secrets.token_hex(6)}.p6um@example.com"
-        _run_sync(_ensure_verified_user(email=email, full_name="Temp User", role=UserRole.TESTER))
+        _run_sync(_ensure_verified_user(email=email, full_name="Temp User", role=UserRole.DEVELOPER))
         uid = _get_user_id(email)
         return uid, email
 
@@ -532,7 +532,7 @@ class TestLastAdminProtection:
 class TestRoleManagement:
     def _create_temp_tester(self) -> tuple[int, str]:
         email = f"temp_role_{secrets.token_hex(6)}.p6um@example.com"
-        _run_sync(_ensure_verified_user(email=email, full_name="Temp Role", role=UserRole.TESTER))
+        _run_sync(_ensure_verified_user(email=email, full_name="Temp Role", role=UserRole.DEVELOPER))
         uid = _get_user_id(email)
         return uid, email
 
@@ -646,7 +646,7 @@ class TestUserAuditEvents:
 
     def test_user_activated_audit_created(self):
         email = f"audit_act_{secrets.token_hex(6)}.p6um@example.com"
-        _run_sync(_ensure_verified_user(email=email, full_name="Audit Act", role=UserRole.TESTER))
+        _run_sync(_ensure_verified_user(email=email, full_name="Audit Act", role=UserRole.DEVELOPER))
         uid = _get_user_id(email)
         _CLIENT.patch(f"/users/{uid}/deactivate", headers=auth_header(admin_token()))
         _CLIENT.patch(f"/users/{uid}/activate", headers=auth_header(admin_token()))
@@ -656,7 +656,7 @@ class TestUserAuditEvents:
 
     def test_user_deactivated_audit_created(self):
         email = f"audit_dea_{secrets.token_hex(6)}.p6um@example.com"
-        _run_sync(_ensure_verified_user(email=email, full_name="Audit Dea", role=UserRole.TESTER))
+        _run_sync(_ensure_verified_user(email=email, full_name="Audit Dea", role=UserRole.DEVELOPER))
         uid = _get_user_id(email)
         _CLIENT.patch(f"/users/{uid}/deactivate", headers=auth_header(admin_token()))
         logs = self._get_audit_logs()
@@ -665,7 +665,7 @@ class TestUserAuditEvents:
 
     def test_user_role_changed_audit_created(self):
         email = f"audit_role_{secrets.token_hex(6)}.p6um@example.com"
-        _run_sync(_ensure_verified_user(email=email, full_name="Audit Role", role=UserRole.TESTER))
+        _run_sync(_ensure_verified_user(email=email, full_name="Audit Role", role=UserRole.DEVELOPER))
         uid = _get_user_id(email)
         _CLIENT.patch(f"/users/{uid}/role", json={"role": "USER"}, headers=auth_header(admin_token()))
         logs = self._get_audit_logs()

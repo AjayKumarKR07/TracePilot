@@ -1,4 +1,4 @@
-"""
+﻿"""
 Pydantic schemas for the Project resource.
 
 Request and response models for Phase 4 project management API.
@@ -28,6 +28,7 @@ class ProjectCreate(BaseModel):
     )
     description: str | None = Field(None, max_length=5000)
     status: ProjectStatus = ProjectStatus.ACTIVE
+    is_test: bool = False
 
     @field_validator("project_key", mode="before")
     @classmethod
@@ -65,6 +66,7 @@ class ProjectResponse(BaseModel):
     name: str
     description: str | None
     status: ProjectStatus
+    is_test: bool
     created_at: datetime
     updated_at: datetime
 

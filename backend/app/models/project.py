@@ -1,4 +1,4 @@
-"""
+﻿"""
 Project model.
 
 A Project groups related Issues together.
@@ -7,7 +7,7 @@ A Project groups related Issues together.
 import enum
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, String, Text, func
+from sqlalchemy import Boolean, DateTime, Enum, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
@@ -46,6 +46,19 @@ class Project(Base):
         nullable=False,
         default=ProjectStatus.ACTIVE,
         server_default=ProjectStatus.ACTIVE.value,
+    )
+
+    # ------------------------------------------------------------------ #
+    # Test-data flag                                                        #
+    # Projects created by automated tests are marked is_test=True so they  #
+    # are excluded from all production UI queries while remaining intact    #
+    # for test runs.                                                        #
+    # ------------------------------------------------------------------ #
+    is_test: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
     )
 
     # ------------------------------------------------------------------ #

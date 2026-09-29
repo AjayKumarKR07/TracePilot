@@ -443,7 +443,7 @@ class TestRBAC:
     def test_correct_role_allowed(self) -> None:
         """require_role(TESTER) returns a callable dependency."""
         from app.dependencies.auth import require_role
-        dep = require_role(UserRole.TESTER)
+        dep = require_role(UserRole.DEVELOPER)
         assert callable(dep)
 
     def test_wrong_role_returns_403(self) -> None:
@@ -453,7 +453,7 @@ class TestRBAC:
         from unittest.mock import MagicMock
 
         tester_user = MagicMock()
-        tester_user.role = UserRole.TESTER
+        tester_user.role = UserRole.DEVELOPER
 
         check = require_role(UserRole.ADMIN)
 

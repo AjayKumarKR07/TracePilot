@@ -6,6 +6,7 @@ export interface Project {
   name: string;
   description: string | null;
   status: ProjectStatus;
+  is_test: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -15,6 +16,7 @@ export interface ProjectCreate {
   project_key: string;
   description?: string | null;
   status?: ProjectStatus;
+  is_test?: boolean;
 }
 
 export interface ProjectUpdate {

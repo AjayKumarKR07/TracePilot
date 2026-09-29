@@ -1,5 +1,5 @@
-"""
-conftest.py — Phase 4 test fixtures.
+﻿"""
+conftest.py â€” Phase 4 test fixtures.
 
 Creates verified test users directly in the database (bypassing the
 registration/OTP flow) so that all Phase 4 tests work regardless of
@@ -85,10 +85,10 @@ _PASSWORD = "SecurePass123"
 
 _USERS = {
     "admin":   ("admin",   UserRole.ADMIN,  "Admin CI"),
-    "tester":  ("tester",  UserRole.TESTER, "Tester CI"),
-    "tester2": ("tester2", UserRole.TESTER, "Tester2 CI"),
-    "tester3": ("tester3", UserRole.TESTER, "Tester3 CI"),   # worker tester (assignee)
-    "tester4": ("tester4", UserRole.TESTER, "Tester4 CI"),   # worker tester 2 (assignee)
+    "tester":  ("tester",  UserRole.DEVELOPER, "Developer CI"),
+    "tester2": ("tester2", UserRole.DEVELOPER, "Developer2 CI"),
+    "tester3": ("tester3", UserRole.DEVELOPER, "Developer3 CI"),   # worker tester (assignee)
+    "tester4": ("tester4", UserRole.DEVELOPER, "Developer4 CI"),   # worker tester 2 (assignee)
     "user":    ("user",    UserRole.USER,   "User CI"),      # issue reporter (USER role)
     "user2":   ("user2",   UserRole.USER,   "User2 CI"),     # second USER for isolation tests
 }
@@ -151,7 +151,7 @@ tester2_token.__test__ = False  # type: ignore[attr-defined]
 
 
 def tester3_token() -> str:
-    """Worker-tester token — TESTER role, used as assignment target."""
+    """Worker-developer token â€” DEVELOPER role, used as assignment target."""
     return get_token("tester3")
 
 
@@ -159,7 +159,7 @@ tester3_token.__test__ = False  # type: ignore[attr-defined]
 
 
 def tester4_token() -> str:
-    """Worker-tester 2 token — TESTER role, used as second assignment target."""
+    """Worker-developer 2 token â€” DEVELOPER role, used as second assignment target."""
     return get_token("tester4")
 
 
@@ -167,7 +167,7 @@ tester4_token.__test__ = False  # type: ignore[attr-defined]
 
 
 def user_token() -> str:
-    """Issue-reporter token — USER role."""
+    """Issue-reporter token â€” USER role."""
     return get_token("user")
 
 
@@ -175,7 +175,7 @@ user_token.__test__ = False  # type: ignore[attr-defined]
 
 
 def user2_token() -> str:
-    """Second issue-reporter token — USER role, for isolation tests."""
+    """Second issue-reporter token â€” USER role, for isolation tests."""
     return get_token("user2")
 
 
@@ -184,3 +184,5 @@ user2_token.__test__ = False  # type: ignore[attr-defined]
 
 def auth_header(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
+
+

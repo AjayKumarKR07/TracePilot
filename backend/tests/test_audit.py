@@ -92,7 +92,7 @@ _run_sync(_get_or_create_user(
     f"admin.{_CI_SUFFIX}@example.com", "Admin P5CI", UserRole.ADMIN
 ))
 _run_sync(_get_or_create_user(
-    f"tester.{_CI_SUFFIX}@example.com", "Tester P5CI", UserRole.TESTER
+    f"tester.{_CI_SUFFIX}@example.com", "Tester P5CI", UserRole.DEVELOPER
 ))
 _run_sync(_get_or_create_user(
     f"user.{_CI_SUFFIX}@example.com", "User P5CI", UserRole.USER

@@ -59,6 +59,7 @@ async def create_project(body: ProjectCreate, db: AsyncSession, actor: User) -> 
         name=body.name,
         description=body.description,
         status=body.status,
+        is_test=body.is_test,
     )
     db.add(project)
     await db.flush()
@@ -97,9 +98,17 @@ async def list_projects(
     page: int = 1,
     page_size: int = 20,
     status: ProjectStatus | None = None,
+    include_test: bool = False,
 ) -> ProjectListResponse:
-    """Return paginated list of projects, optionally filtered by status."""
+    """Return paginated list of projects, optionally filtered by status.
+
+    By default (include_test=False) test-fixture projects (is_test=True)
+    are excluded from results so they never appear in production UI dropdowns.
+    Pass include_test=True in backend test code that needs them.
+    """
     query = select(Project)
+    if not include_test:
+        query = query.where(Project.is_test == False)  # noqa: E712
     if status is not None:
         query = query.where(Project.status == status)
 
