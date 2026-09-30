@@ -311,7 +311,7 @@ export const DeveloperIssuesPage: React.FC = () => {
     setActionError(null);
     try {
       await issuesApi.updateStatus(issue.id, { status: next as IssueStatus });
-      setActionSuccess(`${issue.issue_key} â†’ ${next.replace(/_/g, ' ')}`);
+      setActionSuccess(`${issue.issue_key} \u2192 ${next.replace(/_/g, ' ')}.`);
       setTimeout(() => setActionSuccess(null), 4000);
       await loadIssues(true);
     } catch (err: unknown) {
@@ -388,7 +388,7 @@ export const DeveloperIssuesPage: React.FC = () => {
           color={sortField === field ? 'var(--primary)' : undefined}
         />
         {sortField === field && (
-          <span style={{ fontSize: '0.7rem' }}>{sortDir === 'asc' ? 'â†‘' : 'â†“'}</span>
+          <span style={{ fontSize: '0.7rem' }}>{sortDir === 'asc' ? '\u2191' : '\u2193'}</span>
         )}
       </div>
     </th>
@@ -479,7 +479,7 @@ export const DeveloperIssuesPage: React.FC = () => {
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
             {user?.full_name} Â· {totalFromServer} total assigned
             {isRefreshing && (
-              <span style={{ marginLeft: '0.5rem', color: 'var(--primary)' }}>â†» refreshing...</span>
+              <span style={{ marginLeft: '0.5rem', color: 'var(--primary)' }}>Refreshing...</span>
             )}
           </p>
         </div>
@@ -667,7 +667,7 @@ export const DeveloperIssuesPage: React.FC = () => {
                 style={{ padding: '0.35rem 0.55rem' }}
                 title={sortDir === 'asc' ? 'Ascending' : 'Descending'}
               >
-                {sortDir === 'asc' ? 'â†‘ Asc' : 'â†“ Desc'}
+                {sortDir === 'asc' ? '\u2191 Asc' : '\u2193 Desc'}
               </button>
             </div>
           </div>
