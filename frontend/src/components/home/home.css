@@ -436,13 +436,19 @@
 .hp-card:hover .hp-icon-sq { background: rgba(37,99,235,0.16); border-color: rgba(59,130,246,0.4); }
 
 /* ── PLATFORM CAPABILITIES (3 large cards) ── */
-.hp-cap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+/* Grid: align-items:stretch (default) makes Reveal wrappers fill the row height */
+.hp-cap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; align-items: stretch; }
+/* Reveal wrapper (direct grid child) must stretch and pass height to the card */
+.hp-cap-grid > div { display: flex; flex-direction: column; }
 .hp-cap-card {
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.07);
   border-radius: var(--hp-r); padding: 2rem 1.75rem;
   transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
   position: relative; overflow: hidden;
+  /* flex-column so EXPLORE can be pinned to the bottom */
+  display: flex; flex-direction: column;
+  flex: 1;  /* fill the Reveal wrapper */
 }
 .hp-cap-card::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
@@ -459,15 +465,18 @@
   display: flex; align-items: center; justify-content: center;
   color: #60a5fa; margin-bottom: 1.25rem;
   transition: background 0.2s;
+  flex-shrink: 0;
 }
 .hp-cap-card:hover .hp-cap-icon { background: rgba(37,99,235,0.18); }
 .hp-cap-title { font-size: 1.1rem; font-weight: 700; color: var(--hp-text); margin-bottom: 0.6rem; letter-spacing: -0.02em; }
-.hp-cap-desc { font-size: 0.88rem; color: var(--hp-text-2); line-height: 1.65; margin-bottom: 1.25rem; }
+.hp-cap-desc { font-size: 0.88rem; color: var(--hp-text-2); line-height: 1.65; margin-bottom: 1.25rem; flex: 1; }
+/* EXPLORE link pinned to bottom — aligns across all three cards */
 .hp-cap-link {
   font-size: 0.78rem; font-weight: 700; color: #60a5fa;
   letter-spacing: 0.04em; display: flex; align-items: center; gap: 0.3rem;
   background: none; border: none; cursor: pointer; font-family: inherit; padding: 0;
   transition: gap 0.15s;
+  margin-top: auto;
 }
 .hp-cap-link:hover { gap: 0.5rem; }
 
