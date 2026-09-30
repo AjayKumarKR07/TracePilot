@@ -614,34 +614,21 @@
 .hp-role-perms li { display: flex; align-items: flex-start; gap: 0.45rem; font-size: 0.82rem; color: var(--hp-text-2); }
 .hp-role-perms li svg { color: var(--hp-green); flex-shrink: 0; margin-top: 2px; }
 
-/* ── REALTIME — one outer container ── */
-.hp-rt-container {
-  border: 1px solid var(--hp-border);
-  background: rgba(255,255,255,0.02);
-  border-radius: 24px;
-  padding: clamp(1.75rem, 4vw, 2.75rem);
-}
-[data-theme="light"] .hp-rt-container { background: #fff; border-color: #e2e8f0; }
-
-/* two-column inner grid */
-.hp-rt-inner {
+/* ── REALTIME — two-column, no outer card ── */
+.hp-rt-split {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
-  gap: 0;
+  gap: 4rem;
   align-items: start;
 }
 
-/* Left column */
-.hp-rt-left { padding-right: 2.5rem; }
+.hp-rt-left { /* no extra padding needed — section already has hp-container */ }
 
-/* Right column: vertical divider */
+/* Right column sits flush; Reveal wrapper is the direct grid child */
 .hp-rt-right {
-  border-left: 1px solid var(--hp-border);
-  padding-left: 2.5rem;
   display: flex;
   flex-direction: column;
 }
-[data-theme="light"] .hp-rt-right { border-left-color: #e2e8f0; }
 
 /* Event list */
 .hp-notif-list { display: flex; flex-direction: column; gap: 0.55rem; }
@@ -865,11 +852,8 @@
   .hp-strip-item:nth-child(6) { border-top: 1px solid var(--hp-border); }
 }
 @media (max-width: 900px) {
-  /* realtime: stack to single column, remove vertical divider */
-  .hp-rt-inner { grid-template-columns: 1fr; }
-  .hp-rt-left { padding-right: 0; margin-bottom: 1.75rem; }
-  .hp-rt-right { border-left: none; padding-left: 0; }
-  .hp-rt-conn-section { border-top: 1px solid var(--hp-border); }
+  /* realtime: stack to single column */
+  .hp-rt-split { grid-template-columns: 1fr; gap: 2.5rem; }
   .hp-roles-grid { grid-template-columns: 1fr; }
   .hp-wf-steps { grid-template-columns: repeat(3,1fr); gap: 1rem; }
   .hp-why-grid { grid-template-columns: 1fr; }

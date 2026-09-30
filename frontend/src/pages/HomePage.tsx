@@ -650,96 +650,95 @@ function RealtimeSection() {
   ];
   return (
     <section className="hp-container hp-section-py" aria-labelledby="rt-h2">
-      <Reveal>
-        {/* ONE outer container */}
-        <div className="hp-rt-container">
-          <div className="hp-rt-inner">
+      <div className="hp-rt-split">
 
-            {/* ── LEFT: eyebrow + heading + event timeline ── */}
-            <div className="hp-rt-left">
-              <div className="hp-eyebrow"><span className="hp-eyebrow-dot" aria-hidden="true" />Real-Time</div>
-              <h2 className="hp-h2" id="rt-h2" style={{ marginTop: '0.5rem' }}>
-                Real-Time.<br />
-                <span className="hp-hero-accent">Always in Sync.</span>
-              </h2>
-              <p className="hp-h2-sub" style={{ marginBottom: '1.75rem' }}>
-                Important issue and sprint events are delivered through TracePilot's real-time notification infrastructure.
-              </p>
-
-              {/* Event timeline */}
-              <div className="hp-notif-list">
-                {notifs.map((n, i) => (
-                  <div key={n.title + i} className="hp-notif-item">
-                    <div className="hp-notif-icon" style={{ background: n.bg, color: n.c }}>{n.icon}</div>
-                    <div className="hp-notif-body">
-                      <div className="hp-notif-title">{n.title}</div>
-                      <div className="hp-notif-sub">{n.body}</div>
-                      <div className="hp-notif-time">{n.time}</div>
-                    </div>
-                    {n.unread && <div className="hp-notif-dot" aria-label="Unread" />}
+        {/* ── LEFT: eyebrow + heading + event timeline ── */}
+        <div className="hp-rt-left">
+          <Reveal>
+            <div className="hp-eyebrow"><span className="hp-eyebrow-dot" aria-hidden="true" />Real-Time</div>
+            <h2 className="hp-h2" id="rt-h2" style={{ marginTop: '0.5rem' }}>
+              Real-Time.<br />
+              <span className="hp-hero-accent">Always in Sync.</span>
+            </h2>
+            <p className="hp-h2-sub" style={{ marginBottom: '1.75rem' }}>
+              Important issue and sprint events are delivered through TracePilot's real-time notification infrastructure.
+            </p>
+          </Reveal>
+          <div className="hp-notif-list">
+            {notifs.map((n, i) => (
+              <Reveal key={n.title + i} delay={i * 50}>
+                <div className="hp-notif-item">
+                  <div className="hp-notif-icon" style={{ background: n.bg, color: n.c }}>{n.icon}</div>
+                  <div className="hp-notif-body">
+                    <div className="hp-notif-title">{n.title}</div>
+                    <div className="hp-notif-sub">{n.body}</div>
+                    <div className="hp-notif-time">{n.time}</div>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* ── RIGHT: Activity Feed + Live Connection ── */}
-            <div className="hp-rt-right">
-
-              {/* Activity Feed — no extra card, just inline content */}
-              <div className="hp-rt-feed-header">
-                <span className="hp-live-pill">
-                  <span className="hp-live-pill-dot" aria-hidden="true" />
-                  LIVE CAPABILITY PREVIEW
-                </span>
-                <span className="hp-rt-panel-title">Activity Feed</span>
-              </div>
-
-              <div className="hp-rt-channels">
-                {channels.map(ch => (
-                  <div key={ch.name} className="hp-rt-channel">
-                    <div className="hp-rt-channel-left">
-                      <span className="hp-rt-channel-icon">{ch.icon}</span>
-                      <div>
-                        <div className="hp-rt-channel-name">{ch.name}</div>
-                        <div className="hp-rt-channel-desc">{ch.desc}</div>
-                      </div>
-                    </div>
-                    <span className="hp-rt-channel-badge">ACTIVE</span>
-                  </div>
-                ))}
-                <p className="hp-rt-disclaimer">
-                  CAPABILITY PREVIEW — this page does not receive live events.
-                </p>
-              </div>
-
-              {/* Live Connection — separated by border-top */}
-              <div className="hp-rt-conn-section">
-                <div className="hp-rt-conn-header">
-                  <Wifi size={13} aria-hidden="true" className="hp-rt-conn-header-icon" />
-                  <span className="hp-rt-conn-title">LIVE CONNECTION</span>
+                  {n.unread && <div className="hp-notif-dot" aria-label="Unread" />}
                 </div>
-                <div className="hp-rt-conn-status">
-                  <span className="hp-rt-conn-dot" aria-hidden="true" />
-                  <span className="hp-rt-conn-status-text">WebSocket Connected</span>
-                </div>
-                <div className="hp-rt-conn-channels">
-                  {connChannels.map(c => (
-                    <div key={c.label} className="hp-rt-conn-row">
-                      <span className="hp-rt-conn-row-icon">{c.icon}</span>
-                      <span className="hp-rt-conn-row-label">{c.label}</span>
-                      <CheckCircle2 size={12} className="hp-rt-conn-check" aria-hidden="true" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-            </div>
+              </Reveal>
+            ))}
           </div>
         </div>
-      </Reveal>
+
+        {/* ── RIGHT: Activity Feed + Live Connection ── */}
+        <Reveal delay={150}>
+          <div className="hp-rt-right">
+
+            {/* Activity Feed */}
+            <div className="hp-rt-feed-header">
+              <span className="hp-live-pill">
+                <span className="hp-live-pill-dot" aria-hidden="true" />
+                LIVE CAPABILITY PREVIEW
+              </span>
+              <span className="hp-rt-panel-title">Activity Feed</span>
+            </div>
+            <div className="hp-rt-channels">
+              {channels.map(ch => (
+                <div key={ch.name} className="hp-rt-channel">
+                  <div className="hp-rt-channel-left">
+                    <span className="hp-rt-channel-icon">{ch.icon}</span>
+                    <div>
+                      <div className="hp-rt-channel-name">{ch.name}</div>
+                      <div className="hp-rt-channel-desc">{ch.desc}</div>
+                    </div>
+                  </div>
+                  <span className="hp-rt-channel-badge">ACTIVE</span>
+                </div>
+              ))}
+              <p className="hp-rt-disclaimer">
+                CAPABILITY PREVIEW — this page does not receive live events.
+              </p>
+            </div>
+
+            {/* Live Connection */}
+            <div className="hp-rt-conn-section">
+              <div className="hp-rt-conn-header">
+                <Wifi size={13} aria-hidden="true" className="hp-rt-conn-header-icon" />
+                <span className="hp-rt-conn-title">LIVE CONNECTION</span>
+              </div>
+              <div className="hp-rt-conn-status">
+                <span className="hp-rt-conn-dot" aria-hidden="true" />
+                <span className="hp-rt-conn-status-text">WebSocket Connected</span>
+              </div>
+              <div className="hp-rt-conn-channels">
+                {connChannels.map(c => (
+                  <div key={c.label} className="hp-rt-conn-row">
+                    <span className="hp-rt-conn-row-icon">{c.icon}</span>
+                    <span className="hp-rt-conn-row-label">{c.label}</span>
+                    <CheckCircle2 size={12} className="hp-rt-conn-check" aria-hidden="true" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        </Reveal>
+      </div>
     </section>
   );
 }
+
 
 
 /* ─── AI Assistant ─── */
