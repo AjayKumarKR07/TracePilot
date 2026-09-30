@@ -629,67 +629,72 @@ function RoleSection() {
 /* ─── Real-Time Section ─── */
 function RealtimeSection() {
   const notifs = [
-    { icon: <Bug size={15} />,          bg: 'rgba(239,68,68,0.12)',   c: '#ef4444', title: 'Issue Created',  body: 'BUG-1028 reported',              time: 'Just now',      unread: true },
-    { icon: <Users size={15} />,        bg: 'rgba(59,130,246,0.12)',  c: '#3b82f6', title: 'Issue Assigned', body: 'Developer assigned to BUG-1028',  time: '1 min ago',     unread: true },
-    { icon: <AlertTriangle size={15} />,bg: 'rgba(245,158,11,0.12)', c: '#f59e0b', title: 'Comment Added',  body: 'New collaboration activity',       time: '3 min ago',     unread: false },
-    { icon: <CheckCircle2 size={15} />, bg: 'rgba(16,185,129,0.12)', c: '#10b981', title: 'Issue Resolved', body: 'BUG-1024 resolved successfully',   time: '6 min ago',     unread: false },
-    { icon: <Activity size={15} />,     bg: 'rgba(99,102,241,0.12)', c: '#818cf8', title: 'Sprint Updated',  body: 'Sprint health changed to ON TRACK', time: '12 min ago', unread: false },
+    { icon: <Bug size={15} />,          bg: 'rgba(239,68,68,0.12)',   c: '#ef4444', title: 'Issue Created',  body: 'BUG-1028 reported',                 time: 'Just now',   unread: true  },
+    { icon: <Users size={15} />,        bg: 'rgba(59,130,246,0.12)',  c: '#3b82f6', title: 'Issue Assigned', body: 'Developer assigned to BUG-1028',    time: '1 min ago',  unread: true  },
+    { icon: <AlertTriangle size={15} />,bg: 'rgba(245,158,11,0.12)', c: '#f59e0b', title: 'Comment Added',  body: 'New collaboration activity',          time: '3 min ago',  unread: false },
+    { icon: <CheckCircle2 size={15} />, bg: 'rgba(16,185,129,0.12)', c: '#10b981', title: 'Issue Resolved', body: 'BUG-1024 resolved successfully',      time: '6 min ago',  unread: false },
+    { icon: <Activity size={15} />,     bg: 'rgba(99,102,241,0.12)', c: '#818cf8', title: 'Sprint Updated',  body: 'Sprint health changed to ON TRACK',  time: '12 min ago', unread: false },
   ];
   const channels = [
-    { icon: <Bug size={13} />,        name: 'Issue Updates',  desc: 'Status changes, transitions' },
-    { icon: <GitBranch size={13} />,  name: 'Sprint Events',  desc: 'Start, health, completion' },
-    { icon: <Bell size={13} />,       name: 'Comments',       desc: 'New replies and mentions' },
-    { icon: <Users size={13} />,      name: 'Assignments',    desc: 'Issue and task assignments' },
-    { icon: <Sparkles size={13} />,   name: 'AI Insights',    desc: 'AI-generated summaries' },
+    { icon: <Bug size={13} />,       name: 'Issue Updates',  desc: 'Status changes, transitions' },
+    { icon: <GitBranch size={13} />, name: 'Sprint Events',  desc: 'Start, health, completion'   },
+    { icon: <Bell size={13} />,      name: 'Comments',       desc: 'New replies and mentions'     },
+    { icon: <Users size={13} />,     name: 'Assignments',    desc: 'Issue and task assignments'   },
+    { icon: <Sparkles size={13} />,  name: 'AI Insights',    desc: 'AI-generated summaries'       },
   ];
   const connChannels = [
-    { icon: <Bug size={12} />,       label: 'Issue Events' },
+    { icon: <Bug size={12} />,       label: 'Issue Events'  },
     { icon: <GitBranch size={12} />, label: 'Sprint Events' },
     { icon: <Bell size={12} />,      label: 'Notifications' },
-    { icon: <Sparkles size={12} />,  label: 'AI Events' },
+    { icon: <Sparkles size={12} />,  label: 'AI Events'     },
   ];
   return (
     <section className="hp-container hp-section-py" aria-labelledby="rt-h2">
-      <div className="hp-rt-split">
-        {/* Left — event timeline */}
-        <div>
-          <Reveal>
-            <div className="hp-eyebrow"><span className="hp-eyebrow-dot" aria-hidden="true" />Real-Time</div>
-            <h2 className="hp-h2" id="rt-h2">
-              Real-Time.<br />
-              <span className="hp-hero-accent">Always in Sync.</span>
-            </h2>
-            <p className="hp-h2-sub" style={{ marginBottom: '2rem' }}>
-              Important issue and sprint events are delivered through TracePilot's real-time notification infrastructure.
-            </p>
-          </Reveal>
-          <div className="hp-notif-list">
-            {notifs.map((n, i) => (
-              <Reveal key={n.title + i} delay={i * 50}>
-                <div className="hp-notif-item">
-                  <div className="hp-notif-icon" style={{ background: n.bg, color: n.c }}>{n.icon}</div>
-                  <div className="hp-notif-body">
-                    <div className="hp-notif-title">{n.title}</div>
-                    <div className="hp-notif-sub">{n.body}</div>
-                    <div className="hp-notif-time">{n.time}</div>
-                  </div>
-                  {n.unread && <div className="hp-notif-dot" aria-label="Unread" />}
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
+      <Reveal>
+        {/* ONE outer container */}
+        <div className="hp-rt-container">
+          <div className="hp-rt-inner">
 
-        {/* Right — two stacked panels */}
-        <div className="hp-rt-right">
-          {/* Panel 1: Activity Feed */}
-          <Reveal delay={150}>
-            <div className="hp-rt-panel">
-              <div className="hp-rt-panel-header">
-                <span className="hp-live-pill"><span className="hp-live-pill-dot" aria-hidden="true" />LIVE CAPABILITY PREVIEW</span>
+            {/* ── LEFT: eyebrow + heading + event timeline ── */}
+            <div className="hp-rt-left">
+              <div className="hp-eyebrow"><span className="hp-eyebrow-dot" aria-hidden="true" />Real-Time</div>
+              <h2 className="hp-h2" id="rt-h2" style={{ marginTop: '0.5rem' }}>
+                Real-Time.<br />
+                <span className="hp-hero-accent">Always in Sync.</span>
+              </h2>
+              <p className="hp-h2-sub" style={{ marginBottom: '1.75rem' }}>
+                Important issue and sprint events are delivered through TracePilot's real-time notification infrastructure.
+              </p>
+
+              {/* Event timeline */}
+              <div className="hp-notif-list">
+                {notifs.map((n, i) => (
+                  <div key={n.title + i} className="hp-notif-item">
+                    <div className="hp-notif-icon" style={{ background: n.bg, color: n.c }}>{n.icon}</div>
+                    <div className="hp-notif-body">
+                      <div className="hp-notif-title">{n.title}</div>
+                      <div className="hp-notif-sub">{n.body}</div>
+                      <div className="hp-notif-time">{n.time}</div>
+                    </div>
+                    {n.unread && <div className="hp-notif-dot" aria-label="Unread" />}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── RIGHT: Activity Feed + Live Connection ── */}
+            <div className="hp-rt-right">
+
+              {/* Activity Feed — no extra card, just inline content */}
+              <div className="hp-rt-feed-header">
+                <span className="hp-live-pill">
+                  <span className="hp-live-pill-dot" aria-hidden="true" />
+                  LIVE CAPABILITY PREVIEW
+                </span>
                 <span className="hp-rt-panel-title">Activity Feed</span>
               </div>
-              <div className="hp-rt-panel-body">
+
+              <div className="hp-rt-channels">
                 {channels.map(ch => (
                   <div key={ch.name} className="hp-rt-channel">
                     <div className="hp-rt-channel-left">
@@ -706,37 +711,36 @@ function RealtimeSection() {
                   CAPABILITY PREVIEW — this page does not receive live events.
                 </p>
               </div>
-            </div>
-          </Reveal>
 
-          {/* Panel 2: Live Connection */}
-          <Reveal delay={250}>
-            <div className="hp-rt-conn-panel">
-              <div className="hp-rt-conn-header">
-                <Wifi size={14} aria-hidden="true" className="hp-rt-conn-header-icon" />
-                <span className="hp-rt-conn-title">LIVE CONNECTION</span>
+              {/* Live Connection — separated by border-top */}
+              <div className="hp-rt-conn-section">
+                <div className="hp-rt-conn-header">
+                  <Wifi size={13} aria-hidden="true" className="hp-rt-conn-header-icon" />
+                  <span className="hp-rt-conn-title">LIVE CONNECTION</span>
+                </div>
+                <div className="hp-rt-conn-status">
+                  <span className="hp-rt-conn-dot" aria-hidden="true" />
+                  <span className="hp-rt-conn-status-text">WebSocket Connected</span>
+                </div>
+                <div className="hp-rt-conn-channels">
+                  {connChannels.map(c => (
+                    <div key={c.label} className="hp-rt-conn-row">
+                      <span className="hp-rt-conn-row-icon">{c.icon}</span>
+                      <span className="hp-rt-conn-row-label">{c.label}</span>
+                      <CheckCircle2 size={12} className="hp-rt-conn-check" aria-hidden="true" />
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="hp-rt-conn-status">
-                <span className="hp-rt-conn-dot" aria-hidden="true" />
-                <span className="hp-rt-conn-status-text">WebSocket Connected</span>
-              </div>
-              <div className="hp-rt-conn-channels">
-                {connChannels.map(c => (
-                  <div key={c.label} className="hp-rt-conn-row">
-                    <span className="hp-rt-conn-row-icon">{c.icon}</span>
-                    <span className="hp-rt-conn-row-label">{c.label}</span>
-                    <CheckCircle2 size={12} className="hp-rt-conn-check" aria-hidden="true" />
-                  </div>
-                ))}
-              </div>
+
             </div>
-          </Reveal>
+          </div>
         </div>
-      </div>
+      </Reveal>
     </section>
   );
-
 }
+
 
 /* ─── AI Assistant ─── */
 function AISection() {
