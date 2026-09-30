@@ -473,10 +473,13 @@
 
 /* ── FEATURE GRID (2x3) ── */
 .hp-feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--hp-border); border: 1px solid var(--hp-border); border-radius: var(--hp-r); overflow: hidden; }
+/* Reveal wrappers are the direct grid children — they must fill the full cell */
+.hp-feat-grid > div { display: flex; flex-direction: column; align-self: stretch; }
 .hp-feat-card {
   background: rgba(255,255,255,0.02); padding: 1.75rem;
   transition: background 0.2s, box-shadow 0.2s;
   position: relative;
+  flex: 1;          /* fill the Reveal wrapper which fills the grid cell */
 }
 .hp-feat-card:hover { background: rgba(37,99,235,0.04); box-shadow: inset 0 0 0 1px rgba(59,130,246,0.2); }
 [data-theme="light"] .hp-feat-card { background: #fff; }
