@@ -635,10 +635,23 @@ function RealtimeSection() {
     { icon: <CheckCircle2 size={15} />, bg: 'rgba(16,185,129,0.12)', c: '#10b981', title: 'Issue Resolved', body: 'BUG-1024 resolved successfully',   time: '6 min ago',     unread: false },
     { icon: <Activity size={15} />,     bg: 'rgba(99,102,241,0.12)', c: '#818cf8', title: 'Sprint Updated',  body: 'Sprint health changed to ON TRACK', time: '12 min ago', unread: false },
   ];
+  const channels = [
+    { icon: <Bug size={13} />,        name: 'Issue Updates',  desc: 'Status changes, transitions' },
+    { icon: <GitBranch size={13} />,  name: 'Sprint Events',  desc: 'Start, health, completion' },
+    { icon: <Bell size={13} />,       name: 'Comments',       desc: 'New replies and mentions' },
+    { icon: <Users size={13} />,      name: 'Assignments',    desc: 'Issue and task assignments' },
+    { icon: <Sparkles size={13} />,   name: 'AI Insights',    desc: 'AI-generated summaries' },
+  ];
+  const connChannels = [
+    { icon: <Bug size={12} />,       label: 'Issue Events' },
+    { icon: <GitBranch size={12} />, label: 'Sprint Events' },
+    { icon: <Bell size={12} />,      label: 'Notifications' },
+    { icon: <Sparkles size={12} />,  label: 'AI Events' },
+  ];
   return (
     <section className="hp-container hp-section-py" aria-labelledby="rt-h2">
       <div className="hp-rt-split">
-        {/* Left */}
+        {/* Left — event timeline */}
         <div>
           <Reveal>
             <div className="hp-eyebrow"><span className="hp-eyebrow-dot" aria-hidden="true" />Real-Time</div>
@@ -666,38 +679,63 @@ function RealtimeSection() {
             ))}
           </div>
         </div>
-        {/* Right — live panel */}
-        <Reveal delay={150}>
-          <div className="hp-rt-panel">
-            <div className="hp-rt-panel-header">
-              <span className="hp-live-pill"><span className="hp-live-pill-dot" aria-hidden="true" />LIVE CAPABILITY PREVIEW</span>
-              <span className="hp-rt-panel-title">Activity Feed</span>
-            </div>
-            <div className="hp-rt-panel-body">
-              {[
-                { name: 'Issue Updates', desc: 'Status changes, transitions' },
-                { name: 'Sprint Events', desc: 'Start, health, completion' },
-                { name: 'Comments', desc: 'New replies and mentions' },
-                { name: 'Assignments', desc: 'Issue and task assignments' },
-                { name: 'AI Insights', desc: 'AI-generated summaries' },
-              ].map(ch => (
-                <div key={ch.name} className="hp-rt-channel">
-                  <div>
-                    <div className="hp-rt-channel-name">{ch.name}</div>
-                    <div className="hp-rt-channel-desc">{ch.desc}</div>
+
+        {/* Right — two stacked panels */}
+        <div className="hp-rt-right">
+          {/* Panel 1: Activity Feed */}
+          <Reveal delay={150}>
+            <div className="hp-rt-panel">
+              <div className="hp-rt-panel-header">
+                <span className="hp-live-pill"><span className="hp-live-pill-dot" aria-hidden="true" />LIVE CAPABILITY PREVIEW</span>
+                <span className="hp-rt-panel-title">Activity Feed</span>
+              </div>
+              <div className="hp-rt-panel-body">
+                {channels.map(ch => (
+                  <div key={ch.name} className="hp-rt-channel">
+                    <div className="hp-rt-channel-left">
+                      <span className="hp-rt-channel-icon">{ch.icon}</span>
+                      <div>
+                        <div className="hp-rt-channel-name">{ch.name}</div>
+                        <div className="hp-rt-channel-desc">{ch.desc}</div>
+                      </div>
+                    </div>
+                    <span className="hp-rt-channel-badge">ACTIVE</span>
                   </div>
-                  <span className="hp-rt-channel-badge">ACTIVE</span>
-                </div>
-              ))}
-              <p className="hp-rt-disclaimer">
-                This preview illustrates the capability. Homepage does not receive live events.
-              </p>
+                ))}
+                <p className="hp-rt-disclaimer">
+                  CAPABILITY PREVIEW — this page does not receive live events.
+                </p>
+              </div>
             </div>
-          </div>
-        </Reveal>
+          </Reveal>
+
+          {/* Panel 2: Live Connection */}
+          <Reveal delay={250}>
+            <div className="hp-rt-conn-panel">
+              <div className="hp-rt-conn-header">
+                <Wifi size={14} aria-hidden="true" className="hp-rt-conn-header-icon" />
+                <span className="hp-rt-conn-title">LIVE CONNECTION</span>
+              </div>
+              <div className="hp-rt-conn-status">
+                <span className="hp-rt-conn-dot" aria-hidden="true" />
+                <span className="hp-rt-conn-status-text">WebSocket Connected</span>
+              </div>
+              <div className="hp-rt-conn-channels">
+                {connChannels.map(c => (
+                  <div key={c.label} className="hp-rt-conn-row">
+                    <span className="hp-rt-conn-row-icon">{c.icon}</span>
+                    <span className="hp-rt-conn-row-label">{c.label}</span>
+                    <CheckCircle2 size={12} className="hp-rt-conn-check" aria-hidden="true" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Reveal>
+        </div>
       </div>
     </section>
   );
+
 }
 
 /* ─── AI Assistant ─── */
