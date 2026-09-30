@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   AlertCircle,
@@ -292,7 +292,7 @@ export const DeveloperSprintsPage: React.FC = () => {
   if (isLoading) {
     return (
       <div style={{ padding: '3.5rem 0' }}>
-        <LoadingSpinner message="Loading your assigned Sprints Dashboardâ€¦" />
+        <LoadingSpinner message="Loading your assigned Sprints Dashboard..." />
       </div>
     );
   }
@@ -416,16 +416,16 @@ export const DeveloperSprintsPage: React.FC = () => {
               title="Refresh sprint assignments"
             >
               <RefreshCw size={14} className={isRefreshing ? 'spin' : ''} />
-              <span>{isRefreshing ? 'Refreshingâ€¦' : 'Refresh'}</span>
+              <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
             </button>
 
             <Link
-              to="/tester-dashboard"
+              to="/developer-dashboard"
               className="btn btn-secondary btn-sm"
               style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
             >
               <FlaskConical size={14} />
-              <span>Tester Workspace</span>
+              <span>Developer Dashboard</span>
             </Link>
           </div>
         </div>
@@ -612,7 +612,7 @@ export const DeveloperSprintsPage: React.FC = () => {
           <input
             type="text"
             className="form-input"
-            placeholder="Search sprint name or goalâ€¦"
+            placeholder="Search sprint name or goal..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             style={{
@@ -841,7 +841,7 @@ export const DeveloperSprintsPage: React.FC = () => {
                         title="Click Begin Work to start testing and enable submission"
                       >
                         <Play size={14} />
-                        <span>{isSubmittingThis ? 'Startingâ€¦' : 'Begin Work'}</span>
+                        <span>{isSubmittingThis ? 'Starting...' : 'Begin Work'}</span>
                       </button>
                     )}
 
@@ -868,7 +868,7 @@ export const DeveloperSprintsPage: React.FC = () => {
                         }
                       >
                         <ThumbsUp size={14} />
-                        <span>{isSubmittingThis ? 'Submittingâ€¦' : 'Submit for Approval'}</span>
+                        <span>{isSubmittingThis ? 'Submitting...' : 'Submit for Approval'}</span>
                       </button>
                     )}
 
@@ -919,7 +919,7 @@ export const DeveloperSprintsPage: React.FC = () => {
                       style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
                     >
                       <Download size={13} />
-                      <span>{isDownloadingThis ? 'Exportingâ€¦' : 'Report'}</span>
+                      <span>{isDownloadingThis ? 'Exporting...' : 'Report'}</span>
                     </button>
                   </div>
                 </div>
@@ -982,7 +982,7 @@ export const DeveloperSprintsPage: React.FC = () => {
                             letterSpacing: '0.04em',
                           }}
                         >
-                          <Sparkles size={14} /> Work in Progress â€” Testing &amp; Defect Resolution Active
+                          <Sparkles size={14} /> Work in Progress "” Testing &amp; Defect Resolution Active
                         </div>
                       )}
 
@@ -1161,7 +1161,7 @@ export const DeveloperSprintsPage: React.FC = () => {
                     <div style={{ marginTop: '0.85rem' }}>
                       {isLoadingThisSprintIssues ? (
                         <div style={{ padding: '1.5rem', textAlign: 'center' }}>
-                          <LoadingSpinner message="Fetching sprint issuesâ€¦" />
+                          <LoadingSpinner message="Fetching sprint issues..." />
                         </div>
                       ) : issues.length === 0 ? (
                         <div

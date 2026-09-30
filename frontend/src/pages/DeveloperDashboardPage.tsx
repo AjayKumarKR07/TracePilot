@@ -6,17 +6,21 @@ import {
   AlertTriangle,
   ArrowRight,
   Bug,
+  Calendar,
   CheckCircle2,
+  ChevronDown,
   ClipboardCheck,
   Clock,
+  Code2,
   ExternalLink,
   Eye,
-  Code2,
+  Filter,
   Layers,
   Play,
   RefreshCw,
   Search,
   ThumbsUp,
+  X,
 } from 'lucide-react';
 import { analyticsApi } from '../api/analytics';
 import { getApiErrorMessage } from '../api/client';
@@ -28,19 +32,29 @@ import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { PriorityBadge } from '../components/common/PriorityBadge';
 import { SeverityBadge } from '../components/common/SeverityBadge';
 import { StatusBadge } from '../components/common/StatusBadge';
+import { DeveloperActionCenter } from '../components/dashboard/DeveloperActionCenter';
+import { DeveloperWorkHealth } from '../components/dashboard/DeveloperWorkHealth';
+import { DeveloperSprintHealth } from '../components/dashboard/DeveloperSprintHealth';
+import { DeveloperTestingQueue } from '../components/dashboard/DeveloperTestingQueue';
+import { DeveloperWorkloadCard } from '../components/dashboard/DeveloperWorkloadCard';
+import { RecentIssueActivity } from '../components/dashboard/RecentIssueActivity';
+import { UserIssueTrend } from '../components/dashboard/UserIssueTrend';
+import { UserResolutionPerformance } from '../components/dashboard/UserResolutionPerformance';
+import { UserIssueDistribution } from '../components/dashboard/UserIssueDistribution';
+import { UserSlaTracker } from '../components/dashboard/UserSlaTracker';
 import { useAuth } from '../hooks/useAuth';
 import { useNotifications } from '../hooks/useNotifications';
 import { useNotificationNavigate } from '../hooks/useNotificationNavigate';
 import type { IssueStatusDistributionResponse } from '../types/analytics';
-import type { Issue, IssueStatus } from '../types/issue';
+import type { Issue, IssueStatus, Priority, Severity } from '../types/issue';
 import type { Project } from '../types/project';
 import type { Sprint } from '../types/Sprint';
 import { formatDate, formatRelativeTime } from '../utils/formatters';
 import { AIChatbot } from '../components/ai/AIChatbot';
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
 // Workflow Helpers
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
 
 const DEVELOPER_VALID_TRANSITIONS: Record<string, string[]> = {
   REPORTED: ['IN_DEVELOPMENT'],
@@ -75,9 +89,9 @@ function getNextStatus(current: string): string | null {
   return transitions[0];
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
 // Metric Card Component
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
 
 interface MetricCardProps {
   label: string;
@@ -138,26 +152,35 @@ const MetricCard: React.FC<MetricCardProps> = ({
   </div>
 );
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Main Page Component
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
+// Filter types
+// ─────────────────────────────────────────────────────────────────────────────
 
 type SprintFilterTab = 'ALL' | 'IN_PROGRESS' | 'READY_FOR_APPROVAL' | 'ACTIVE' | 'COMPLETED';
 type IssueFilterTab = 'ALL' | 'REQUIRES_TESTING' | 'IN_PROGRESS' | 'RESOLVED';
+type DateRange = '7' | '30' | '90' | 'all';
+type SortOption = 'newest' | 'oldest' | 'updated' | 'priority' | 'severity';
+
+const PRIORITY_WEIGHT: Record<string, number> = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+const SEVERITY_WEIGHT: Record<string, number> = { BLOCKER: 0, CRITICAL: 1, MAJOR: 2, MINOR: 3 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main Page Component
+// ─────────────────────────────────────────────────────────────────────────────
 
 export const DeveloperDashboardPage: React.FC = () => {
   const { user } = useAuth();
   const { wsStatus, notifications: liveNotifications } = useNotifications();
   const { handleNotificationClick } = useNotificationNavigate();
 
-  // â”€â”€ Data state â”€â”€
+  // ── Data state ──
   const [issues, setIssues] = useState<Issue[]>([]);
   const [totalIssuesCount, setTotalIssuesCount] = useState(0);
   const [statusDist, setStatusDist] = useState<IssueStatusDistributionResponse | null>(null);
   const [assignedSprints, setAssignedSprints] = useState<Sprint[]>([]);
   const [projectsMap, setProjectsMap] = useState<Record<number, Project>>({});
 
-  // â”€â”€ UI / Loading state â”€â”€
+  // ── UI / Loading state ──
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -166,16 +189,23 @@ export const DeveloperDashboardPage: React.FC = () => {
   const [transitioning, setTransitioning] = useState<number | null>(null);
   const [sprintSubmitting, setSprintSubmitting] = useState<number | null>(null);
 
-  // â”€â”€ Sprints section filters â”€â”€
+  // ── Sprints section filters ──
   const [sprintTab, setSprintTab] = useState<SprintFilterTab>('ALL');
 
-  // â”€â”€ Issues section filters & search â”€â”€
+  // ── Issues section filters & search (advanced) ──
   const [issueTab, setIssueTab] = useState<IssueFilterTab>('ALL');
   const [issueSearch, setIssueSearch] = useState('');
+  const [filterStatus, setFilterStatus] = useState<IssueStatus | ''>('');
+  const [filterSeverity, setFilterSeverity] = useState<Severity | ''>('');
+  const [filterPriority, setFilterPriority] = useState<Priority | ''>('');
+  const [filterProject, setFilterProject] = useState<number | ''>('');
+  const [filterDateRange, setFilterDateRange] = useState<DateRange>('all');
+  const [sortOption, setSortOption] = useState<SortOption>('newest');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────────
   // Data loading (100% live backend data)
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────────
 
   const loadData = useCallback(async (silent = false) => {
     if (!silent) setIsLoading(true);
@@ -197,9 +227,7 @@ export const DeveloperDashboardPage: React.FC = () => {
 
       const pMap: Record<number, Project> = {};
       if (projectsRes?.items) {
-        projectsRes.items.forEach((p) => {
-          pMap[p.id] = p;
-        });
+        projectsRes.items.forEach((p) => { pMap[p.id] = p; });
       }
       setProjectsMap(pMap);
     } catch (err: unknown) {
@@ -210,36 +238,23 @@ export const DeveloperDashboardPage: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useEffect(() => { loadData(); }, [loadData]);
 
   // Real-time WebSocket refresh
   const isInitialMount = useRef(true);
   const latestNotifId = liveNotifications[0]?.id;
 
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-    if (latestNotifId) {
-      loadData(true);
-    }
+    if (isInitialMount.current) { isInitialMount.current = false; return; }
+    if (latestNotifId) { loadData(true); }
   }, [latestNotifId, loadData]);
 
-  // Refetch when WebSocket reconnects
   useEffect(() => {
-    if (wsStatus === 'connected') {
-      loadData(true);
-    }
+    if (wsStatus === 'connected') { loadData(true); }
   }, [wsStatus, loadData]);
 
-  // App-level realtime event listeners
   useEffect(() => {
-    const handleRealtime = () => {
-      loadData(true);
-    };
+    const handleRealtime = () => { loadData(true); };
     window.addEventListener('app:realtime_notification', handleRealtime);
     window.addEventListener('app:ws_reconnected', handleRealtime);
     return () => {
@@ -248,9 +263,9 @@ export const DeveloperDashboardPage: React.FC = () => {
     };
   }, [loadData]);
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────────
   // KPI Metrics (Calculated from real backend data)
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────────
 
   const myAssignedSprintsCount = assignedSprints.length;
   const sprintsInProgressCount = assignedSprints.filter((s) => s.status === 'IN_PROGRESS').length;
@@ -269,33 +284,41 @@ export const DeveloperDashboardPage: React.FC = () => {
     ? (statusDist.RESOLVED || 0) + (statusDist.CLOSED || 0)
     : issues.filter((i) => i.status === 'RESOLVED' || i.status === 'CLOSED').length;
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────────
   // Filtered Sprints List
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────────
 
   const filteredSprints = useMemo(() => {
     switch (sprintTab) {
-      case 'IN_PROGRESS':
-        return assignedSprints.filter((s) => s.status === 'IN_PROGRESS');
-      case 'READY_FOR_APPROVAL':
-        return assignedSprints.filter((s) => s.status === 'READY_FOR_APPROVAL');
-      case 'ACTIVE':
-        return assignedSprints.filter((s) => s.status === 'ACTIVE');
-      case 'COMPLETED':
-        return assignedSprints.filter((s) => s.status === 'COMPLETED');
-      default:
-        return assignedSprints;
+      case 'IN_PROGRESS': return assignedSprints.filter((s) => s.status === 'IN_PROGRESS');
+      case 'READY_FOR_APPROVAL': return assignedSprints.filter((s) => s.status === 'READY_FOR_APPROVAL');
+      case 'ACTIVE': return assignedSprints.filter((s) => s.status === 'ACTIVE');
+      case 'COMPLETED': return assignedSprints.filter((s) => s.status === 'COMPLETED');
+      default: return assignedSprints;
     }
   }, [assignedSprints, sprintTab]);
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // Filtered Issues List
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Advanced Filtered Issues List
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  const hasActiveFilters = useMemo(
+    () =>
+      !!issueSearch.trim() ||
+      !!filterStatus ||
+      !!filterSeverity ||
+      !!filterPriority ||
+      filterProject !== '' ||
+      filterDateRange !== 'all' ||
+      sortOption !== 'newest' ||
+      issueTab !== 'ALL',
+    [issueSearch, filterStatus, filterSeverity, filterPriority, filterProject, filterDateRange, sortOption, issueTab]
+  );
 
   const filteredIssues = useMemo(() => {
-    let list = issues;
+    let list = [...issues];
 
-    // Apply Tab filter
+    // Tab filter
     if (issueTab === 'REQUIRES_TESTING') {
       list = list.filter((i) => i.status === 'IN_TESTING' || i.status === 'IN_REVIEW');
     } else if (issueTab === 'IN_PROGRESS') {
@@ -304,7 +327,7 @@ export const DeveloperDashboardPage: React.FC = () => {
       list = list.filter((i) => i.status === 'RESOLVED' || i.status === 'CLOSED');
     }
 
-    // Apply Search filter
+    // Search
     if (issueSearch.trim()) {
       const q = issueSearch.toLowerCase().trim();
       list = list.filter(
@@ -315,19 +338,83 @@ export const DeveloperDashboardPage: React.FC = () => {
       );
     }
 
-    return list;
-  }, [issues, issueTab, issueSearch, projectsMap]);
+    // Status filter
+    if (filterStatus) {
+      list = list.filter((i) => i.status === filterStatus);
+    }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Severity filter
+    if (filterSeverity) {
+      list = list.filter((i) => i.severity === filterSeverity);
+    }
+
+    // Priority filter
+    if (filterPriority) {
+      list = list.filter((i) => i.priority === filterPriority);
+    }
+
+    // Project filter
+    if (filterProject !== '') {
+      list = list.filter((i) => i.project_id === filterProject);
+    }
+
+    // Date range filter (by created_at)
+    if (filterDateRange !== 'all') {
+      const days = parseInt(filterDateRange, 10);
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days);
+      const cutoffMs = cutoff.getTime();
+      list = list.filter((i) => new Date(i.created_at).getTime() >= cutoffMs);
+    }
+
+    // Sort
+    list.sort((a, b) => {
+      switch (sortOption) {
+        case 'oldest':
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case 'updated':
+          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+        case 'priority':
+          return (PRIORITY_WEIGHT[a.priority] ?? 4) - (PRIORITY_WEIGHT[b.priority] ?? 4);
+        case 'severity':
+          return (SEVERITY_WEIGHT[a.severity] ?? 4) - (SEVERITY_WEIGHT[b.severity] ?? 4);
+        case 'newest':
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
+
+    return list;
+  }, [issues, issueTab, issueSearch, filterStatus, filterSeverity, filterPriority, filterProject, filterDateRange, sortOption, projectsMap]);
+
+  // Clear all advanced filters
+  const clearFilters = useCallback(() => {
+    setIssueSearch('');
+    setFilterStatus('');
+    setFilterSeverity('');
+    setFilterPriority('');
+    setFilterProject('');
+    setFilterDateRange('all');
+    setSortOption('newest');
+    setIssueTab('ALL');
+  }, []);
+
+  // Project options for filter dropdown
+  const projectOptions = useMemo(
+    () => Object.values(projectsMap).sort((a, b) => a.name.localeCompare(b.name)),
+    [projectsMap]
+  );
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // Sprint Actions
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────────
 
   const handleBeginWork = async (sprintId: number) => {
     setSprintSubmitting(sprintId);
     setActionError(null);
     try {
       await SprintService.beginWork(sprintId);
-      setActionSuccess('Sprint is now In Progress! You can begin active testing.');
+      setActionSuccess('Sprint is now In Progress! You can begin active development.');
       setTimeout(() => setActionSuccess(null), 5000);
       await loadData(true);
     } catch (err: unknown) {
@@ -354,9 +441,9 @@ export const DeveloperDashboardPage: React.FC = () => {
     }
   };
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────────
   // Issue Workflow Quick Action
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────────
 
   const handleAdvanceStatus = async (issue: Issue) => {
     const next = getNextStatus(issue.status);
@@ -376,14 +463,34 @@ export const DeveloperDashboardPage: React.FC = () => {
     }
   };
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────────
+  // AI context — pick most relevant issue (urgent/high priority active)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  const aiContextIssue = useMemo(() => {
+    return (
+      issues.find((i) => i.status === 'REOPENED') ||
+      issues.find((i) => i.priority === 'URGENT' && !['RESOLVED', 'CLOSED'].includes(i.status)) ||
+      issues.find((i) => i.priority === 'HIGH' && !['RESOLVED', 'CLOSED'].includes(i.status)) ||
+      issues[0]
+    );
+  }, [issues]);
+
+  const aiContextSprint = useMemo(() => {
+    return (
+      assignedSprints.find((s) => s.status === 'IN_PROGRESS') ||
+      assignedSprints.find((s) => s.status === 'ACTIVE')
+    );
+  }, [assignedSprints]);
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // Render Loading & Error States
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────────
 
   if (isLoading) {
     return (
       <div style={{ padding: '3.5rem 0', display: 'flex', justifyContent: 'center' }}>
-        <LoadingSpinner message="Loading your DEVELOPER WORKSPACE..." />
+        <LoadingSpinner message="Loading your Developer Workspace..." />
       </div>
     );
   }
@@ -394,7 +501,7 @@ export const DeveloperDashboardPage: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '2.5rem' }}>
-      {/* â”€â”€ Toast Alerts â”€â”€ */}
+      {/* ── Toast Alerts ── */}
       {actionSuccess && (
         <div
           style={{
@@ -432,12 +539,11 @@ export const DeveloperDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* â”€â”€ Hero Greeting Card â”€â”€ */}
+      {/* ── Hero Greeting Card ── */}
       <div
         className="card"
         style={{
-          background:
-            'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(99, 102, 241, 0.10) 100%)',
+          background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(99, 102, 241, 0.10) 100%)',
           border: '1px solid rgba(16, 185, 129, 0.25)',
           padding: '1.25rem 1.5rem',
         }}
@@ -490,12 +596,12 @@ export const DeveloperDashboardPage: React.FC = () => {
 
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', margin: 0 }}>
               {sprintsInProgressCount > 0
-                ? `You have ${sprintsInProgressCount} sprint${sprintsInProgressCount > 1 ? 's' : ''} in progress and ${issuesRequiringTestingCount} defect${issuesRequiringTestingCount === 1 ? '' : 's'} requiring your testing.`
+                ? `You have ${sprintsInProgressCount} sprint${sprintsInProgressCount > 1 ? 's' : ''} in progress and ${issuesRequiringTestingCount} issue${issuesRequiringTestingCount === 1 ? '' : 's'} requiring your attention.`
                 : awaitingApprovalCount > 0
                 ? `You have ${awaitingApprovalCount} sprint${awaitingApprovalCount > 1 ? 's' : ''} submitted and awaiting Admin approval.`
                 : activeSprintsCount > 0
-                ? `You have ${activeSprintsCount} assigned sprint${activeSprintsCount > 1 ? 's' : ''} ready to begin testing.`
-                : `You have ${myAssignedIssuesCount} assigned defect${myAssignedIssuesCount === 1 ? '' : 's'} across active projects.`}
+                ? `You have ${activeSprintsCount} assigned sprint${activeSprintsCount > 1 ? 's' : ''} ready to begin.`
+                : `You have ${myAssignedIssuesCount} assigned issue${myAssignedIssuesCount === 1 ? '' : 's'} across active projects.`}
             </p>
           </div>
 
@@ -507,15 +613,15 @@ export const DeveloperDashboardPage: React.FC = () => {
               title="Refresh Dashboard"
             >
               <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
-              <span>{isRefreshing ? 'Refreshingâ€¦' : 'Refresh'}</span>
+              <span>{isRefreshing ? 'Refreshing\u2026' : 'Refresh'}</span>
             </button>
 
-            <Link to="/tester-sprints" className="btn btn-secondary btn-sm">
+            <Link to="/developer-sprints" className="btn btn-secondary btn-sm">
               <Layers size={14} />
               <span>My Sprints</span>
             </Link>
 
-            <Link to="/tester-issues" className="btn btn-primary btn-sm">
+            <Link to="/developer-issues" className="btn btn-primary btn-sm">
               <Bug size={14} />
               <span>My Assigned Issues</span>
             </Link>
@@ -523,7 +629,7 @@ export const DeveloperDashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* â”€â”€ Compact Live KPI Section (5 cards) â”€â”€ */}
+      {/* ── KPI Cards ── */}
       <div
         style={{
           display: 'grid',
@@ -539,27 +645,23 @@ export const DeveloperDashboardPage: React.FC = () => {
           subtitle="Total assigned sprints"
           onClick={() => {
             setSprintTab('ALL');
-            const el = document.getElementById('my-sprints-section');
-            el?.scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('my-sprints-section')?.scrollIntoView({ behavior: 'smooth' });
           }}
         />
-
         <MetricCard
           label="Sprints In Progress"
           value={sprintsInProgressCount}
           icon={<Play size={20} />}
           iconClass="metric-icon-amber"
           valueColor={sprintsInProgressCount > 0 ? '#fbbf24' : undefined}
-          subtitle="Actively testing now"
+          subtitle="Actively in development"
           badge={sprintsInProgressCount > 0 ? 'Active' : undefined}
           badgeColor="#f59e0b"
           onClick={() => {
             setSprintTab('IN_PROGRESS');
-            const el = document.getElementById('my-sprints-section');
-            el?.scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('my-sprints-section')?.scrollIntoView({ behavior: 'smooth' });
           }}
         />
-
         <MetricCard
           label="Awaiting Approval"
           value={awaitingApprovalCount}
@@ -571,28 +673,36 @@ export const DeveloperDashboardPage: React.FC = () => {
           badgeColor="#06b6d4"
           onClick={() => {
             setSprintTab('READY_FOR_APPROVAL');
-            const el = document.getElementById('my-sprints-section');
-            el?.scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('my-sprints-section')?.scrollIntoView({ behavior: 'smooth' });
           }}
         />
-
         <MetricCard
           label="My Assigned Issues"
           value={myAssignedIssuesCount}
           icon={<Bug size={20} />}
           iconClass="metric-icon-purple"
-          subtitle="Total assigned defects"
+          subtitle="Total assigned issues"
           onClick={() => {
             setIssueTab('ALL');
-            const el = document.getElementById('my-issues-section');
-            el?.scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('my-issues-section')?.scrollIntoView({ behavior: 'smooth' });
           }}
         />
-
         <MetricCard
-          label="Issues Requiring Testing"
-          value={issuesRequiringTestingCount}
+          label="In Development"
+          value={inProgressIssuesCount}
           icon={<Code2 size={20} />}
+          iconClass="metric-icon-indigo"
+          valueColor={inProgressIssuesCount > 0 ? '#818cf8' : undefined}
+          subtitle="Currently in development"
+          onClick={() => {
+            setIssueTab('IN_PROGRESS');
+            document.getElementById('my-issues-section')?.scrollIntoView({ behavior: 'smooth' });
+          }}
+        />
+        <MetricCard
+          label="Testing / Review"
+          value={issuesRequiringTestingCount}
+          icon={<Eye size={20} />}
           iconClass="metric-icon-emerald"
           valueColor={issuesRequiringTestingCount > 0 ? '#34d399' : undefined}
           subtitle="IN_TESTING & IN_REVIEW"
@@ -600,13 +710,72 @@ export const DeveloperDashboardPage: React.FC = () => {
           badgeColor="#10b981"
           onClick={() => {
             setIssueTab('REQUIRES_TESTING');
-            const el = document.getElementById('my-issues-section');
-            el?.scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('my-issues-section')?.scrollIntoView({ behavior: 'smooth' });
+          }}
+        />
+        <MetricCard
+          label="Resolved / Closed"
+          value={resolvedIssuesCount}
+          icon={<CheckCircle2 size={20} />}
+          iconClass="metric-icon-emerald"
+          valueColor={resolvedIssuesCount > 0 ? '#34d399' : undefined}
+          subtitle="Completed issues"
+          onClick={() => {
+            setIssueTab('RESOLVED');
+            document.getElementById('my-issues-section')?.scrollIntoView({ behavior: 'smooth' });
           }}
         />
       </div>
 
-      {/* â”€â”€ SECTION A: MY SPRINTS â”€â”€ */}
+      {/* ── Developer Action Center ── */}
+      <DeveloperActionCenter
+        assignedIssues={issues}
+        assignedSprints={assignedSprints}
+      />
+
+      {/* ── Row: Work Health + Sprint Health ── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '1rem',
+          alignItems: 'start',
+        }}
+      >
+        <DeveloperWorkHealth assignedIssues={issues} />
+        <DeveloperSprintHealth assignedSprints={assignedSprints} />
+      </div>
+
+      {/* ── Row: Issue Trend + Resolution Performance ── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '1rem',
+          alignItems: 'start',
+        }}
+      >
+        <UserIssueTrend userIssues={issues} />
+        <UserResolutionPerformance userIssues={issues} />
+      </div>
+
+      {/* ── Row: SLA Tracker + Distribution ── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '1rem',
+          alignItems: 'start',
+        }}
+      >
+        <UserSlaTracker userIssues={issues} />
+        <UserIssueDistribution userIssues={issues} />
+      </div>
+
+      {/* ── Testing & Review Queue ── */}
+      <DeveloperTestingQueue assignedIssues={issues} />
+
+      {/* ── SECTION A: MY SPRINTS ── */}
       <section
         id="my-sprints-section"
         className="card"
@@ -691,7 +860,7 @@ export const DeveloperDashboardPage: React.FC = () => {
             </div>
 
             <Link
-              to="/tester-sprints"
+              to="/developer-sprints"
               className="btn btn-secondary btn-sm"
               style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: '#a5b4fc' }}
             >
@@ -701,7 +870,7 @@ export const DeveloperDashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Compact Sprint Cards List (Reduced excessive vertical spacing) */}
+        {/* Sprint Cards List */}
         {filteredSprints.length === 0 ? (
           <div
             style={{
@@ -755,7 +924,7 @@ export const DeveloperDashboardPage: React.FC = () => {
                     <div style={{ flex: 1, minWidth: '240px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', flexWrap: 'wrap' }}>
                         <Link
-                          to={`/tester-sprints?sprintId=${sprint.id}`}
+                          to={`/developer-sprints?sprintId=${sprint.id}`}
                           style={{
                             fontWeight: 700,
                             fontSize: '0.98rem',
@@ -786,7 +955,6 @@ export const DeveloperDashboardPage: React.FC = () => {
                             <Clock size={12} /> Awaiting Admin Approval
                           </span>
                         )}
-
                         {isInProgress && (
                           <span
                             style={{
@@ -805,7 +973,6 @@ export const DeveloperDashboardPage: React.FC = () => {
                             <Play size={12} /> In Progress
                           </span>
                         )}
-
                         {isActive && (
                           <span
                             style={{
@@ -824,7 +991,6 @@ export const DeveloperDashboardPage: React.FC = () => {
                             <ClipboardCheck size={12} /> Ready to Begin
                           </span>
                         )}
-
                         {isCompleted && (
                           <span
                             style={{
@@ -873,10 +1039,13 @@ export const DeveloperDashboardPage: React.FC = () => {
                           flexWrap: 'wrap',
                         }}
                       >
-                        <span>ðŸ“… {formatDate(sprint.start_date)} â†’ {formatDate(sprint.end_date)}</span>
+                        <span>
+                          <Calendar size={11} style={{ display: 'inline', marginRight: '0.25rem' }} />
+                          {formatDate(sprint.start_date)} &rarr; {formatDate(sprint.end_date)}
+                        </span>
                         {sprint.project_id && projectsMap[sprint.project_id] && (
                           <span style={{ color: 'var(--text-secondary)' }}>
-                            ðŸ“ {projectsMap[sprint.project_id]?.name || `Project #${sprint.project_id}`}
+                            {projectsMap[sprint.project_id]?.name || `Project #${sprint.project_id}`}
                           </span>
                         )}
                       </div>
@@ -893,7 +1062,7 @@ export const DeveloperDashboardPage: React.FC = () => {
                           title="Start working on this sprint"
                         >
                           <Play size={13} />
-                          <span>{sprintSubmitting === sprint.id ? 'Startingâ€¦' : 'Begin Work'}</span>
+                          <span>{sprintSubmitting === sprint.id ? 'Starting\u2026' : 'Begin Work'}</span>
                         </button>
                       )}
 
@@ -908,7 +1077,7 @@ export const DeveloperDashboardPage: React.FC = () => {
                           <ThumbsUp size={13} />
                           <span>
                             {sprintSubmitting === sprint.id
-                              ? 'Submittingâ€¦'
+                              ? 'Submitting\u2026'
                               : sprint.review_comment
                               ? 'Resubmit for Approval'
                               : 'Submit for Approval'}
@@ -955,7 +1124,7 @@ export const DeveloperDashboardPage: React.FC = () => {
                       )}
 
                       <Link
-                        to={`/tester-sprints?sprintId=${sprint.id}`}
+                        to={`/developer-sprints?sprintId=${sprint.id}`}
                         className="btn btn-secondary btn-sm"
                         style={{ fontSize: '0.78rem', padding: '0.35rem 0.65rem' }}
                         title="View sprint details"
@@ -966,7 +1135,7 @@ export const DeveloperDashboardPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Review Comment Callout (When Admin requested changes) */}
+                  {/* Review Comment Callout */}
                   {sprint.review_comment && isInProgress && (
                     <div
                       style={{
@@ -980,7 +1149,7 @@ export const DeveloperDashboardPage: React.FC = () => {
                       }}
                     >
                       <strong style={{ color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <AlertTriangle size={13} /> Admin Feedback â€” Changes Requested:
+                        <AlertTriangle size={13} /> Admin Feedback &mdash; Changes Requested:
                       </strong>
                       <p style={{ margin: '0.2rem 0 0 0', color: 'var(--text-secondary)' }}>
                         {sprint.review_comment}
@@ -1014,7 +1183,7 @@ export const DeveloperDashboardPage: React.FC = () => {
         )}
       </section>
 
-      {/* â”€â”€ SECTION B: MY ASSIGNED ISSUES â”€â”€ */}
+      {/* ── SECTION B: MY ASSIGNED ISSUES (Advanced Filters) ── */}
       <section
         id="my-issues-section"
         className="card"
@@ -1030,7 +1199,7 @@ export const DeveloperDashboardPage: React.FC = () => {
             alignItems: 'center',
             flexWrap: 'wrap',
             gap: '0.75rem',
-            marginBottom: '1rem',
+            marginBottom: '0.85rem',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
@@ -1059,8 +1228,8 @@ export const DeveloperDashboardPage: React.FC = () => {
             </span>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            {/* Search Input */}
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            {/* Search */}
             <div style={{ position: 'relative' }}>
               <Search
                 size={14}
@@ -1074,7 +1243,7 @@ export const DeveloperDashboardPage: React.FC = () => {
               />
               <input
                 type="text"
-                placeholder="Search issuesâ€¦"
+                placeholder="Search issues\u2026"
                 value={issueSearch}
                 onChange={(e) => setIssueSearch(e.target.value)}
                 style={{
@@ -1087,12 +1256,12 @@ export const DeveloperDashboardPage: React.FC = () => {
                   border: '1px solid var(--border-muted)',
                   borderRadius: 'var(--radius-sm)',
                   color: 'var(--text-primary)',
-                  width: '180px',
+                  width: '175px',
                 }}
               />
             </div>
 
-            {/* Filter Tabs */}
+            {/* Quick Filter Tabs */}
             <div
               style={{
                 display: 'flex',
@@ -1104,14 +1273,10 @@ export const DeveloperDashboardPage: React.FC = () => {
               }}
             >
               {[
-                { id: 'ALL', label: 'All Assigned', count: issues.length },
-                {
-                  id: 'REQUIRES_TESTING',
-                  label: 'âš¡ Requires Testing',
-                  count: issuesRequiringTestingCount,
-                },
+                { id: 'ALL', label: 'All', count: issues.length },
+                { id: 'REQUIRES_TESTING', label: 'Testing / Review', count: issuesRequiringTestingCount },
                 { id: 'IN_PROGRESS', label: 'In Development', count: inProgressIssuesCount },
-                { id: 'RESOLVED', label: 'Resolved / Closed', count: resolvedIssuesCount },
+                { id: 'RESOLVED', label: 'Resolved', count: resolvedIssuesCount },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -1138,18 +1303,253 @@ export const DeveloperDashboardPage: React.FC = () => {
               ))}
             </div>
 
+            {/* Advanced Filters toggle */}
+            <button
+              onClick={() => setShowAdvancedFilters((p) => !p)}
+              className="btn btn-secondary btn-sm"
+              style={{
+                fontSize: '0.78rem',
+                padding: '0.3rem 0.65rem',
+                background: showAdvancedFilters ? 'rgba(99,102,241,0.15)' : undefined,
+                color: showAdvancedFilters ? '#818cf8' : undefined,
+              }}
+            >
+              <Filter size={13} />
+              <span>Filters {hasActiveFilters ? '\u25cf' : ''}</span>
+              <ChevronDown
+                size={12}
+                style={{ transform: showAdvancedFilters ? 'rotate(180deg)' : 'none', transition: '0.2s' }}
+              />
+            </button>
+
             <Link
-              to="/tester-issues"
+              to="/developer-issues"
               className="btn btn-secondary btn-sm"
               style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: '#c4b5fd' }}
             >
-              <span>View All Issues</span>
+              <span>View All</span>
               <ArrowRight size={13} />
             </Link>
           </div>
         </div>
 
-        {/* High-density Issues Table */}
+        {/* ── Advanced Filter Panel ── */}
+        {showAdvancedFilters && (
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '0.65rem',
+              padding: '0.85rem',
+              background: 'var(--bg-surface-elevated)',
+              borderRadius: '8px',
+              border: '1px solid var(--border-subtle)',
+              marginBottom: '0.85rem',
+              alignItems: 'flex-end',
+            }}
+          >
+            {/* Status */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                Status
+              </label>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value as IssueStatus | '')}
+                style={{
+                  padding: '0.3rem 0.6rem',
+                  fontSize: '0.78rem',
+                  background: 'var(--bg-input)',
+                  border: '1px solid var(--border-muted)',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--text-primary)',
+                  minWidth: '140px',
+                }}
+              >
+                <option value="">All Statuses</option>
+                {['REPORTED','TRIAGED','ASSIGNED','IN_DEVELOPMENT','IN_REVIEW','IN_TESTING','REOPENED','RESOLVED','CLOSED'].map(
+                  (s) => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
+                )}
+              </select>
+            </div>
+
+            {/* Severity */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                Severity
+              </label>
+              <select
+                value={filterSeverity}
+                onChange={(e) => setFilterSeverity(e.target.value as Severity | '')}
+                style={{
+                  padding: '0.3rem 0.6rem',
+                  fontSize: '0.78rem',
+                  background: 'var(--bg-input)',
+                  border: '1px solid var(--border-muted)',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--text-primary)',
+                  minWidth: '120px',
+                }}
+              >
+                <option value="">All Severities</option>
+                {['BLOCKER','CRITICAL','MAJOR','MINOR'].map(
+                  (s) => <option key={s} value={s}>{s}</option>
+                )}
+              </select>
+            </div>
+
+            {/* Priority */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                Priority
+              </label>
+              <select
+                value={filterPriority}
+                onChange={(e) => setFilterPriority(e.target.value as Priority | '')}
+                style={{
+                  padding: '0.3rem 0.6rem',
+                  fontSize: '0.78rem',
+                  background: 'var(--bg-input)',
+                  border: '1px solid var(--border-muted)',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--text-primary)',
+                  minWidth: '120px',
+                }}
+              >
+                <option value="">All Priorities</option>
+                {['URGENT','HIGH','MEDIUM','LOW'].map(
+                  (p) => <option key={p} value={p}>{p}</option>
+                )}
+              </select>
+            </div>
+
+            {/* Project */}
+            {projectOptions.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                  Project
+                </label>
+                <select
+                  value={filterProject}
+                  onChange={(e) =>
+                    setFilterProject(e.target.value === '' ? '' : parseInt(e.target.value, 10))
+                  }
+                  style={{
+                    padding: '0.3rem 0.6rem',
+                    fontSize: '0.78rem',
+                    background: 'var(--bg-input)',
+                    border: '1px solid var(--border-muted)',
+                    borderRadius: 'var(--radius-sm)',
+                    color: 'var(--text-primary)',
+                    minWidth: '140px',
+                  }}
+                >
+                  <option value="">All Projects</option>
+                  {projectOptions.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Date Range */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                Created
+              </label>
+              <select
+                value={filterDateRange}
+                onChange={(e) => setFilterDateRange(e.target.value as DateRange)}
+                style={{
+                  padding: '0.3rem 0.6rem',
+                  fontSize: '0.78rem',
+                  background: 'var(--bg-input)',
+                  border: '1px solid var(--border-muted)',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--text-primary)',
+                  minWidth: '130px',
+                }}
+              >
+                <option value="all">All Time</option>
+                <option value="7">Last 7 Days</option>
+                <option value="30">Last 30 Days</option>
+                <option value="90">Last 90 Days</option>
+              </select>
+            </div>
+
+            {/* Sort */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                Sort By
+              </label>
+              <select
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value as SortOption)}
+                style={{
+                  padding: '0.3rem 0.6rem',
+                  fontSize: '0.78rem',
+                  background: 'var(--bg-input)',
+                  border: '1px solid var(--border-muted)',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--text-primary)',
+                  minWidth: '140px',
+                }}
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="updated">Recently Updated</option>
+                <option value="priority">Priority</option>
+                <option value="severity">Severity</option>
+              </select>
+            </div>
+
+            {/* Clear filters */}
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="btn btn-secondary btn-sm"
+                style={{ fontSize: '0.78rem', alignSelf: 'flex-end' }}
+                title="Clear all filters"
+              >
+                <X size={13} />
+                <span>Clear</span>
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Result count */}
+        <div
+          style={{
+            fontSize: '0.76rem',
+            color: 'var(--text-muted)',
+            marginBottom: '0.75rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+          }}
+        >
+          Showing <strong style={{ color: 'var(--text-primary)' }}>{filteredIssues.length}</strong> of{' '}
+          <strong style={{ color: 'var(--text-primary)' }}>{issues.length}</strong> assigned issues
+          {hasActiveFilters && (
+            <button
+              onClick={clearFilters}
+              style={{
+                fontSize: '0.72rem',
+                color: 'var(--primary)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '0',
+                textDecoration: 'underline',
+              }}
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
+
+        {/* Issues Table */}
         {filteredIssues.length === 0 ? (
           <div
             style={{
@@ -1165,8 +1565,10 @@ export const DeveloperDashboardPage: React.FC = () => {
               {issueSearch
                 ? `No issues match search query "${issueSearch}".`
                 : issueTab === 'REQUIRES_TESTING'
-                ? 'Great news! There are currently no defects waiting for QA verification.'
-                : 'No issues found in this category.'}
+                ? 'No issues are currently waiting for testing or review.'
+                : hasActiveFilters
+                ? 'No issues match the active filters.'
+                : 'No issues are currently assigned to you.'}
             </p>
           </div>
         ) : (
@@ -1174,7 +1576,7 @@ export const DeveloperDashboardPage: React.FC = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead>
                 <tr>
-                  {['Issue Key', 'Title', 'Project', 'Severity', 'Priority', 'Status & Verification', 'Updated', 'Action'].map(
+                  {['Issue Key', 'Title', 'Project', 'Severity', 'Priority', 'Status', 'Age', 'Action'].map(
                     (col) => (
                       <th
                         key={col}
@@ -1195,23 +1597,32 @@ export const DeveloperDashboardPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredIssues.slice(0, 15).map((issue) => {
-                  const requiresTesting =
-                    issue.status === 'IN_TESTING' || issue.status === 'IN_REVIEW';
+                {filteredIssues.slice(0, 20).map((issue) => {
+                  const requiresTesting = issue.status === 'IN_TESTING' || issue.status === 'IN_REVIEW';
                   const nextStatus = getNextStatus(issue.status);
                   const canAdvance = !!nextStatus;
                   const isTransitioning = transitioning === issue.id;
                   const project = projectsMap[issue.project_id];
+                  const ageDays = Math.floor(
+                    (Date.now() - new Date(issue.created_at).getTime()) / (1000 * 60 * 60 * 24)
+                  );
 
                   return (
                     <tr
                       key={issue.id}
                       style={{
                         borderBottom: '1px solid var(--border-subtle)',
-                        borderLeft: requiresTesting ? '3px solid #10b981' : '3px solid transparent',
-                        backgroundColor: requiresTesting
-                          ? 'rgba(16, 185, 129, 0.03)'
-                          : 'transparent',
+                        borderLeft: requiresTesting
+                          ? '3px solid #10b981'
+                          : issue.status === 'REOPENED'
+                          ? '3px solid #f87171'
+                          : '3px solid transparent',
+                        backgroundColor:
+                          requiresTesting
+                            ? 'rgba(16, 185, 129, 0.03)'
+                            : issue.status === 'REOPENED'
+                            ? 'rgba(239,68,68,0.03)'
+                            : 'transparent',
                         transition: 'background 0.15s ease',
                       }}
                       onMouseEnter={(e) =>
@@ -1220,7 +1631,11 @@ export const DeveloperDashboardPage: React.FC = () => {
                       }
                       onMouseLeave={(e) =>
                         ((e.currentTarget as HTMLTableRowElement).style.backgroundColor =
-                          requiresTesting ? 'rgba(16, 185, 129, 0.03)' : 'transparent')
+                          requiresTesting
+                            ? 'rgba(16, 185, 129, 0.03)'
+                            : issue.status === 'REOPENED'
+                            ? 'rgba(239,68,68,0.03)'
+                            : 'transparent')
                       }
                     >
                       {/* Issue Key */}
@@ -1243,7 +1658,7 @@ export const DeveloperDashboardPage: React.FC = () => {
                       <td
                         style={{
                           padding: '0.6rem 0.75rem',
-                          maxWidth: '260px',
+                          maxWidth: '240px',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
@@ -1284,43 +1699,23 @@ export const DeveloperDashboardPage: React.FC = () => {
                         <PriorityBadge priority={issue.priority} />
                       </td>
 
-                      {/* Status & QA Highlight */}
+                      {/* Status */}
                       <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <StatusBadge status={issue.status} />
-                          {requiresTesting && (
-                            <span
-                              style={{
-                                fontSize: '0.68rem',
-                                fontWeight: 700,
-                                padding: '0.12rem 0.45rem',
-                                borderRadius: '4px',
-                                backgroundColor: 'rgba(52, 211, 153, 0.18)',
-                                color: '#34d399',
-                                border: '1px solid rgba(52, 211, 153, 0.35)',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.25rem',
-                              }}
-                              title="This defect is ready for tester verification"
-                            >
-                              <Code2 size={11} /> QA VERIFY
-                            </span>
-                          )}
-                        </div>
+                        <StatusBadge status={issue.status} />
                       </td>
 
-                      {/* Updated */}
+                      {/* Age */}
                       <td
                         style={{
                           padding: '0.6rem 0.75rem',
-                          color: 'var(--text-muted)',
+                          color: ageDays > 10 ? '#fbbf24' : 'var(--text-muted)',
                           fontSize: '0.76rem',
                           whiteSpace: 'nowrap',
+                          fontWeight: ageDays > 10 ? 600 : 400,
                         }}
-                        title={formatDate(issue.updated_at || issue.created_at)}
+                        title={formatDate(issue.created_at)}
                       >
-                        {formatRelativeTime(issue.updated_at || issue.created_at)}
+                        {ageDays}d
                       </td>
 
                       {/* Action */}
@@ -1335,18 +1730,24 @@ export const DeveloperDashboardPage: React.FC = () => {
                               title={getWorkflowLabel(issue.status)}
                             >
                               <Play size={10} />
-                              <span>{isTransitioning ? 'â€¦' : getWorkflowLabel(issue.status)}</span>
+                              <span>{isTransitioning ? '\u2026' : getWorkflowLabel(issue.status)}</span>
                             </button>
                           )}
 
                           <Link
                             to={`/issues/${issue.id}`}
                             className="btn btn-secondary btn-sm"
-                            style={{ fontSize: '0.72rem', padding: '0.2rem 0.55rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
-                            title="View full issue details, comments, and attachments"
+                            style={{
+                              fontSize: '0.72rem',
+                              padding: '0.2rem 0.55rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.3rem',
+                            }}
+                            title="View full issue details"
                           >
                             <Eye size={12} />
-                            <span>View Issue</span>
+                            <span>View</span>
                           </Link>
                         </div>
                       </td>
@@ -1356,7 +1757,7 @@ export const DeveloperDashboardPage: React.FC = () => {
               </tbody>
             </table>
 
-            {filteredIssues.length > 15 && (
+            {filteredIssues.length > 20 && (
               <div
                 style={{
                   padding: '0.75rem',
@@ -1365,7 +1766,7 @@ export const DeveloperDashboardPage: React.FC = () => {
                 }}
               >
                 <Link
-                  to="/tester-issues"
+                  to="/developer-issues"
                   style={{
                     fontSize: '0.8rem',
                     color: 'var(--primary)',
@@ -1384,7 +1785,20 @@ export const DeveloperDashboardPage: React.FC = () => {
         )}
       </section>
 
-      {/* â”€â”€ Recent Activity / Notifications (Universal navigation preserved) â”€â”€ */}
+      {/* ── Row: Recent Activity + Workload ── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '1rem',
+          alignItems: 'start',
+        }}
+      >
+        <RecentIssueActivity userIssues={issues} />
+        <DeveloperWorkloadCard assignedIssues={issues} />
+      </div>
+
+      {/* ── Live Notifications ── */}
       {liveNotifications.length > 0 && (
         <section className="card" style={{ padding: '1.15rem' }}>
           <div
@@ -1408,11 +1822,8 @@ export const DeveloperDashboardPage: React.FC = () => {
                 Recent Activity
               </h3>
             </div>
-            <Link
-              to="/notifications"
-              style={{ fontSize: '0.78rem', color: 'var(--primary)' }}
-            >
-              All Notifications â†’
+            <Link to="/notifications" style={{ fontSize: '0.78rem', color: 'var(--primary)' }}>
+              All Notifications &rarr;
             </Link>
           </div>
 
@@ -1464,12 +1875,7 @@ export const DeveloperDashboardPage: React.FC = () => {
                     >
                       {notif.title}
                     </span>
-                    <span
-                      style={{
-                        fontSize: '0.78rem',
-                        color: 'var(--text-secondary)',
-                      }}
-                    >
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
                       {notif.message}
                     </span>
                   </div>
@@ -1487,14 +1893,13 @@ export const DeveloperDashboardPage: React.FC = () => {
         </section>
       )}
 
-      {/* â”€â”€ AI TESTING ASSISTANT â”€â”€ */}
+      {/* ── AI DEVELOPER ASSISTANT ── */}
       <AIChatbot
-        contextIssueId={filteredIssues[0]?.id}
-        contextIssueKey={filteredIssues[0]?.issue_key}
-        contextSprintId={assignedSprints.find((s) => s.status === 'IN_PROGRESS' || s.status === 'ACTIVE')?.id}
-        contextSprintName={assignedSprints.find((s) => s.status === 'IN_PROGRESS' || s.status === 'ACTIVE')?.name}
+        contextIssueId={aiContextIssue?.id}
+        contextIssueKey={aiContextIssue?.issue_key}
+        contextSprintId={aiContextSprint?.id}
+        contextSprintName={aiContextSprint?.name}
       />
     </div>
   );
 };
-

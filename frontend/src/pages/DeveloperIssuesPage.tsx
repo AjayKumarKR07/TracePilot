@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   AlertCircle,
@@ -351,7 +351,7 @@ export const DeveloperIssuesPage: React.FC = () => {
   if (isLoading) {
     return (
       <div style={{ padding: '3rem 0' }}>
-        <LoadingSpinner message="Fetching your assigned issuesâ€¦" />
+        <LoadingSpinner message="Fetching your assigned issues..." />
       </div>
     );
   }
@@ -479,7 +479,7 @@ export const DeveloperIssuesPage: React.FC = () => {
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
             {user?.full_name} Â· {totalFromServer} total assigned
             {isRefreshing && (
-              <span style={{ marginLeft: '0.5rem', color: 'var(--primary)' }}>â†» refreshingâ€¦</span>
+              <span style={{ marginLeft: '0.5rem', color: 'var(--primary)' }}>â†» refreshing...</span>
             )}
           </p>
         </div>
@@ -494,8 +494,8 @@ export const DeveloperIssuesPage: React.FC = () => {
             <span>Refresh</span>
           </button>
 
-          <Link to="/tester-dashboard" className="btn btn-secondary btn-sm">
-            â† Dashboard
+          <Link to="/developer-dashboard" className="btn btn-secondary btn-sm">
+            &larr; Dashboard
           </Link>
         </div>
       </div>
@@ -577,7 +577,7 @@ export const DeveloperIssuesPage: React.FC = () => {
             />
             <input
               type="text"
-              placeholder="Search by key or titleâ€¦"
+              placeholder="Search by key or title..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
@@ -857,7 +857,7 @@ export const DeveloperIssuesPage: React.FC = () => {
                               title={getWorkflowLabel(issue.status)}
                             >
                               <Play size={10} />
-                              <span>{isTransitioning ? 'â€¦' : getWorkflowLabel(issue.status)}</span>
+                              <span>{isTransitioning ? '...' : getWorkflowLabel(issue.status)}</span>
                             </button>
                           )}
 
