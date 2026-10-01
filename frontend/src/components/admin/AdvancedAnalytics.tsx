@@ -314,7 +314,7 @@ export const AdvancedAnalytics: React.FC = () => {
 
             {/* Workload Chart */}
             <div className="card" style={{ padding: '1.5rem' }}>
-              <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem' }}>Tester Workload</h3>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem' }}>Developer Workload</h3>
               {workload.items.length === 0 ? (
                 <div className="empty-state" style={{ minHeight: '300px' }}>No workload data for this period</div>
               ) : (

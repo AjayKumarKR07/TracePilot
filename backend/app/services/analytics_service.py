@@ -1,4 +1,4 @@
-﻿"""
+"""
 Analytics and reporting service â€” Phase 9.
 
 Computes system-wide, project-level, developer-performance, and time-series
@@ -554,13 +554,19 @@ async def get_developer_performance(
     db: AsyncSession,
     start_date: datetime | None = None,
     end_date: datetime | None = None,
+    include_test: bool = False,
 ) -> DeveloperAnalyticsResponse:
-    """Return assignment, resolution, and time metrics for all testers."""
-    dev_res = await db.execute(
-        select(User)
-        .where(User.role.in_([UserRole.DEVELOPER, 'TESTER']))
-        .order_by(User.id)
-    )
+    """Return assignment, resolution, and time metrics for all developers.
+
+    By default (include_test=False), automated test-fixture accounts (@example.com)
+    and test-fixture projects (Project.is_test=True) are excluded so production
+    and admin dashboards display only legitimate team workload.
+    """
+    dev_query = select(User).where(User.role.in_([UserRole.DEVELOPER, 'TESTER']))
+    if not include_test:
+        dev_query = dev_query.where(User.email.not_like("%@example.com"))
+
+    dev_res = await db.execute(dev_query.order_by(User.id))
     developers = dev_res.scalars().all()
 
     stats_query = select(
@@ -585,6 +591,11 @@ async def get_developer_performance(
             ))
         ).label("avg_res_time"),
     ).where(Issue.assignee_id.isnot(None))
+
+    if not include_test:
+        stats_query = stats_query.join(Project, Issue.project_id == Project.id).where(
+            Project.is_test == False
+        )
 
     if start_date is not None:
         stats_query = stats_query.where(Issue.created_at >= start_date)

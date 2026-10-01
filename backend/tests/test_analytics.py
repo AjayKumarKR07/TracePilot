@@ -407,7 +407,7 @@ class TestDeveloperAnalytics:
         # Assign issue to tester3 (TESTER role — new assignee role)
         _assign_issue(iss["id"], tester3_id)
 
-        r = _CLIENT.get("/analytics/developers", headers=auth_header(admin_token()))
+        r = _CLIENT.get("/analytics/developers?include_test=true", headers=auth_header(admin_token()))
         assert r.status_code == 200
         items = r.json()["items"]
         tester3_match = next((d for d in items if d["developer_id"] == tester3_id), None)
@@ -433,7 +433,7 @@ class TestDeveloperAnalytics:
             headers=auth_header(tester3_token()),
         )
 
-        r_after = _CLIENT.get("/analytics/developers", headers=auth_header(admin_token()))
+        r_after = _CLIENT.get("/analytics/developers?include_test=true", headers=auth_header(admin_token()))
         items_after = r_after.json()["items"]
         tester3_after = next((d for d in items_after if d["developer_id"] == tester3_id), None)
         assert tester3_after is not None

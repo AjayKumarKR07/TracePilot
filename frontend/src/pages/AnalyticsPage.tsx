@@ -560,20 +560,20 @@ export const AnalyticsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Tester Workload & Performance */}
+          {/* Developer Workload & Performance */}
           {isAdmin && devAnalytics.length > 0 && (
             <div className="card">
               <div className="card-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Users size={18} color="#c084fc" />
-                  <h3 className="card-title">Tester Workload &amp; Performance Analytics</h3>
+                  <h3 className="card-title">Developer Workload &amp; Performance Analytics</h3>
                 </div>
               </div>
               <div className="card-body" style={{ padding: 0 }}>
                 <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
                   <table className="data-table">
                     <thead>
-                      <tr><th>Tester</th><th>Assigned Defects</th><th>Resolved</th><th>Pending Open</th><th>Resolution Rate</th><th>Avg Resolution Speed</th></tr>
+                      <tr><th>Developer</th><th>Assigned Defects</th><th>Resolved</th><th>Pending Open</th><th>Resolution Rate</th><th>Avg Resolution Speed</th></tr>
                     </thead>
                     <tbody>
                       {devAnalytics.map(dev => (
@@ -808,18 +808,18 @@ export const AnalyticsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* ── Smart Tester Matcher ────────────────────────────── */}
+            {/* ── Smart Developer Matcher ───────────────────────────── */}
             {isAdmin && (
               <div className="card">
                 <div className="card-header">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <Users size={18} color="#34d399" />
-                    <h3 className="card-title">Smart Tester Matcher</h3>
+                    <h3 className="card-title">Smart Developer Matcher</h3>
                   </div>
                 </div>
                 <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0 }}>
-                    Ranks testers using keyword/skill match from issue text, current open workload, and resolution rate. Returns top 3.
+                    Ranks developers using keyword/skill match from issue text, current open workload, and resolution rate. Returns top 3.
                   </p>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <input

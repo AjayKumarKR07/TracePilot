@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -201,7 +201,7 @@ export const AdminPage: React.FC = () => {
         usersApi.list({ role: 'DEVELOPER', is_active: true, page_size: 50 }),
       ]);
       setDevPerformance(perf.items);
-      setTestersList(testers.items);
+      setTestersList(testers.items.filter((u) => !u.email.endsWith('@example.com')));
     } catch (err) {
       setWorkloadError(getApiErrorMessage(err));
     } finally {
@@ -373,7 +373,7 @@ export const AdminPage: React.FC = () => {
   const tabs: { key: AdminTab; label: string; icon: React.ReactNode }[] = [
     { key: 'overview', label: 'Overview', icon: <BarChart3 size={16} /> },
     { key: 'issues', label: 'Issue Management', icon: <Bug size={16} /> },
-    { key: 'workload', label: 'Tester Workload', icon: <Activity size={16} /> },
+    { key: 'workload', label: 'Developer Workload', icon: <Activity size={16} /> },
     { key: 'analytics', label: 'Analytics', icon: <TrendingUp size={16} /> },
     { key: 'users', label: 'User Management', icon: <Users size={16} /> },
   ];
@@ -827,31 +827,31 @@ export const AdminPage: React.FC = () => {
 
           {!workloadLoading && !workloadError && (
             <>
-              {/* Tester Performance */}
+              {/* Developer Performance */}
               <div className="card" style={{ marginBottom: '1.5rem' }}>
                 <div className="card-header">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <Activity size={18} color="#818cf8" />
-                    <h3 className="card-title">Tester Performance</h3>
+                    <h3 className="card-title">Developer Performance</h3>
                   </div>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    {devPerformance.length} tester{devPerformance.length !== 1 ? 's' : ''}
+                    {devPerformance.length} developer{devPerformance.length !== 1 ? 's' : ''}
                   </span>
                 </div>
                 <div className="card-body" style={{ padding: 0 }}>
                   {devPerformance.length === 0 ? (
-                    <EmptyState title="No tester data" description="No tester performance data available." />
+                    <EmptyState title="No developer data" description="No developer performance data available." />
                   ) : (
                     <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
                       <table className="data-table">
                         <thead>
                           <tr>
-                            <th>DEVELOPER</th>
-                            <th>Assigned</th>
-                            <th>Resolved</th>
-                            <th>Open</th>
-                            <th>Resolution Rate</th>
-                            <th>Avg. Time (hrs)</th>
+                            <th style={{ minWidth: '180px' }}>DEVELOPER</th>
+                            <th style={{ width: '80px', textAlign: 'center' }}>Assigned</th>
+                            <th style={{ width: '80px', textAlign: 'center' }}>Resolved</th>
+                            <th style={{ width: '60px', textAlign: 'center' }}>Open</th>
+                            <th style={{ minWidth: '200px' }}>Resolution Rate</th>
+                            <th style={{ minWidth: '100px', whiteSpace: 'nowrap' }}>Avg. Time</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -861,36 +861,45 @@ export const AdminPage: React.FC = () => {
                                 <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{dev.developer_name}</div>
                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{dev.developer_email}</div>
                               </td>
-                              <td>
+                              <td style={{ textAlign: 'center' }}>
                                 <span className="badge" style={{ backgroundColor: 'var(--primary-subtle)', color: '#818cf8' }}>
                                   {dev.assigned_issues}
                                 </span>
                               </td>
-                              <td>
+                              <td style={{ textAlign: 'center' }}>
                                 <span className="badge" style={{ backgroundColor: 'var(--success-subtle)', color: '#34d399' }}>
                                   {dev.resolved_issues}
                                 </span>
                               </td>
-                              <td>
+                              <td style={{ textAlign: 'center' }}>
                                 <span className="badge" style={{ backgroundColor: 'var(--warning-subtle)', color: '#f59e0b' }}>
                                   {dev.open_issues}
                                 </span>
                               </td>
-                              <td>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                  <div style={{ flex: 1, height: '6px', borderRadius: '3px', backgroundColor: 'var(--bg-surface-elevated)' }}>
-                                    <div style={{
-                                      height: '100%', borderRadius: '3px',
-                                      width: `${Math.round(dev.resolution_rate * 100)}%`,
-                                      backgroundColor: dev.resolution_rate > 0.6 ? '#10b981' : dev.resolution_rate > 0.3 ? '#f59e0b' : '#ef4444',
-                                    }} />
-                                  </div>
-                                  <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-primary)', minWidth: '36px' }}>
-                                    {Math.round(dev.resolution_rate * 100)}%
-                                  </span>
-                                </div>
+                              <td style={{ minWidth: '140px' }}>
+                                {(() => {
+                                  const rate = dev.assigned_issues > 0
+                                    ? (dev.resolved_issues / dev.assigned_issues) * 100
+                                    : dev.resolution_rate;
+                                  const progress = Math.min(Math.max(rate, 0), 100);
+                                  return (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                      <div style={{ flex: 1, minWidth: '60px', height: '6px', borderRadius: '3px', backgroundColor: 'var(--bg-surface-elevated)', overflow: 'hidden' }}>
+                                        <div style={{
+                                          height: '100%', borderRadius: '3px',
+                                          width: `${progress}%`,
+                                          backgroundColor: progress >= 60 ? '#10b981' : progress >= 30 ? '#f59e0b' : '#ef4444',
+                                          transition: 'width 0.6s ease',
+                                        }} />
+                                      </div>
+                                      <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-primary)', minWidth: '42px', textAlign: 'right', flexShrink: 0 }}>
+                                        {progress.toFixed(1)}%
+                                      </span>
+                                    </div>
+                                  );
+                                })()}
                               </td>
-                              <td style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                              <td style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', minWidth: '90px', whiteSpace: 'nowrap' }}>
                                 {dev.average_resolution_time_hours !== null
                                   ? `${Math.round(dev.average_resolution_time_hours)}h`
                                   : '—'}
@@ -904,20 +913,20 @@ export const AdminPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Tester List */}
+              {/* Developer List */}
               <div className="card">
                 <div className="card-header">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <UserCheck size={18} color="#34d399" />
-                    <h3 className="card-title">Active Testers</h3>
+                    <h3 className="card-title">Active Developers</h3>
                   </div>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    {testersList.length} tester{testersList.length !== 1 ? 's' : ''}
+                    {testersList.length} developer{testersList.length !== 1 ? 's' : ''}
                   </span>
                 </div>
                 <div className="card-body" style={{ padding: 0 }}>
                   {testersList.length === 0 ? (
-                    <EmptyState title="No active testers" description="No testers are currently active in the system." />
+                    <EmptyState title="No active developers" description="No developers are currently active in the system." />
                   ) : (
                     <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
                       <table className="data-table">
@@ -1281,7 +1290,7 @@ export const AdminPage: React.FC = () => {
           </div>
         )}
         {devsLoading ? (
-          <LoadingSpinner message="Loading testers..." />
+          <LoadingSpinner message="Loading developers..." />
         ) : (
           <form onSubmit={handleAssignSubmit}>
             <div className="form-group">
@@ -1292,7 +1301,7 @@ export const AdminPage: React.FC = () => {
               </div>
             </div>
             <div className="form-group">
-              <label className="form-label" htmlFor="assign-dev-select">Assign to Tester</label>
+              <label className="form-label" htmlFor="assign-dev-select">Assign to Developer</label>
               <select
                 id="assign-dev-select"
                 className="form-select"
@@ -1300,7 +1309,7 @@ export const AdminPage: React.FC = () => {
                 onChange={(e) => setSelectedDevId(e.target.value === '' ? '' : Number(e.target.value))}
                 required
               >
-                <option value="">— Select a tester —</option>
+                <option value="">— Select a developer —</option>
                 {availableDevs.map((dev) => (
                   <option key={dev.id} value={dev.id}>
                     {dev.full_name} ({dev.email})
@@ -1308,7 +1317,7 @@ export const AdminPage: React.FC = () => {
                 ))}
               </select>
               <span className="form-help">
-                Only active testers are listed.
+                Only active developers are listed.
               </span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>

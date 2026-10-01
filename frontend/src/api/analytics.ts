@@ -21,6 +21,7 @@ export interface AnalyticsFilterParams {
   project_id?: number;
   start_date?: string;
   end_date?: string;
+  include_test?: boolean;
 }
 
 export interface TrendFilterParams extends AnalyticsFilterParams {

@@ -239,8 +239,8 @@ async def export_issues_report(
 @router.get(
     "/developers",
     response_model=DeveloperAnalyticsResponse,
-    summary="Tester Workload & Performance metrics (compatibility route)",
-    description="Return workload, resolution rates, and resolution speed for active testers. Admin only.",
+    summary="Developer Workload & Performance metrics (compatibility route)",
+    description="Return workload, resolution rates, and resolution speed for active developers. Admin only.",
     responses={
         401: {"description": "Not authenticated"},
         403: {"description": "ADMIN access required"},
@@ -249,14 +249,17 @@ async def export_issues_report(
 async def developer_performance(
     start_date: datetime | None = Query(None, description="Filter by start date (ISO-8601)"),
     end_date: datetime | None = Query(None, description="Filter by end date (ISO-8601)"),
+    include_test: bool = Query(False, description="Include automated test fixture accounts and projects"),
     current_user: User = _ADMIN,
     db: AsyncSession = Depends(get_db),
 ) -> DeveloperAnalyticsResponse:
-    """Return workload, resolution rates, and resolution speed for active testers.
+    """Return workload, resolution rates, and resolution speed for active developers.
 
     **ADMIN only.**
     """
-    return await analytics_service.get_developer_performance(db, start_date=start_date, end_date=end_date)
+    return await analytics_service.get_developer_performance(
+        db, start_date=start_date, end_date=end_date, include_test=include_test
+    )
 
 
 # --------------------------------------------------------------------------- #
