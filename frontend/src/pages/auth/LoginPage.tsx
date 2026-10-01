@@ -23,8 +23,8 @@ import { TracePilotLogo } from '../../components/common/TracePilotLogo';
 
 /**
  * Determines post-login redirect path based on user role.
- * ADMIN â†’ /admin (their primary workspace)
- * DEVELOPER â†’ /dashboard
+ * ADMIN → /admin (their primary workspace)
+ * DEVELOPER → /dashboard
  * If the user had tried to access a specific page (from), honour it.
  */
 function getRoleRedirect(role: UserRole, requestedFrom: string): string {
@@ -196,7 +196,7 @@ export const LoginPage: React.FC = () => {
           </div>
         )}
 
-        {/* â”€â”€ PASSWORD LOGIN FORM â”€â”€ */}
+        {/* ── PASSWORD LOGIN FORM ── */}
         <form onSubmit={handlePasswordLogin}>
           <div className="form-group">
             <label className="form-label" htmlFor="login-email">
@@ -330,7 +330,7 @@ export const LoginPage: React.FC = () => {
           }}
         >
           <Shield size={12} />
-          <span>Secure authentication Â· TracePilot</span>
+          <span>Secure authentication · TracePilot</span>
         </div>
       </div>
     </div>

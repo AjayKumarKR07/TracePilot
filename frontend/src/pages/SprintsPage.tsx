@@ -342,7 +342,7 @@ export const SprintsPage: React.FC = () => {
   const handleDeleteSprint = async (sprint: Sprint) => {
     const isCompleted = sprint.status === 'COMPLETED';
     const confirmMessage = isCompleted
-      ? `Delete completed sprint '${sprint.name}'?\n\nâ€¢ The sprint itself will be deleted.\nâ€¢ All linked issues and defect records will remain intact in the system.\nâ€¢ Issue status, resolution details, comments, and attachments will remain.\nâ€¢ Issues will simply become unassigned from this sprint.\n\nAre you sure you want to proceed?`
+      ? `Delete completed sprint '${sprint.name}'?\n\n• The sprint itself will be deleted.\n• All linked issues and defect records will remain intact in the system.\n• Issue status, resolution details, comments, and attachments will remain.\n• Issues will simply become unassigned from this sprint.\n\nAre you sure you want to proceed?`
       : `Permanently delete planned sprint '${sprint.name}'?`;
     if (!window.confirm(confirmMessage)) return;
     try {
@@ -446,7 +446,7 @@ export const SprintsPage: React.FC = () => {
                       <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
                         <CheckCircle2 size={20} style={{ color: "#10b981" }} />
                         <span style={{ fontSize: "1rem", fontWeight: 700, color: "#34d399", letterSpacing: "0.02em" }}>
-                          âœ“ COMPLETED
+                          ✓ COMPLETED
                         </span>
                       </div>
                     </div>
@@ -487,7 +487,7 @@ export const SprintsPage: React.FC = () => {
                     color: "#f87171",
                   }}>
                     <AlertTriangle size={18} />
-                    <span>âš  Sprint has no issues assigned. Add backlog issues before starting/approving this sprint.</span>
+                    <span>⚠ Sprint has no issues assigned. Add backlog issues before starting/approving this sprint.</span>
                   </div>
                 )}
 
@@ -688,7 +688,7 @@ export const SprintsPage: React.FC = () => {
               value={selectedTesterId}
               onChange={e => setSelectedTesterId(Number(e.target.value) || "")}
             >
-              <option value="">â€” Select a tester â€”</option>
+              <option value="">— Select a tester —</option>
               {testerList.map(t => (
                 <option key={t.id} value={t.id}>{t.full_name} ({t.email})</option>
               ))}

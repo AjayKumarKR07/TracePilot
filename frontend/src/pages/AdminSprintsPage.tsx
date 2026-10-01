@@ -241,7 +241,7 @@ export const AdminSprintsPage: React.FC = () => {
   const handleDeleteSprint = async (sprint: Sprint) => {
     const isCompleted = sprint.status === 'COMPLETED';
     const confirmMessage = isCompleted
-      ? `Delete completed sprint '${sprint.name}'?\n\nâ€¢ The sprint itself will be deleted.\nâ€¢ All linked issues and defect records will remain intact in the system.\nâ€¢ Issue status, resolution details, comments, and attachments will remain.\nâ€¢ Issues will simply become unassigned from this sprint.\n\nAre you sure you want to proceed?`
+      ? `Delete completed sprint '${sprint.name}'?\n\n• The sprint itself will be deleted.\n• All linked issues and defect records will remain intact in the system.\n• Issue status, resolution details, comments, and attachments will remain.\n• Issues will simply become unassigned from this sprint.\n\nAre you sure you want to proceed?`
       : `Are you sure you want to delete planned sprint '${sprint.name}'?`;
 
     if (!window.confirm(confirmMessage)) return;
@@ -459,7 +459,7 @@ export const AdminSprintsPage: React.FC = () => {
             <option value="ALL">All Projects ({projects.length})</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.project_key} â€” {p.name}
+                {p.project_key} — {p.name}
               </option>
             ))}
           </select>
@@ -622,7 +622,7 @@ export const AdminSprintsPage: React.FC = () => {
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', fontSize: '0.8rem', color: 'var(--text-muted)', flexWrap: 'wrap', marginTop: '0.35rem' }}>
                           <span>
-                            <strong>Window:</strong> {formatDate(sprint.start_date)} â†’ {formatDate(sprint.end_date)}
+                            <strong>Window:</strong> {formatDate(sprint.start_date)} → {formatDate(sprint.end_date)}
                           </span>
                           {sprint.working_days && (
                             <span>
@@ -741,10 +741,10 @@ export const AdminSprintsPage: React.FC = () => {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                           <CheckCircle2 size={18} style={{ color: '#10b981' }} />
                           <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#34d399' }}>
-                            âœ“ Sprint Completed &amp; Approved
+                            ✓ Sprint Completed &amp; Approved
                           </span>
                           <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                            â€” {completedIssues}/{totalIssues} issues closed ({pct}% progress) â€¢ Velocity: {completedIssues} pts
+                            — {completedIssues}/{totalIssues} issues closed ({pct}% progress) • Velocity: {completedIssues} pts
                           </span>
                         </div>
                       </div>
@@ -766,7 +766,7 @@ export const AdminSprintsPage: React.FC = () => {
                         }}
                       >
                         <AlertCircle size={16} />
-                        <span>âš  Sprint has no issues assigned. Add backlog issues before starting/approving this sprint.</span>
+                        <span>⚠ Sprint has no issues assigned. Add backlog issues before starting/approving this sprint.</span>
                       </div>
                     )}
 
@@ -823,7 +823,7 @@ export const AdminSprintsPage: React.FC = () => {
                               opacity: totalIssues === 0 ? 0.5 : 1,
                               cursor: totalIssues === 0 ? 'not-allowed' : 'pointer',
                             }}
-                            title={totalIssues === 0 ? "Add backlog issues before starting this sprint" : "Start Sprint â†’ Transitions to ACTIVE"}
+                            title={totalIssues === 0 ? "Add backlog issues before starting this sprint" : "Start Sprint → Transitions to ACTIVE"}
                           >
                             <Play size={13} /> Start Sprint (ACTIVE)
                           </button>
@@ -892,9 +892,9 @@ export const AdminSprintsPage: React.FC = () => {
         </div>
       </section>
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ───────────────────────────────────────────────────────────────────── */}
       {/* Modals                                                                */}
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ───────────────────────────────────────────────────────────────────── */}
 
       {/* Create Sprint Modal */}
       <Modal isOpen={createModalOpen} onClose={() => setCreateModalOpen(false)} title="Create New Sprint">
@@ -917,7 +917,7 @@ export const AdminSprintsPage: React.FC = () => {
                 })
                 .map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.project_key} â€” {p.name}
+                    {p.project_key} — {p.name}
                   </option>
                 ))}
             </select>
@@ -1176,7 +1176,7 @@ export const AdminSprintsPage: React.FC = () => {
             onClick={() => setToastMessage(null)}
             style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.1rem', marginLeft: '0.5rem' }}
           >
-            Ã—
+            ×
           </button>
         </div>
       )}

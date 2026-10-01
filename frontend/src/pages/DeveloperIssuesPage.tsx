@@ -27,9 +27,9 @@ import { useNotifications } from '../hooks/useNotifications';
 import type { Issue, IssueStatus, Priority, Severity } from '../types/issue';
 import { formatDate, formatRelativeTime } from '../utils/formatters';
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
 // Constants
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 20;
 
@@ -97,9 +97,9 @@ const SEVERITY_ORDER: Record<string, number> = {
   BLOCKER: 4, CRITICAL: 3, MAJOR: 2, MINOR: 1,
 };
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
 // Select helper
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
 
 const FilterSelect: React.FC<{
   value: string;
@@ -128,22 +128,22 @@ const FilterSelect: React.FC<{
   </select>
 );
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
 // Main Component
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
 
 export const DeveloperIssuesPage: React.FC = () => {
   const { user } = useAuth();
   const { wsStatus, notifications: liveNotifications } = useNotifications();
 
-  // â”€â”€ Data state â”€â”€
+  // ── Data state ──
   const [allIssues, setAllIssues] = useState<Issue[]>([]);
   const [totalFromServer, setTotalFromServer] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // â”€â”€ Filter / sort state â”€â”€
+  // ── Filter / sort state ──
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<IssueStatus | 'ALL'>('ALL');
   const [priorityFilter, setPriorityFilter] = useState<Priority | 'ALL'>('ALL');
@@ -152,15 +152,15 @@ export const DeveloperIssuesPage: React.FC = () => {
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [page, setPage] = useState(1);
 
-  // â”€â”€ Inline action state â”€â”€
+  // ── Inline action state ──
   const [transitioning, setTransitioning] = useState<number | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
   // Load assigned issues
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
 
   const loadIssues = useCallback(async (silent = false) => {
     if (!silent) setIsLoading(true);
@@ -223,9 +223,9 @@ export const DeveloperIssuesPage: React.FC = () => {
     setPage(1);
   }, [searchQuery, statusFilter, priorityFilter, severityFilter, sortField, sortDir]);
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
   // Filter + Sort + Paginate (client-side)
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
 
   const filteredSorted = useMemo(() => {
     let list = [...allIssues];
@@ -287,9 +287,9 @@ export const DeveloperIssuesPage: React.FC = () => {
   const totalPages = Math.ceil(totalFiltered / PAGE_SIZE);
   const paginated = filteredSorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
   // Sort toggle
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -300,9 +300,9 @@ export const DeveloperIssuesPage: React.FC = () => {
     }
   };
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
   // Workflow quick action
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
 
   const handleAdvanceStatus = async (issue: Issue) => {
     const next = getNextStatus(issue.status);
@@ -322,9 +322,9 @@ export const DeveloperIssuesPage: React.FC = () => {
     }
   };
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
   // Derived counts for filter chips
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
 
   const statusCounts = useMemo(() => {
     const map: Record<string, number> = {};
@@ -344,9 +344,9 @@ export const DeveloperIssuesPage: React.FC = () => {
     setSeverityFilter('ALL');
   };
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
   // Render states
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
 
   if (isLoading) {
     return (
@@ -360,9 +360,9 @@ export const DeveloperIssuesPage: React.FC = () => {
     return <ErrorMessage message={error} onRetry={() => loadIssues()} />;
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
   // Sortable column header
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
 
   const SortTh: React.FC<{ field: SortField; label: string }> = ({ field, label }) => (
     <th
@@ -413,7 +413,7 @@ export const DeveloperIssuesPage: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
-      {/* â”€â”€ Toast messages â”€â”€ */}
+      {/* ── Toast messages ── */}
       {actionSuccess && (
         <div
           style={{
@@ -451,7 +451,7 @@ export const DeveloperIssuesPage: React.FC = () => {
         </div>
       )}
 
-      {/* â”€â”€ Page Header â”€â”€ */}
+      {/* ── Page Header ── */}
       <div
         style={{
           display: 'flex',
@@ -477,7 +477,7 @@ export const DeveloperIssuesPage: React.FC = () => {
             My Assigned Issues
           </h1>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
-            {user?.full_name} Â· {totalFromServer} total assigned
+            {user?.full_name} · {totalFromServer} total assigned
             {isRefreshing && (
               <span style={{ marginLeft: '0.5rem', color: 'var(--primary)' }}>Refreshing...</span>
             )}
@@ -500,7 +500,7 @@ export const DeveloperIssuesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* â”€â”€ Quick Status Chip Filter â”€â”€ */}
+      {/* ── Quick Status Chip Filter ── */}
       <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
         {([
           { label: 'All', value: 'ALL' },
@@ -552,7 +552,7 @@ export const DeveloperIssuesPage: React.FC = () => {
         })}
       </div>
 
-      {/* â”€â”€ Search + Advanced Filters â”€â”€ */}
+      {/* ── Search + Advanced Filters ── */}
       <div className="card" style={{ padding: '1rem' }}>
         <div
           style={{
@@ -674,7 +674,7 @@ export const DeveloperIssuesPage: React.FC = () => {
         )}
       </div>
 
-      {/* â”€â”€ Issue Table â”€â”€ */}
+      {/* ── Issue Table ── */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         {paginated.length === 0 ? (
           <div
@@ -931,7 +931,7 @@ export const DeveloperIssuesPage: React.FC = () => {
             }}
           >
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Page {page} of {totalPages} Â· {totalFiltered} issues
+              Page {page} of {totalPages} · {totalFiltered} issues
             </span>
 
             <div style={{ display: 'flex', gap: '0.4rem' }}>
@@ -974,7 +974,7 @@ export const DeveloperIssuesPage: React.FC = () => {
         )}
       </div>
 
-      {/* â”€â”€ Summary footer â”€â”€ */}
+      {/* ── Summary footer ── */}
       {allIssues.length > 0 && (
         <div
           style={{

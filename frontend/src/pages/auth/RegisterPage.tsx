@@ -18,14 +18,14 @@ import { useAuth } from '../../hooks/useAuth';
 import { TracePilotLogo } from '../../components/common/TracePilotLogo';
 
 /**
- * RegisterPage â€” public user registration.
+ * RegisterPage — public user registration.
  *
  * The Backend UserRole enum: ADMIN | DEVELOPER | USER.
  * ADMIN cannot be registered publicly.
  *
  * Two roles available for public registration:
- *   - "User" (issue reporter)     â†’ maps to backend USER role
- *   - "Developer (investigator)     â†’ maps to backend DEVELOPER role
+ *   - "User" (issue reporter)     → maps to backend USER role
+ *   - "Developer (investigator)     → maps to backend DEVELOPER role
  */
 
 type UIRole = 'USER' | 'DEVELOPER_ROLE' | 'ADMIN';

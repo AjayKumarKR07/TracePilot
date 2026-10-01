@@ -674,7 +674,7 @@ export const ProfilePage: React.FC = () => {
             </div>
             {prefsSuccessMsg && (
               <span style={{ fontSize: '0.8rem', color: '#34d399', fontWeight: '600' }}>
-                âœ“ {prefsSuccessMsg}
+                ✓ {prefsSuccessMsg}
               </span>
             )}
           </div>

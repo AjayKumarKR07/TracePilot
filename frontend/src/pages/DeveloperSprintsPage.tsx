@@ -43,31 +43,31 @@ export const DeveloperSprintsPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const targetSprintId = searchParams.get('sprintId');
 
-  // â”€â”€ Data state â”€â”€
+  // ── Data state ──
   const [sprints, setSprints] = useState<Sprint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // â”€â”€ Action states â”€â”€
+  // ── Action states ──
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [downloadingReport, setDownloadingReport] = useState<number | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  // â”€â”€ Filter & Search â”€â”€
+  // ── Filter & Search ──
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<FilterTab>('ALL');
 
-  // â”€â”€ Issues drawer per sprint â”€â”€
+  // ── Issues drawer per sprint ──
   const [expandedSprintIds, setExpandedSprintIds] = useState<Set<number>>(new Set());
   const [sprintIssues, setSprintIssues] = useState<Record<number, Issue[]>>({});
   const [loadingIssues, setLoadingIssues] = useState<Record<number, boolean>>({});
   const [updatingIssueId, setUpdatingIssueId] = useState<number | null>(null);
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
   // Data loading
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
 
   const loadSprints = useCallback(async (silent = false) => {
     if (!silent) setIsLoading(true);
@@ -175,9 +175,9 @@ export const DeveloperSprintsPage: React.FC = () => {
     }
   }, [targetSprintId, sprints]);
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
   // Sprint Workflow Handlers
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
 
   const handleBeginWork = async (sprintId: number) => {
     setActionLoading(sprintId);
@@ -246,9 +246,9 @@ export const DeveloperSprintsPage: React.FC = () => {
     }
   };
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
   // Computed KPIs & Filtering
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
 
   const counts = useMemo(() => {
     const total = sprints.length;
@@ -285,9 +285,9 @@ export const DeveloperSprintsPage: React.FC = () => {
     return result;
   }, [sprints, activeTab, searchQuery]);
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
   // Render loading / error
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────
 
   if (isLoading) {
     return (
@@ -304,7 +304,7 @@ export const DeveloperSprintsPage: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '3rem' }}>
 
-      {/* â”€â”€ Toast Notifications â”€â”€ */}
+      {/* ── Toast Notifications ── */}
       {actionSuccess && (
         <div
           style={{
@@ -345,7 +345,7 @@ export const DeveloperSprintsPage: React.FC = () => {
         </div>
       )}
 
-      {/* â”€â”€ Hero / Page Header â”€â”€ */}
+      {/* ── Hero / Page Header ── */}
       <div
         className="card"
         style={{
@@ -431,7 +431,7 @@ export const DeveloperSprintsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* â”€â”€ KPI Stats Ribbon â”€â”€ */}
+      {/* ── KPI Stats Ribbon ── */}
       <div
         style={{
           display: 'grid',
@@ -539,7 +539,7 @@ export const DeveloperSprintsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* â”€â”€ Search & Filter Tabs Bar â”€â”€ */}
+      {/* ── Search & Filter Tabs Bar ── */}
       <div
         className="card"
         style={{
@@ -626,7 +626,7 @@ export const DeveloperSprintsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* â”€â”€ Sprint Cards List â”€â”€ */}
+      {/* ── Sprint Cards List ── */}
       {filteredSprints.length === 0 ? (
         <EmptyState
           icon={<Layers size={42} style={{ color: 'var(--primary)', opacity: 0.6 }} />}
@@ -716,7 +716,7 @@ export const DeveloperSprintsPage: React.FC = () => {
                   transition: 'all 0.25s ease',
                 }}
               >
-                {/* â”€â”€ Sprint Lifecycle Stage Indicator â”€â”€ */}
+                {/* ── Sprint Lifecycle Stage Indicator ── */}
                 <div style={{ marginBottom: '1.25rem' }}>
                   <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.35rem' }}>
                     Sprint Lifecycle Stage
@@ -727,7 +727,7 @@ export const DeveloperSprintsPage: React.FC = () => {
                   />
                 </div>
 
-                {/* â”€â”€ Top Header Row â”€â”€ */}
+                {/* ── Top Header Row ── */}
                 <div
                   style={{
                     display: 'flex',
@@ -771,7 +771,7 @@ export const DeveloperSprintsPage: React.FC = () => {
                           gap: '0.35rem',
                         }}
                       >
-                        â— {statusConfig.label}
+                        ● {statusConfig.label}
                       </span>
                     </div>
 
@@ -803,7 +803,7 @@ export const DeveloperSprintsPage: React.FC = () => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                         <Calendar size={14} style={{ color: '#818cf8' }} />
                         <span>
-                          {formatDate(sprint.start_date)} â†’ {formatDate(sprint.end_date)}
+                          {formatDate(sprint.start_date)} → {formatDate(sprint.end_date)}
                         </span>
                       </div>
 
@@ -906,7 +906,7 @@ export const DeveloperSprintsPage: React.FC = () => {
                           fontWeight: 600,
                         }}
                       >
-                        <CheckCircle2 size={14} /> âœ“ Approved &amp; Completed
+                        <CheckCircle2 size={14} /> ✓ Approved &amp; Completed
                       </span>
                     )}
 
@@ -942,11 +942,11 @@ export const DeveloperSprintsPage: React.FC = () => {
                     }}
                   >
                     <AlertCircle size={18} />
-                    <span>âš  Sprint has no issues assigned. Add backlog issues before starting/approving this sprint.</span>
+                    <span>⚠ Sprint has no issues assigned. Add backlog issues before starting/approving this sprint.</span>
                   </div>
                 )}
 
-                {/* â”€â”€ Sprint Progress & Effort Metrics Box â”€â”€ */}
+                {/* ── Sprint Progress & Effort Metrics Box ── */}
                 {(() => {
                   const totalIssues = sprint.total_issues ?? 0;
                   const completedIssues = sprint.completed_issues ?? 0;
@@ -1046,7 +1046,7 @@ export const DeveloperSprintsPage: React.FC = () => {
                   );
                 })()}
 
-                {/* â”€â”€ Admin Feedback Banner (Change Request) â”€â”€ */}
+                {/* ── Admin Feedback Banner (Change Request) ── */}
                 {sprint.review_comment && sprint.status === 'IN_PROGRESS' && (
                   <div
                     style={{
@@ -1099,7 +1099,7 @@ export const DeveloperSprintsPage: React.FC = () => {
                   </div>
                 )}
 
-                {/* â”€â”€ Approved Details â”€â”€ */}
+                {/* ── Approved Details ── */}
                 {sprint.status === 'COMPLETED' && sprint.approved_at && (
                   <div
                     style={{
@@ -1120,7 +1120,7 @@ export const DeveloperSprintsPage: React.FC = () => {
                   </div>
                 )}
 
-                {/* â”€â”€ Expandable Issues Section â”€â”€ */}
+                {/* ── Expandable Issues Section ── */}
                 <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '0.85rem', marginTop: '0.5rem' }}>
                   <button
                     onClick={() => toggleExpandSprint(sprint.id)}

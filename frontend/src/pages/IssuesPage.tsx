@@ -340,12 +340,12 @@ export const IssuesPage: React.FC = () => {
             fontWeight: '500',
           }}
         >
-          <span>âœ… {successMsg}</span>
+          <span>✅ {successMsg}</span>
           <button
             onClick={() => setSuccessMsg(null)}
             style={{ background: 'none', border: 'none', color: 'var(--success)', cursor: 'pointer', fontSize: '1.1rem', lineHeight: 1 }}
           >
-            Ã—
+            ×
           </button>
         </div>
       )}
@@ -431,7 +431,7 @@ export const IssuesPage: React.FC = () => {
                 <option value="">All Projects</option>
                 {projects.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.project_key} â€” {p.name}
+                    {p.project_key} — {p.name}
                   </option>
                 ))}
               </select>
@@ -542,7 +542,7 @@ export const IssuesPage: React.FC = () => {
                 {focusedIssue.issue_key}
               </span>{' '}
               <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                â€” {focusedIssue.title}
+                — {focusedIssue.title}
               </span>
             </div>
           </div>
@@ -716,7 +716,7 @@ export const IssuesPage: React.FC = () => {
             >
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.project_key} â€” {p.name}
+                  {p.project_key} — {p.name}
                 </option>
               ))}
             </select>
