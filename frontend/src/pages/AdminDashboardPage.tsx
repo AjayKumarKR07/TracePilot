@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Activity,
@@ -38,10 +38,20 @@ import { Modal } from '../components/common/Modal';
 import { PriorityBadge } from '../components/common/PriorityBadge';
 import { SeverityBadge } from '../components/common/SeverityBadge';
 import { SprintService } from '../services/SprintService';
+import { AdminActionCenter } from '../components/dashboard/AdminActionCenter';
+import { AdminSystemHealth } from '../components/dashboard/AdminSystemHealth';
+import { AdminPerformanceSummary } from '../components/dashboard/AdminPerformanceSummary';
+import { AdminDefectTrend } from '../components/dashboard/AdminDefectTrend';
+import { AdminIssueDistribution } from '../components/dashboard/AdminIssueDistribution';
+import { AdminSprintHealth } from '../components/dashboard/AdminSprintHealth';
+import { AdminApprovalCenter } from '../components/dashboard/AdminApprovalCenter';
+import { AdminProjectHealth } from '../components/dashboard/AdminProjectHealth';
+import { AdminTeamWorkload } from '../components/dashboard/AdminTeamWorkload';
+import { AdminRecentActivity } from '../components/dashboard/AdminRecentActivity';
 import { useAuth } from '../hooks/useAuth';
 import { useNotifications } from '../hooks/useNotifications';
 import type { AdminDashboardResponse, InactiveAssigneeItem } from '../types/admin';
-import type { DeveloperAnalyticsItem } from '../types/analytics';
+import type { DeveloperAnalyticsItem, QualityMetricsResponse } from '../types/analytics';
 import type { AuditLogItem } from '../types/audit';
 import type { Issue } from '../types/issue';
 import type { Sprint } from '../types/Sprint';
@@ -160,6 +170,7 @@ export const AdminDashboardPage: React.FC = () => {
   const [inactiveAssignees, setInactiveAssignees] = useState<InactiveAssigneeItem[]>([]);
   const [unassignedQueue, setUnassignedQueue] = useState<Issue[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
+  const [qualityMetrics, setQualityMetrics] = useState<QualityMetricsResponse | null>(null);
 
   // Sprints state
   const [awaitingApproval, setAwaitingApproval] = useState<Sprint[]>([]);
@@ -185,6 +196,7 @@ export const AdminDashboardPage: React.FC = () => {
     try {
       const [
         dashboardStats,
+        qualityData,
         workloadList,
         inactiveList,
         unassignedList,
@@ -193,6 +205,7 @@ export const AdminDashboardPage: React.FC = () => {
         activeSprintsList,
       ] = await Promise.all([
         adminApi.getDashboard(),
+        analyticsApi.getQualityMetrics().catch(() => null),
         analyticsApi.getDeveloperPerformance().catch(() => ({ items: [] })),
         adminApi.getInactiveAssignees().catch(() => ({ items: [] })),
         issuesApi.list({ unassigned: true, page_size: 10 }).catch(() => ({ items: [] })),
@@ -202,6 +215,7 @@ export const AdminDashboardPage: React.FC = () => {
       ]);
 
       setStats(dashboardStats);
+      setQualityMetrics(qualityData);
       setWorkloads(workloadList.items || []);
       setInactiveAssignees(inactiveList.items || []);
       setUnassignedQueue(unassignedList.items || []);
@@ -347,7 +361,13 @@ export const AdminDashboardPage: React.FC = () => {
 
   if (!stats) return null;
 
-  const resolutionRate = stats.issues.total > 0
+
+  // Recently completed sprints (last 10) — used by AdminApprovalCenter
+  const recentlyCompleted = activeSprints
+    .filter((s) => s.status === 'COMPLETED')
+    .slice(0, 10);
+
+    const resolutionRate = stats.issues.total > 0
     ? Math.round(((stats.issues.resolved + stats.issues.closed) / stats.issues.total) * 100)
     : 0;
 
@@ -2039,7 +2059,62 @@ export const AdminDashboardPage: React.FC = () => {
       {/* 12. MODALS                                                            */}
       {/* ───────────────────────────────────────────────────────────────────── */}
 
-      {/* Assign Tester Modal */}
+      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* NEW: ADMIN ACTION CENTER                                              */}
+      {/* ─────────────────────────────────────────────────────────────────── */}
+      <AdminActionCenter
+        awaitingApproval={awaitingApproval}
+        activeSprints={activeSprints}
+        criticalCount={stats.severity.critical + stats.severity.blocker}
+        reopenedCount={stats.issues.reopened}
+        unassignedCount={stats.backlog?.unassigned || 0}
+      />
+
+      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* NEW: SYSTEM HEALTH + PERFORMANCE SUMMARY (2-col row)                */}
+      {/* ─────────────────────────────────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
+        <AdminSystemHealth stats={stats} />
+        <AdminPerformanceSummary stats={stats} quality={qualityMetrics} />
+      </div>
+
+      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* NEW: DEFECT TREND ANALYTICS                                         */}
+      {/* ─────────────────────────────────────────────────────────────────── */}
+      <AdminDefectTrend />
+
+      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* NEW: ISSUE DISTRIBUTION (full width)                                */}
+      {/* ─────────────────────────────────────────────────────────────────── */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <AdminIssueDistribution stats={stats} />
+      </div>
+
+      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* NEW: SPRINT HEALTH + APPROVAL CENTER (2-col row)                   */}
+      {/* ─────────────────────────────────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
+        <AdminSprintHealth sprints={activeSprints} />
+        <AdminApprovalCenter awaitingApproval={awaitingApproval} recentlyCompleted={recentlyCompleted} />
+      </div>
+
+      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* NEW: PROJECT HEALTH                                                 */}
+      {/* ─────────────────────────────────────────────────────────────────── */}
+      <AdminProjectHealth />
+
+      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* NEW: TEAM WORKLOAD                                                  */}
+      {/* ─────────────────────────────────────────────────────────────────── */}
+      <AdminTeamWorkload workloads={workloads} />
+
+      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* NEW: RECENT SYSTEM ACTIVITY                                         */}
+      {/* ─────────────────────────────────────────────────────────────────── */}
+      <AdminRecentActivity auditLogs={auditLogs} />
+
+
+            {/* Assign Tester Modal */}
       <Modal isOpen={assignModalOpen} onClose={() => setAssignModalOpen(false)} title="Assign Tester to Issue">
         <div style={{ padding: '1.5rem' }}>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
