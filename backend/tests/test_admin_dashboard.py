@@ -302,3 +302,48 @@ class TestDashboardSecurity:
                 assert isinstance(value, int), (
                     f"dashboard.{section_name}.{field} = {value!r} — expected int"
                 )
+
+
+# --------------------------------------------------------------------------- #
+# 7. Issue Aging Monitor                                                      #
+# --------------------------------------------------------------------------- #
+
+class TestIssueAging:
+    def test_unauth_returns_401(self):
+        r = _CLIENT.get("/admin/issue-aging")
+        assert r.status_code == 401
+
+    def test_user_returns_403(self):
+        r = _CLIENT.get("/admin/issue-aging", headers=auth_header(user_token()))
+        assert r.status_code == 403
+
+    def test_admin_returns_200_and_valid_schema(self):
+        r = _CLIENT.get("/admin/issue-aging", headers=auth_header(admin_token()))
+        assert r.status_code == 200
+        data = r.json()
+        assert "total_unresolved" in data
+        assert "under_24h" in data
+        assert "hours_24_to_72" in data
+        assert "days_3_to_7" in data
+        assert "over_7d" in data
+        assert "critical_blocker_over_24h" in data
+        assert "unassigned_over_7d" in data
+        assert "reopened_over_24h" in data
+
+        # Check partition sum
+        assert (
+            data["under_24h"]
+            + data["hours_24_to_72"]
+            + data["days_3_to_7"]
+            + data["over_7d"]
+            == data["total_unresolved"]
+        )
+
+        if data["oldest_unresolved"] is not None:
+            oldest = data["oldest_unresolved"]
+            assert "id" in oldest
+            assert "issue_key" in oldest
+            assert "title" in oldest
+            assert "created_at" in oldest
+            assert "age_days" in oldest
+            assert oldest["age_days"] >= 0.0

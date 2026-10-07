@@ -46,11 +46,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
       case 'ADMIN':
         return 'role-badge-admin';
       case 'DEVELOPER':
-        return 'role-badge-tester';
+        return 'role-badge-developer';
       case 'USER':
         return 'role-badge-user';
       default:
-        return 'role-badge-tester';
+        return 'role-badge-developer';
     }
   };
 

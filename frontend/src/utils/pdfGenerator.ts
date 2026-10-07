@@ -126,7 +126,7 @@ export const generateAnalyticsPdfReport = (data: AnalyticsReportData) => {
       String(data.severityDist?.BLOCKER || 0),
     ],
     [
-      'Assigned to Tester',
+      'Assigned to Developer',
       String(data.statusDist?.ASSIGNED || 0),
       'Critical',
       String(data.severityDist?.CRITICAL || 0),
@@ -142,7 +142,7 @@ export const generateAnalyticsPdfReport = (data: AnalyticsReportData) => {
       String(data.severityDist?.MAJOR || 0),
     ],
     [
-      'Resolved by Tester',
+      'Resolved by Developer',
       String(data.statusDist?.RESOLVED || 0),
       'Minor',
       String(data.severityDist?.MINOR || 0),
@@ -287,7 +287,7 @@ export const generateAnalyticsPdfReport = (data: AnalyticsReportData) => {
 
   yPos = (doc as any).lastAutoTable.finalY + 10;
 
-  // 4. Tester / Developer Productivity (If present)
+  // 4. Developer Productivity (If present)
   if (data.devAnalytics && data.devAnalytics.length > 0) {
     if (yPos > pageHeight - 50) {
       doc.addPage();
@@ -297,7 +297,7 @@ export const generateAnalyticsPdfReport = (data: AnalyticsReportData) => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
     doc.setTextColor(15, 23, 42);
-    doc.text('4. Tester Productivity & Workload', 14, yPos);
+    doc.text('4. Developer Productivity & Workload', 14, yPos);
     yPos += 4;
 
     const devRows = data.devAnalytics.map((dev) => [
@@ -311,7 +311,7 @@ export const generateAnalyticsPdfReport = (data: AnalyticsReportData) => {
 
     autoTable(doc, {
       startY: yPos,
-      head: [['Tester Name', 'Email', 'Assigned', 'Resolved', 'Open', 'Resolution Rate']],
+      head: [['Developer Name', 'Email', 'Assigned', 'Resolved', 'Open', 'Resolution Rate']],
       body: devRows,
       theme: 'grid',
       headStyles: { fillColor: [79, 70, 229], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5 },
@@ -426,7 +426,7 @@ export const generateIssuesPdfReport = (
       iss.severity,
       iss.priority,
       iss.status,
-      iss.assignee_id ? `Tester #${iss.assignee_id}` : 'Unassigned',
+      iss.assignee_id ? `Developer #${iss.assignee_id}` : 'Unassigned',
       formatDate(iss.created_at),
     ];
   });
@@ -504,7 +504,7 @@ export const generateSingleIssuePdfReport = (issue: IssueDetail, comments?: Comm
     ['Issue Type', issue.issue_type],
     ['Target Environment', issue.environment || 'Not specified (Default/Production)'],
     ['Reported By', `${issue.reporter.full_name} (${issue.reporter.email}) on ${formatDate(issue.created_at)}`],
-    ['Assigned Tester', issue.assignee ? `${issue.assignee.full_name} (${issue.assignee.email})` : 'Unassigned / Awaiting Triage'],
+    ['Assigned Developer', issue.assignee ? `${issue.assignee.full_name} (${issue.assignee.email})` : 'Unassigned / Awaiting Triage'],
     ['Last Updated', formatDate(issue.updated_at)],
   ];
 
@@ -595,7 +595,7 @@ export const generateSingleIssuePdfReport = (issue: IssueDetail, comments?: Comm
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
     doc.setTextColor(16, 185, 129); // Green
-    doc.text('Tester Resolution Summary', 14, yPos);
+    doc.text('Developer Resolution Summary', 14, yPos);
     yPos += 4;
 
     doc.setFont('helvetica', 'normal');

@@ -9,7 +9,6 @@ import {
   Bug,
   CheckCircle2,
   ClipboardCheck,
-  Clock,
   ExternalLink,
   FolderGit2,
   HeartPulse,
@@ -29,14 +28,11 @@ import {
 
 import { adminApi } from '../api/admin';
 import { analyticsApi } from '../api/analytics';
-import { auditApi } from '../api/audit';
 import { issuesApi } from '../api/issues';
 import { usersApi } from '../api/users';
 import { ErrorMessage } from '../components/common/ErrorMessage';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { Modal } from '../components/common/Modal';
-import { PriorityBadge } from '../components/common/PriorityBadge';
-import { SeverityBadge } from '../components/common/SeverityBadge';
 import { SprintService } from '../services/SprintService';
 import { AdminActionCenter } from '../components/dashboard/AdminActionCenter';
 import { AdminSystemHealth } from '../components/dashboard/AdminSystemHealth';
@@ -46,14 +42,14 @@ import { AdminIssueDistribution } from '../components/dashboard/AdminIssueDistri
 import { AdminSprintHealth } from '../components/dashboard/AdminSprintHealth';
 import { AdminApprovalCenter } from '../components/dashboard/AdminApprovalCenter';
 import { AdminProjectHealth } from '../components/dashboard/AdminProjectHealth';
-import { AdminTeamWorkload } from '../components/dashboard/AdminTeamWorkload';
-import { AdminRecentActivity } from '../components/dashboard/AdminRecentActivity';
+import { AdminPriorityQueue } from '../components/admin/AdminPriorityQueue';
+import { AdminUnassignedBacklog } from '../components/admin/AdminUnassignedBacklog';
+import { AdminIssueAgingMonitor } from '../components/admin/AdminIssueAgingMonitor';
+import { AdminRealtimeActivity } from '../components/admin/AdminRealtimeActivity';
 import { useAuth } from '../hooks/useAuth';
 import { useNotifications } from '../hooks/useNotifications';
 import type { AdminDashboardResponse, InactiveAssigneeItem } from '../types/admin';
 import type { DeveloperAnalyticsItem, QualityMetricsResponse } from '../types/analytics';
-import type { AuditLogItem } from '../types/audit';
-import type { Issue } from '../types/issue';
 import type { Sprint } from '../types/Sprint';
 import type { UserDetail } from '../types/user';
 import { formatDate, formatRelativeTime } from '../utils/formatters';
@@ -121,29 +117,34 @@ const MetricCard: React.FC<MetricCardProps> = ({
     onClick={onClick}
     style={onClick ? { cursor: 'pointer', transition: 'transform 0.15s ease, box-shadow 0.15s ease' } : undefined}
   >
-    <div className="metric-info" style={{ flex: 1 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-        <span className="metric-label">{label}</span>
+    <div className="metric-info" style={{ flex: 1, minWidth: 0 }}>
+      <span className="metric-label" title={label}>{label}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginTop: '0.2rem', flexWrap: 'wrap' }}>
+        <span className="metric-value" style={{ margin: 0, ...(valueColor ? { color: valueColor } : {}) }}>
+          {value}
+        </span>
         {badge && (
           <span
             style={{
-              fontSize: '0.68rem',
+              fontSize: '0.62rem',
               fontWeight: 700,
-              padding: '0.1rem 0.45rem',
+              padding: '0.12rem 0.45rem',
               borderRadius: '999px',
               backgroundColor: badgeColor || 'rgba(99,102,241,0.2)',
               color: badgeColor ? '#fff' : '#818cf8',
+              letterSpacing: '0.03em',
+              whiteSpace: 'nowrap',
+              lineHeight: 1.2,
+              display: 'inline-flex',
+              alignItems: 'center',
             }}
           >
             {badge}
           </span>
         )}
       </div>
-      <span className="metric-value" style={valueColor ? { color: valueColor } : undefined}>
-        {value}
-      </span>
       {subtitle && (
-        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.25rem', display: 'block' }}>
+        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.25rem', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {subtitle}
         </span>
       )}
@@ -168,8 +169,6 @@ export const AdminDashboardPage: React.FC = () => {
   const [stats, setStats] = useState<AdminDashboardResponse | null>(null);
   const [workloads, setWorkloads] = useState<DeveloperAnalyticsItem[]>([]);
   const [inactiveAssignees, setInactiveAssignees] = useState<InactiveAssigneeItem[]>([]);
-  const [unassignedQueue, setUnassignedQueue] = useState<Issue[]>([]);
-  const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
   const [qualityMetrics, setQualityMetrics] = useState<QualityMetricsResponse | null>(null);
 
   // Sprints state
@@ -182,6 +181,7 @@ export const AdminDashboardPage: React.FC = () => {
   const [testers, setTesters] = useState<UserDetail[]>([]);
   const [assigning, setAssigning] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [refreshCounter, setRefreshCounter] = useState(0);
 
   // Sprint approval actions
   const [requestChangesSprintId, setRequestChangesSprintId] = useState<number | null>(null);
@@ -199,8 +199,6 @@ export const AdminDashboardPage: React.FC = () => {
         qualityData,
         workloadList,
         inactiveList,
-        unassignedList,
-        logsList,
         pendingSprints,
         activeSprintsList,
       ] = await Promise.all([
@@ -208,8 +206,6 @@ export const AdminDashboardPage: React.FC = () => {
         analyticsApi.getQualityMetrics().catch(() => null),
         analyticsApi.getDeveloperPerformance().catch(() => ({ items: [] })),
         adminApi.getInactiveAssignees().catch(() => ({ items: [] })),
-        issuesApi.list({ unassigned: true, page_size: 10 }).catch(() => ({ items: [] })),
-        auditApi.list({ page_size: 15 }).catch(() => ({ items: [] })),
         SprintService.getAwaitingApprovalSprints().catch(() => []),
         SprintService.getActiveSprints().catch(() => []),
       ]);
@@ -218,10 +214,9 @@ export const AdminDashboardPage: React.FC = () => {
       setQualityMetrics(qualityData);
       setWorkloads(workloadList.items || []);
       setInactiveAssignees(inactiveList.items || []);
-      setUnassignedQueue(unassignedList.items || []);
-      setAuditLogs(logsList.items || []);
       setAwaitingApproval(pendingSprints || []);
       setActiveSprints(activeSprintsList || []);
+      setRefreshCounter((c) => c + 1);
     } catch (err: any) {
       setError(err?.response?.data?.detail || 'Failed to load dashboard data');
     } finally {
@@ -275,7 +270,7 @@ export const AdminDashboardPage: React.FC = () => {
     setAssignModalOpen(true);
     try {
       const res = await usersApi.list({ role: 'DEVELOPER', is_active: true, page_size: 100 });
-      setTesters(res.items);
+      setTesters(res.items.filter((u) => !u.email.endsWith('@example.com')));
     } catch (err) {
       console.error(err);
     }
@@ -290,7 +285,7 @@ export const AdminDashboardPage: React.FC = () => {
       setAssignModalOpen(false);
       fetchData(true);
     } catch (err: any) {
-      setToastMessage({ type: 'error', text: err?.response?.data?.detail || 'Failed to assign tester' });
+      setToastMessage({ type: 'error', text: err?.response?.data?.detail || 'Failed to assign developer' });
     } finally {
       setAssigning(false);
     }
@@ -314,7 +309,7 @@ export const AdminDashboardPage: React.FC = () => {
     setSprintActionLoading(requestChangesSprintId);
     try {
       await SprintService.requestChanges(requestChangesSprintId, requestChangesComment || null);
-      setToastMessage({ type: 'success', text: 'Changes requested. Tester will be notified.' });
+      setToastMessage({ type: 'success', text: 'Changes requested. Developer will be notified.' });
       setRequestChangesSprintId(null);
       setRequestChangesComment('');
       fetchData(true);
@@ -429,7 +424,7 @@ export const AdminDashboardPage: React.FC = () => {
                 Admin Dashboard
               </h1>
               <p className="page-subtitle" style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                Manage projects, defects, sprints, testers and approvals
+                Manage projects, defects, sprints, developers and approvals
               </p>
             </div>
           </div>
@@ -663,7 +658,7 @@ export const AdminDashboardPage: React.FC = () => {
           icon={<ClipboardCheck size={22} />}
           iconClass="icon-blue"
           valueColor={awaitingApproval.length > 0 ? '#818cf8' : undefined}
-          badge={awaitingApproval.length > 0 ? 'ACTION NEEDED' : undefined}
+          badge={awaitingApproval.length > 0 ? 'ACTION REQUIRED' : undefined}
           badgeColor="#6366f1"
           subtitle={awaitingApproval.length > 0 ? 'Admin Review Pending' : 'All Sprints Reviewed'}
         />
@@ -682,6 +677,14 @@ export const AdminDashboardPage: React.FC = () => {
           subtitle={`${(stats.backlog?.unassigned || 0).toLocaleString()} Unassigned`}
         />
       </div>
+
+      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* 3B. ADMIN PRIORITY QUEUE (Immediate Attention Actionable Queue)       */}
+      {/* ───────────────────────────────────────────────────────────────────── */}
+      <AdminPriorityQueue
+        onAssignSuccess={() => fetchData(true)}
+        refreshTrigger={refreshCounter}
+      />
 
       {/* ───────────────────────────────────────────────────────────────────── */}
       {/* 4. MAIN "TRACEPILOT PROCESS" SECTION (Visual Centerpiece)            */}
@@ -726,27 +729,28 @@ export const AdminDashboardPage: React.FC = () => {
               </h2>
             </div>
             <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-              End-to-end defect workflow from submission, backlog management, sprint testing, to admin review and closure.
+              End-to-end defect workflow: from submission and admin triage, through developer investigation and resolution, to final verification.
             </p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', flexWrap: 'wrap' }}>
             <span style={{ padding: '0.2rem 0.6rem', borderRadius: '999px', background: 'rgba(14,165,233,0.15)', color: '#38bdf8', fontWeight: 600 }}>USER / IMPORT</span>
             <span style={{ color: 'var(--text-muted)' }}>→</span>
-            <span style={{ padding: '0.2rem 0.6rem', borderRadius: '999px', background: 'rgba(99,102,241,0.15)', color: '#818cf8', fontWeight: 600 }}>ADMIN PLAN & REVIEW</span>
+            <span style={{ padding: '0.2rem 0.6rem', borderRadius: '999px', background: 'rgba(99,102,241,0.15)', color: '#818cf8', fontWeight: 600 }}>ADMIN TRIAGE &amp; ASSIGN</span>
             <span style={{ color: 'var(--text-muted)' }}>→</span>
-            <span style={{ padding: '0.2rem 0.6rem', borderRadius: '999px', background: 'rgba(16,185,129,0.15)', color: '#34d399', fontWeight: 600 }}>DEVELOPER EXECUTION</span>
+            <span style={{ padding: '0.2rem 0.6rem', borderRadius: '999px', background: 'rgba(16,185,129,0.15)', color: '#34d399', fontWeight: 600 }}>DEVELOPER RESOLUTION</span>
+            <span style={{ color: 'var(--text-muted)' }}>→</span>
+            <span style={{ padding: '0.2rem 0.6rem', borderRadius: '999px', background: 'rgba(99,102,241,0.15)', color: '#818cf8', fontWeight: 600 }}>ADMIN VERIFICATION</span>
           </div>
         </div>
 
         <div className="card-body" style={{ padding: '1.75rem 1.5rem' }}>
-          {/* Workflow Diagram Grid */}
+          {/* Steps 1–5 */}
           <div
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
               gap: '1rem',
-              position: 'relative',
             }}
           >
             {/* Step 1 */}
@@ -754,6 +758,7 @@ export const AdminDashboardPage: React.FC = () => {
               style={{
                 background: 'var(--bg-surface-elevated)',
                 border: '1px solid var(--border-subtle)',
+                borderTop: '3px solid #38bdf8',
                 borderRadius: '10px',
                 padding: '1rem',
                 display: 'flex',
@@ -763,7 +768,7 @@ export const AdminDashboardPage: React.FC = () => {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#38bdf8', background: 'rgba(14,165,233,0.15)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
-                  STEP 1
+                  STEP 1 [USER]
                 </span>
                 <Users size={15} style={{ color: '#38bdf8' }} />
               </div>
@@ -771,10 +776,10 @@ export const AdminDashboardPage: React.FC = () => {
                 User / Dataset
               </h3>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0 0 0.75rem 0', lineHeight: 1.3 }}>
-                Bugs reported by users or imported from Kaggle ISEC dataset.
+                Users report defects through TracePilot, or real Kaggle ISEC issues are imported into the system.
               </p>
               <div style={{ marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: '#38bdf8', fontWeight: 600 }}>
-                10,000+ Real Bugs
+                Status: REPORTED
               </div>
             </div>
 
@@ -783,6 +788,7 @@ export const AdminDashboardPage: React.FC = () => {
               style={{
                 background: 'var(--bg-surface-elevated)',
                 border: '1px solid var(--border-subtle)',
+                borderTop: '3px solid #f59e0b',
                 borderRadius: '10px',
                 padding: '1rem',
                 display: 'flex',
@@ -791,15 +797,15 @@ export const AdminDashboardPage: React.FC = () => {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#f59e0b', background: 'rgba(245,158,11,0.15)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
-                  STEP 2
+                  STEP 2 [SYSTEM]
                 </span>
                 <Bug size={15} style={{ color: '#f59e0b' }} />
               </div>
               <h3 style={{ fontSize: '0.92rem', fontWeight: 700, margin: '0 0 0.25rem 0', color: 'var(--text-primary)' }}>
-                Bug / Defect
+                Bug / Defect Created
               </h3>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0 0 0.75rem 0', lineHeight: 1.3 }}>
-                Severity & Smart Priority calculated via mentor formula.
+                Issue receives severity, priority, category, description and an initial workflow status. Assignee is null.
               </p>
               <div style={{ marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: '#f59e0b', fontWeight: 600 }}>
                 {stats.issues.total.toLocaleString()} Total Logged
@@ -810,7 +816,8 @@ export const AdminDashboardPage: React.FC = () => {
             <div
               style={{
                 background: 'var(--bg-surface-elevated)',
-                border: '1px solid var(--border-subtle)',
+                border: '1px solid rgba(99,102,241,0.3)',
+                borderTop: '3px solid #818cf8',
                 borderRadius: '10px',
                 padding: '1rem',
                 display: 'flex',
@@ -818,19 +825,19 @@ export const AdminDashboardPage: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#06b6d4', background: 'rgba(6,182,212,0.15)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
-                  STEP 3
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#818cf8', background: 'rgba(99,102,241,0.2)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                  STEP 3 [ADMIN]
                 </span>
-                <Layers size={15} style={{ color: '#06b6d4' }} />
+                <Layers size={15} style={{ color: '#818cf8' }} />
               </div>
               <h3 style={{ fontSize: '0.92rem', fontWeight: 700, margin: '0 0 0.25rem 0', color: 'var(--text-primary)' }}>
-                Backlog Queue
+                Admin Triage
               </h3>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0 0 0.75rem 0', lineHeight: 1.3 }}>
-                Unassigned bugs waiting to be scheduled into sprints.
+                Admin reviews reported issues, validates severity and priority, and determines the required action.
               </p>
-              <div style={{ marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: '#06b6d4', fontWeight: 600 }}>
-                {(stats.backlog?.total || 0).toLocaleString()} Backlog Items
+              <div style={{ marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: '#818cf8', fontWeight: 600 }}>
+                Status: TRIAGED
               </div>
             </div>
 
@@ -839,6 +846,7 @@ export const AdminDashboardPage: React.FC = () => {
               style={{
                 background: 'var(--bg-surface-elevated)',
                 border: '1px solid rgba(99,102,241,0.3)',
+                borderTop: '3px solid #818cf8',
                 borderRadius: '10px',
                 padding: '1rem',
                 display: 'flex',
@@ -849,16 +857,16 @@ export const AdminDashboardPage: React.FC = () => {
                 <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#818cf8', background: 'rgba(99,102,241,0.2)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
                   STEP 4 [ADMIN]
                 </span>
-                <PlusCircle size={15} style={{ color: '#818cf8' }} />
+                <UserCheck size={15} style={{ color: '#818cf8' }} />
               </div>
               <h3 style={{ fontSize: '0.92rem', fontWeight: 700, margin: '0 0 0.25rem 0', color: 'var(--text-primary)' }}>
-                Create Sprint
+                Assign Developer
               </h3>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0 0 0.75rem 0', lineHeight: 1.3 }}>
-                Admin plans sprint duration, goals, and working capacity.
+                Admin assigns the issue to an active Developer. Only legitimate Developer accounts are eligible.
               </p>
               <div style={{ marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: '#818cf8', fontWeight: 600 }}>
-                Status: PLANNED ({stats.sprints?.planned || 0})
+                Status: ASSIGNED
               </div>
             </div>
 
@@ -866,7 +874,8 @@ export const AdminDashboardPage: React.FC = () => {
             <div
               style={{
                 background: 'var(--bg-surface-elevated)',
-                border: '1px solid rgba(99,102,241,0.3)',
+                border: '1px solid rgba(16,185,129,0.3)',
+                borderTop: '3px solid #34d399',
                 borderRadius: '10px',
                 padding: '1rem',
                 display: 'flex',
@@ -874,27 +883,38 @@ export const AdminDashboardPage: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#818cf8', background: 'rgba(99,102,241,0.2)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
-                  STEP 5 [ADMIN]
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#34d399', background: 'rgba(16,185,129,0.2)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                  STEP 5 [DEVELOPER]
                 </span>
-                <Bug size={15} style={{ color: '#818cf8' }} />
+                <PlayCircle size={15} style={{ color: '#34d399' }} />
               </div>
               <h3 style={{ fontSize: '0.92rem', fontWeight: 700, margin: '0 0 0.25rem 0', color: 'var(--text-primary)' }}>
-                Add Bugs to Sprint
+                Developer Begins Work
               </h3>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0 0 0.75rem 0', lineHeight: 1.3 }}>
-                Selects existing backlog issues to include in sprint scope.
+                Developer receives the assigned issue and begins investigation. Issue transitions to active work.
               </p>
-              <div style={{ marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: '#818cf8', fontWeight: 600 }}>
-                Sprint Backlog Defined
+              <div style={{ marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: '#34d399', fontWeight: 600 }}>
+                Status: IN_DEVELOPMENT
               </div>
             </div>
+          </div>
 
+          {/* Steps 6–10 */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: '1rem',
+              marginTop: '1rem',
+            }}
+          >
             {/* Step 6 */}
             <div
               style={{
                 background: 'var(--bg-surface-elevated)',
-                border: '1px solid rgba(99,102,241,0.3)',
+                border: '1px solid rgba(16,185,129,0.3)',
+                borderTop: '3px solid #34d399',
                 borderRadius: '10px',
                 padding: '1rem',
                 display: 'flex',
@@ -902,19 +922,19 @@ export const AdminDashboardPage: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#818cf8', background: 'rgba(99,102,241,0.2)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
-                  STEP 6 [ADMIN]
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#34d399', background: 'rgba(16,185,129,0.2)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                  STEP 6 [DEVELOPER]
                 </span>
-                <UserCheck size={15} style={{ color: '#818cf8' }} />
+                <Activity size={15} style={{ color: '#34d399' }} />
               </div>
               <h3 style={{ fontSize: '0.92rem', fontWeight: 700, margin: '0 0 0.25rem 0', color: 'var(--text-primary)' }}>
-                Assign Tester & Start
+                Investigate &amp; Fix
               </h3>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0 0 0.75rem 0', lineHeight: 1.3 }}>
-                Assigns designated QA tester. Moves sprint to ACTIVE.
+                Developer investigates the defect, updates issue status, adds comments and attachments, and works toward resolution.
               </p>
-              <div style={{ marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: '#10b981', fontWeight: 600 }}>
-                Status: ACTIVE ({stats.sprints?.active || 0})
+              <div style={{ marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: '#34d399', fontWeight: 600 }}>
+                Status: IN_DEVELOPMENT → IN_REVIEW
               </div>
             </div>
 
@@ -923,6 +943,7 @@ export const AdminDashboardPage: React.FC = () => {
               style={{
                 background: 'var(--bg-surface-elevated)',
                 border: '1px solid rgba(16,185,129,0.3)',
+                borderTop: '3px solid #34d399',
                 borderRadius: '10px',
                 padding: '1rem',
                 display: 'flex',
@@ -933,16 +954,16 @@ export const AdminDashboardPage: React.FC = () => {
                 <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#34d399', background: 'rgba(16,185,129,0.2)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
                   STEP 7 [DEVELOPER]
                 </span>
-                <PlayCircle size={15} style={{ color: '#34d399' }} />
+                <ClipboardCheck size={15} style={{ color: '#34d399' }} />
               </div>
               <h3 style={{ fontSize: '0.92rem', fontWeight: 700, margin: '0 0 0.25rem 0', color: 'var(--text-primary)' }}>
-                Tester Begins Work
+                Submit for Review
               </h3>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0 0 0.75rem 0', lineHeight: 1.3 }}>
-                Tester clicks "Begin Work". Moves sprint to IN_PROGRESS.
+                Developer resolves the issue with a resolution summary. For sprint work, the sprint is submitted for admin sign-off.
               </p>
               <div style={{ marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: '#34d399', fontWeight: 600 }}>
-                Status: IN_PROGRESS ({stats.sprints?.in_progress || 0})
+                Status: RESOLVED / READY_FOR_APPROVAL
               </div>
             </div>
 
@@ -950,35 +971,8 @@ export const AdminDashboardPage: React.FC = () => {
             <div
               style={{
                 background: 'var(--bg-surface-elevated)',
-                border: '1px solid rgba(16,185,129,0.3)',
-                borderRadius: '10px',
-                padding: '1rem',
-                display: 'flex',
-                flexDirection: 'column',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#34d399', background: 'rgba(16,185,129,0.2)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
-                  STEP 8 [DEVELOPER]
-                </span>
-                <Activity size={15} style={{ color: '#34d399' }} />
-              </div>
-              <h3 style={{ fontSize: '0.92rem', fontWeight: 700, margin: '0 0 0.25rem 0', color: 'var(--text-primary)' }}>
-                Work on Issues
-              </h3>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0 0 0.75rem 0', lineHeight: 1.3 }}>
-                Tester investigates defects, updates status, and verifies fixes.
-              </p>
-              <div style={{ marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: '#34d399', fontWeight: 600 }}>
-                Test Execution Active
-              </div>
-            </div>
-
-            {/* Step 9 */}
-            <div
-              style={{
-                background: 'var(--bg-surface-elevated)',
-                border: '1px solid rgba(99,102,241,0.4)',
+                border: '1px solid rgba(99,102,241,0.3)',
+                borderTop: '3px solid #818cf8',
                 borderRadius: '10px',
                 padding: '1rem',
                 display: 'flex',
@@ -987,23 +981,81 @@ export const AdminDashboardPage: React.FC = () => {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#818cf8', background: 'rgba(99,102,241,0.25)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
-                  STEP 9 [DEVELOPER]
+                  STEP 8 [ADMIN]
                 </span>
-                <ClipboardCheck size={15} style={{ color: '#818cf8' }} />
+                <Shield size={15} style={{ color: '#818cf8' }} />
               </div>
               <h3 style={{ fontSize: '0.92rem', fontWeight: 700, margin: '0 0 0.25rem 0', color: 'var(--text-primary)' }}>
-                Submit for Approval
+                Admin Review
               </h3>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0 0 0.75rem 0', lineHeight: 1.3 }}>
-                Tester submits sprint once testing scope is satisfied.
+                Admin reviews resolved issues and submitted sprint deliverables, examining resolution details, activity, and comments.
               </p>
               <div style={{ marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: '#818cf8', fontWeight: 600 }}>
-                READY_FOR_APPROVAL ({stats.sprints?.ready_for_approval || 0})
+                {stats.sprints?.ready_for_approval || 0} Awaiting Review
+              </div>
+            </div>
+
+            {/* Step 9 */}
+            <div
+              style={{
+                background: 'var(--bg-surface-elevated)',
+                border: '1px solid rgba(99,102,241,0.4)',
+                borderTop: '3px solid #818cf8',
+                borderRadius: '10px',
+                padding: '1rem',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#818cf8', background: 'rgba(99,102,241,0.25)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                  STEP 9 [ADMIN]
+                </span>
+                <CheckCircle2 size={15} style={{ color: '#818cf8' }} />
+              </div>
+              <h3 style={{ fontSize: '0.92rem', fontWeight: 700, margin: '0 0 0.25rem 0', color: 'var(--text-primary)' }}>
+                Final Decision
+              </h3>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0 0 0.75rem 0', lineHeight: 1.3 }}>
+                Admin approves completed work (CLOSED / COMPLETED) or requests developer rework, returning the item to IN_PROGRESS.
+              </p>
+              <div style={{ marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: '#818cf8', fontWeight: 600 }}>
+                CLOSED / COMPLETED / Rework Loop
+              </div>
+            </div>
+
+            {/* Step 10 */}
+            <div
+              style={{
+                background: 'var(--bg-surface-elevated)',
+                border: '1px solid var(--border-subtle)',
+                borderTop: '3px solid #38bdf8',
+                borderRadius: '10px',
+                padding: '1rem',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#38bdf8', background: 'rgba(14,165,233,0.15)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                  STEP 10 [USER]
+                </span>
+                <Users size={15} style={{ color: '#38bdf8' }} />
+              </div>
+              <h3 style={{ fontSize: '0.92rem', fontWeight: 700, margin: '0 0 0.25rem 0', color: 'var(--text-primary)' }}>
+                User / Admin Verification
+              </h3>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0 0 0.75rem 0', lineHeight: 1.3 }}>
+                Reporter tracks resolution status. Admin monitors final outcome via dashboard analytics and audit logs.
+              </p>
+              <div style={{ marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', fontSize: '0.72rem', color: '#38bdf8', fontWeight: 600 }}>
+                Status: CLOSED ({stats.issues.closed || 0} resolved)
               </div>
             </div>
           </div>
 
-          {/* Decision Split: Admin Review */}
+          {/* Decision Gateway */}
           <div
             style={{
               marginTop: '1.5rem',
@@ -1016,12 +1068,12 @@ export const AdminDashboardPage: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
               <Shield size={18} style={{ color: 'var(--primary)' }} />
               <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                Step 10: Admin Review Gateway & Final Decision
+                Step 9 Detail: Admin Decision Gateway
               </h3>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-              {/* Branch A: Approve */}
+              {/* Branch A: Accept / Close */}
               <div
                 style={{
                   padding: '1rem 1.25rem',
@@ -1033,17 +1085,17 @@ export const AdminDashboardPage: React.FC = () => {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
                   <CheckCircle2 size={18} style={{ color: 'var(--success)' }} />
-                  <strong style={{ color: 'var(--success)', fontSize: '0.9rem' }}>Decision 1: APPROVE SPRINT</strong>
+                  <strong style={{ color: 'var(--success)', fontSize: '0.9rem' }}>Decision 1: ACCEPT WORK</strong>
                 </div>
                 <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: '0 0 0.5rem 0' }}>
-                  Admin verifies test completion and approves. Sprint transitions to <strong>COMPLETED</strong>.
+                  Admin confirms the resolution is complete. Issue transitions to <strong>CLOSED</strong>. Sprint transitions to <strong>COMPLETED</strong>.
                 </p>
                 <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--success)' }}>
-                  Result: COMPLETED ({stats.sprints?.completed || 0} sprints completed to date)
+                  Result: CLOSED / COMPLETED ({stats.sprints?.completed || 0} sprints completed to date)
                 </div>
               </div>
 
-              {/* Branch B: Request Changes */}
+              {/* Branch B: Request Rework */}
               <div
                 style={{
                   padding: '1rem 1.25rem',
@@ -1055,19 +1107,20 @@ export const AdminDashboardPage: React.FC = () => {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
                   <RotateCcw size={18} style={{ color: 'var(--warning)' }} />
-                  <strong style={{ color: 'var(--warning)', fontSize: '0.9rem' }}>Decision 2: REQUEST CHANGES</strong>
+                  <strong style={{ color: 'var(--warning)', fontSize: '0.9rem' }}>Decision 2: REQUEST REWORK</strong>
                 </div>
                 <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: '0 0 0.5rem 0' }}>
-                  Admin specifies feedback in comment modal. Sprint returns to <strong>IN_PROGRESS</strong> for tester rework.
+                  Admin specifies feedback. Item returns to <strong>IN_PROGRESS</strong> for the developer to address and resubmit.
                 </p>
                 <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#f59e0b' }}>
-                  Result: Returns to IN_PROGRESS → Tester fixes → Resubmit for Admin review
+                  Result: IN_PROGRESS → Developer fixes → Resubmit for Admin review
                 </div>
               </div>
             </div>
           </div>
         </div>
       </section>
+
 
       {/* ───────────────────────────────────────────────────────────────────── */}
       {/* 5. SPRINT STATUS PIPELINE                                             */}
@@ -1110,7 +1163,7 @@ export const AdminDashboardPage: React.FC = () => {
                 <div style={{ height: '100%', width: `${totalPipelineSprints > 0 ? ((stats.sprints?.planned || 0) / totalPipelineSprints) * 100 : 0}%`, backgroundColor: '#64748b' }} />
               </div>
               <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.4rem', display: 'block' }}>
-                Awaiting tester assignment
+                Awaiting developer assignment
               </span>
             </div>
 
@@ -1129,7 +1182,7 @@ export const AdminDashboardPage: React.FC = () => {
                 <div style={{ height: '100%', width: `${totalPipelineSprints > 0 ? ((stats.sprints?.active || 0) / totalPipelineSprints) * 100 : 0}%`, backgroundColor: '#3b82f6' }} />
               </div>
               <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.4rem', display: 'block' }}>
-                Assigned; pending tester kickoff
+                Assigned; pending developer kickoff
               </span>
             </div>
 
@@ -1148,7 +1201,7 @@ export const AdminDashboardPage: React.FC = () => {
                 <div style={{ height: '100%', width: `${totalPipelineSprints > 0 ? ((stats.sprints?.in_progress || 0) / totalPipelineSprints) * 100 : 0}%`, backgroundColor: '#f59e0b' }} />
               </div>
               <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.4rem', display: 'block' }}>
-                Tester actively verifying defects
+                Developer actively working on defects
               </span>
             </div>
 
@@ -1162,18 +1215,35 @@ export const AdminDashboardPage: React.FC = () => {
                 boxShadow: awaitingApproval.length > 0 ? '0 0 16px rgba(99,102,241,0.25)' : 'none',
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#818cf8' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#818cf8', letterSpacing: '0.02em' }}>
                   READY_FOR_APPROVAL
                 </span>
+                <span style={{ fontSize: '0.75rem', color: awaitingApproval.length > 0 ? '#818cf8' : 'var(--text-muted)', fontWeight: awaitingApproval.length > 0 ? 700 : 400 }}>
+                  {totalPipelineSprints > 0 ? Math.round(((stats.sprints?.ready_for_approval || awaitingApproval.length) / totalPipelineSprints) * 100) : 0}%
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '1.6rem', fontWeight: 800, color: '#818cf8', lineHeight: 1.2 }}>
+                  {stats.sprints?.ready_for_approval || awaitingApproval.length}
+                </span>
                 {awaitingApproval.length > 0 && (
-                  <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#fff', background: '#6366f1', padding: '0.1rem 0.35rem', borderRadius: '4px' }}>
+                  <span
+                    style={{
+                      fontSize: '0.62rem',
+                      fontWeight: 700,
+                      color: '#fff',
+                      background: '#6366f1',
+                      padding: '0.12rem 0.45rem',
+                      borderRadius: '999px',
+                      letterSpacing: '0.03em',
+                      whiteSpace: 'nowrap',
+                      lineHeight: 1.2,
+                    }}
+                  >
                     ACTION REQUIRED
                   </span>
                 )}
-              </div>
-              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#818cf8', marginBottom: '0.4rem' }}>
-                {stats.sprints?.ready_for_approval || awaitingApproval.length}
               </div>
               <div style={{ height: '4px', borderRadius: '2px', backgroundColor: 'var(--border-subtle)', overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${totalPipelineSprints > 0 ? ((stats.sprints?.ready_for_approval || 0) / totalPipelineSprints) * 100 : 0}%`, backgroundColor: '#818cf8' }} />
@@ -1225,13 +1295,13 @@ export const AdminDashboardPage: React.FC = () => {
           <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
             <div>• <strong>Manage:</strong> Oversee projects, members & permissions</div>
             <div>• <strong>Plan:</strong> Create sprint milestones & capacity</div>
-            <div>• <strong>Assign:</strong> Designate dedicated QA testers to sprints</div>
+            <div>• <strong>Assign:</strong> Designate developers to sprints</div>
             <div>• <strong>Monitor:</strong> Live velocity, burndown & defect health</div>
             <div>• <strong>Review & Decide:</strong> Approve sprint or request rework</div>
           </div>
         </div>
 
-        {/* Tester Card */}
+        {/* Developer Card */}
         <div style={{ padding: '1.25rem', borderRadius: '12px', background: 'var(--bg-surface)', border: '1px solid rgba(16,185,129,0.25)', borderTop: '4px solid #10b981' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
             <UserCheck size={18} style={{ color: '#34d399' }} />
@@ -1313,7 +1383,7 @@ export const AdminDashboardPage: React.FC = () => {
               </span>
             </h2>
             <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-              Sprints submitted by testers requiring Admin review to complete or request changes
+              Sprints submitted by developers requiring Admin review to complete or request changes
             </p>
           </div>
           <Link
@@ -1347,7 +1417,7 @@ export const AdminDashboardPage: React.FC = () => {
                 All Submitted Sprints Reviewed
               </h3>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', maxWidth: '460px', margin: '0 auto' }}>
-                There are no sprints currently waiting in <code>READY_FOR_APPROVAL</code> status. Sprints submitted by testers will automatically appear here.
+                There are no sprints currently waiting in <code>READY_FOR_APPROVAL</code> status. Sprints submitted by developers will automatically appear here.
               </p>
             </div>
           ) : (
@@ -1394,7 +1464,7 @@ export const AdminDashboardPage: React.FC = () => {
 
                         <div style={{ display: 'flex', gap: '1.25rem', fontSize: '0.78rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
                           <span>
-                            Assigned Tester: <strong style={{ color: '#34d399' }}>{sprint.assigned_tester_name || '—'}</strong>
+                            Assigned Developer: <strong style={{ color: '#34d399' }}>{sprint.assigned_tester_name || '—'}</strong>
                           </span>
                           <span>
                             Start: <strong style={{ color: 'var(--text-primary)' }}>{formatDate(sprint.start_date)}</strong>
@@ -1484,7 +1554,7 @@ export const AdminDashboardPage: React.FC = () => {
               Active &amp; In-Progress Sprints
             </h2>
             <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-              Currently running sprints being worked on by assigned testers
+              Currently running sprints being worked on by assigned developers
             </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -1512,7 +1582,7 @@ export const AdminDashboardPage: React.FC = () => {
                   <tr>
                     <th>Sprint Name</th>
                     <th>Project</th>
-                    <th>Assigned Tester</th>
+                    <th>Assigned Developer</th>
                     <th>Status</th>
                     <th>Progress</th>
                     <th>Start Date</th>
@@ -1757,68 +1827,25 @@ export const AdminDashboardPage: React.FC = () => {
         {/* Left Column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
-          {/* Unassigned Issue Queue */}
-          <section className="card">
-            <div className="card-header">
-              <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <AlertTriangle size={18} style={{ color: 'var(--warning)' }} />
-                Unassigned Issue Queue
-              </h2>
-            </div>
-            {unassignedQueue.length === 0 ? (
-              <div className="card-body empty-state">
-                <CheckCircle2 size={32} style={{ color: 'var(--success)', marginBottom: '1rem' }} />
-                <h3>Queue is Empty</h3>
-                <p>There are no unassigned issues awaiting action.</p>
-              </div>
-            ) : (
-              <div className="table-container" style={{ borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderRadius: 0 }}>
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Key</th>
-                      <th>Title</th>
-                      <th>Priority</th>
-                      <th>Severity</th>
-                      <th>Created</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {unassignedQueue.map((issue) => (
-                      <tr key={issue.id}>
-                        <td style={{ fontWeight: '600' }}>{issue.issue_key}</td>
-                        <td style={{ maxWidth: '250px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={issue.title}>
-                          {issue.title}
-                        </td>
-                        <td><PriorityBadge priority={issue.priority} /></td>
-                        <td><SeverityBadge severity={issue.severity} /></td>
-                        <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                          {formatRelativeTime(issue.created_at)}
-                        </td>
-                        <td>
-                          <button
-                            className="btn btn-primary"
-                            style={{ padding: '0.3rem 0.75rem', fontSize: '0.8rem' }}
-                            onClick={() => openAssignModal(issue.id)}
-                          >
-                            Assign
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
+          {/* SLA & Issue Aging Monitor */}
+          <AdminIssueAgingMonitor
+            refreshTrigger={refreshCounter}
+          />
+
+          {/* Unassigned Backlog Intelligence */}
+          <AdminUnassignedBacklog
+            totalSystemIssues={stats.issues.total}
+            onAssignClick={openAssignModal}
+            onAssignSuccess={() => fetchData(true)}
+            refreshTrigger={refreshCounter}
+          />
 
           {/* Team Workload */}
           <section className="card">
             <div className="card-header">
               <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Activity size={18} />
-                Team Workload (Testers)
+                Team Workload (Developers)
               </h2>
             </div>
             {workloads.length === 0 ? (
@@ -1870,72 +1897,8 @@ export const AdminDashboardPage: React.FC = () => {
             )}
           </section>
 
-          {/* Recent Admin Activity Timeline */}
-          <section className="card">
-            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Clock size={18} style={{ color: 'var(--primary)' }} />
-                Recent System &amp; Admin Activity
-              </h2>
-              <Link to="/admin" className="btn btn-secondary btn-sm" style={{ fontSize: '0.75rem' }}>
-                View All Logs
-              </Link>
-            </div>
-            {auditLogs.length === 0 ? (
-              <div className="card-body empty-state">
-                <p>No recent activity found.</p>
-              </div>
-            ) : (
-              <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-                {auditLogs.map((log) => (
-                  <div
-                    key={log.id}
-                    style={{
-                      display: 'flex',
-                      gap: '0.85rem',
-                      padding: '0.75rem',
-                      borderRadius: '8px',
-                      backgroundColor: 'var(--bg-surface-elevated)',
-                      border: '1px solid var(--border-subtle)',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '8px',
-                        background: 'rgba(99,102,241,0.15)',
-                        color: '#818cf8',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Activity size={16} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ margin: 0, fontSize: '0.84rem' }}>
-                        <strong style={{ color: 'var(--text-primary)' }}>{log.actor?.full_name || 'System'}</strong>{' '}
-                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>({log.actor?.role || 'SYSTEM'})</span>{' '}
-                        <span style={{ color: '#818cf8', fontWeight: 600 }}>{log.action}</span>{' '}
-                        <strong style={{ color: 'var(--text-primary)' }}>{log.entity_type}</strong>{' '}
-                        {log.entity_key && <code style={{ fontSize: '0.75rem', color: '#38bdf8' }}>{log.entity_key}</code>}
-                      </p>
-                      {log.description && (
-                        <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                          {log.description}
-                        </p>
-                      )}
-                      <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '0.2rem', display: 'block' }}>
-                        {formatRelativeTime(log.created_at)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
+          {/* Real-Time Admin Activity Center */}
+          <AdminRealtimeActivity refreshTrigger={refreshCounter} />
         </div>
 
         {/* Right Column: Health, Alerts, User Breakdown */}
@@ -2019,7 +1982,7 @@ export const AdminDashboardPage: React.FC = () => {
             </div>
             <div className="card-body">
               <BarRow label="Users" count={stats.users.users} total={stats.users.total} color="#3b82f6" />
-              <BarRow label="Testers" count={stats.users.testers} total={stats.users.total} color="#22c55e" />
+              <BarRow label="Developers" count={stats.users.testers} total={stats.users.total} color="#22c55e" />
               <BarRow label="Admins" count={stats.users.admins} total={stats.users.total} color="#f97316" />
 
               <div style={{ marginTop: '1.25rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '0.85rem' }}>
@@ -2056,12 +2019,13 @@ export const AdminDashboardPage: React.FC = () => {
       </div>
 
       {/* ───────────────────────────────────────────────────────────────────── */}
-      {/* 12. MODALS                                                            */}
+      {/* 12. EXTENDED ANALYTICS SECTION                                        */}
+      {/*     Additive analytics not duplicated by inline sections above.       */}
+      {/*     Note: AdminTeamWorkload & AdminRecentActivity are omitted here     */}
+      {/*     as they are already rendered in Section 11 (inline + Realtime).   */}
       {/* ───────────────────────────────────────────────────────────────────── */}
 
-      {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* NEW: ADMIN ACTION CENTER                                              */}
-      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* Admin Action Center – actionable item links */}
       <AdminActionCenter
         awaitingApproval={awaitingApproval}
         activeSprints={activeSprints}
@@ -2070,55 +2034,38 @@ export const AdminDashboardPage: React.FC = () => {
         unassignedCount={stats.backlog?.unassigned || 0}
       />
 
-      {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* NEW: SYSTEM HEALTH + PERFORMANCE SUMMARY (2-col row)                */}
-      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* System Health + Performance Summary (2-col row) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
         <AdminSystemHealth stats={stats} />
         <AdminPerformanceSummary stats={stats} quality={qualityMetrics} />
       </div>
 
-      {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* NEW: DEFECT TREND ANALYTICS                                         */}
-      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* Defect Trend Analytics */}
       <AdminDefectTrend />
 
-      {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* NEW: ISSUE DISTRIBUTION (full width)                                */}
-      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* Issue Distribution (full width) */}
       <div style={{ marginBottom: '1.5rem' }}>
         <AdminIssueDistribution stats={stats} />
       </div>
 
-      {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* NEW: SPRINT HEALTH + APPROVAL CENTER (2-col row)                   */}
-      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* Sprint Health + Approval Center (2-col row) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
         <AdminSprintHealth sprints={activeSprints} />
         <AdminApprovalCenter awaitingApproval={awaitingApproval} recentlyCompleted={recentlyCompleted} />
       </div>
 
-      {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* NEW: PROJECT HEALTH                                                 */}
-      {/* ─────────────────────────────────────────────────────────────────── */}
+      {/* Project Health – per-project breakdown */}
       <AdminProjectHealth />
 
-      {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* NEW: TEAM WORKLOAD                                                  */}
-      {/* ─────────────────────────────────────────────────────────────────── */}
-      <AdminTeamWorkload workloads={workloads} />
+      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* 13. MODALS                                                            */}
+      {/* ───────────────────────────────────────────────────────────────────── */}
 
-      {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* NEW: RECENT SYSTEM ACTIVITY                                         */}
-      {/* ─────────────────────────────────────────────────────────────────── */}
-      <AdminRecentActivity auditLogs={auditLogs} />
-
-
-            {/* Assign Tester Modal */}
-      <Modal isOpen={assignModalOpen} onClose={() => setAssignModalOpen(false)} title="Assign Tester to Issue">
+      {/* Assign Developer Modal */}
+      <Modal isOpen={assignModalOpen} onClose={() => setAssignModalOpen(false)} title="Assign Developer to Issue">
         <div style={{ padding: '1.5rem' }}>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-            Select a tester to assign this issue to. Workloads are shown for available testers.
+            Select a developer to assign this issue to. Workloads are shown for available developers.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '400px', overflowY: 'auto' }}>
             {testers.map((tester) => {
@@ -2170,7 +2117,7 @@ export const AdminDashboardPage: React.FC = () => {
         title="Request Changes on Sprint"
       >
         <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-          The sprint will be sent back to the assigned tester with status <strong>IN_PROGRESS</strong>.
+          The sprint will be sent back to the assigned developer with status <strong>IN_PROGRESS</strong>.
         </p>
         <div className="form-group">
           <label className="form-label">Feedback / Revision Reason (optional)</label>
@@ -2197,7 +2144,7 @@ export const AdminDashboardPage: React.FC = () => {
             disabled={sprintActionLoading !== null}
             onClick={handleRequestChanges}
           >
-            Send Back to Tester
+            Send Back to Developer
           </button>
         </div>
       </Modal>

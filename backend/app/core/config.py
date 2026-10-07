@@ -79,9 +79,12 @@ class Settings(BaseSettings):
     # AI Testing Assistant (Phase AI)                                      #
     # ------------------------------------------------------------------ #
     AI_ENABLED: bool = False                  # Set to true to enable AI features
-    AI_PROVIDER: str = "gemini"               # Currently only 'gemini' is supported
-    AI_MODEL: str = "gemini-3.8-flash"        # Gemini model to use
+    AI_PROVIDER: str = "groq"                 # 'groq' (default production provider) or 'gemini'
+    AI_MODEL: str = "openai/gpt-oss-120b"     # Default model name
     GEMINI_API_KEY: str = ""                  # Keep secret — never commit this value
+    GROQ_API_KEY: str = ""                    # Groq API key (kept only in .env, never exposed)
+    GROQ_MODEL: str = "openai/gpt-oss-120b"   # Primary production Groq model
+    GROQ_FALLBACK_MODEL: str = "openai/gpt-oss-20b"  # Production fallback Groq model
     MAX_MESSAGE_LENGTH: int = 4000            # Max chars per user AI message
 
     # ------------------------------------------------------------------ #

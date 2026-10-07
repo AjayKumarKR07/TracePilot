@@ -12,6 +12,11 @@ Phase 8: Real-Time Notifications & WebSocket
 Phase 9: Advanced Analytics, Reporting & Dashboard
 """
 
+import sys
+if sys.platform == "win32":
+    import asyncio
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 

@@ -22,7 +22,7 @@ const LIFECYCLE_STEPS: StepConfig[] = [
   {
     key: 'PLANNED',
     label: 'PLANNED',
-    sublabel: 'Scope & Tester',
+    sublabel: 'Scope & Developer',
     icon: CircleDot,
     activeColor: '#94a3b8',
     activeBg: 'rgba(148,163,184,0.14)',

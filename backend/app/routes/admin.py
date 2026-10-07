@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.session import get_db
 from app.dependencies.auth import require_role
 from app.models.user import User, UserRole
-from app.schemas.admin import DashboardResponse, InactiveAssigneeList
+from app.schemas.admin import DashboardResponse, InactiveAssigneeList, IssueAgingResponse
 from app.services import admin_service
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -75,3 +75,23 @@ async def inactive_assignees(
     **ADMIN only.**
     """
     return await admin_service.get_inactive_assignees(db)
+
+
+@router.get(
+    "/issue-aging",
+    response_model=IssueAgingResponse,
+    summary="Get issue aging and oldest unresolved metrics",
+    responses={
+        401: {"description": "Not authenticated"},
+        403: {"description": "ADMIN access required"},
+    },
+)
+async def issue_aging(
+    current_user: User = _ADMIN,
+    db: AsyncSession = Depends(get_db),
+) -> IssueAgingResponse:
+    """Return real issue aging statistics and oldest unresolved issue for Admin.
+
+    **ADMIN only.**
+    """
+    return await admin_service.get_issue_aging_stats(db)

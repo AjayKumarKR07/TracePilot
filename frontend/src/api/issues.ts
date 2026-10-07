@@ -30,6 +30,7 @@ export interface IssueListParams {
   search?: string;
   sort_by?: string;
   sort_desc?: boolean;
+  include_test?: boolean;
 }
 
 export const issuesApi = {

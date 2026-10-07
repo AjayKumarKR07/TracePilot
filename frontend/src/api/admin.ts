@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { AdminDashboardResponse, InactiveAssigneeList } from '../types/admin';
+import type { AdminDashboardResponse, InactiveAssigneeList, IssueAgingResponse } from '../types/admin';
 
 export const adminApi = {
   getDashboard: async (): Promise<AdminDashboardResponse> => {
@@ -9,6 +9,11 @@ export const adminApi = {
 
   getInactiveAssignees: async (): Promise<InactiveAssigneeList> => {
     const response = await apiClient.get<InactiveAssigneeList>('/admin/alerts/inactive-assignees');
+    return response.data;
+  },
+
+  getIssueAging: async (): Promise<IssueAgingResponse> => {
+    const response = await apiClient.get<IssueAgingResponse>('/admin/issue-aging');
     return response.data;
   },
 };

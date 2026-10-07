@@ -228,13 +228,19 @@ async def list_issues(
     search: str | None = None,
     sort_by: str | None = None,
     sort_desc: bool = True,
+    include_test: bool = False,
 ) -> IssueListResponse:
     """Return paginated issues with role-based visibility enforcement.
 
     Role filters:
-      ADMIN     â€” sees all issues
-      TESTER    â€” only issues assigned to them (assignee_id)
-      USER      â€” only issues they personally reported (reporter_id)
+      ADMIN     — sees all issues
+      TESTER    — only issues assigned to them (assignee_id)
+      USER      — only issues they personally reported (reporter_id)
+
+    Test filter:
+      By default (include_test=False) issues from test-fixture projects (Project.is_test=True)
+      are excluded from results so they never appear in production UI or admin analytics.
+      Pass include_test=True for test runs or admin inspection of test data.
     """
     query = select(Issue)
 
@@ -245,7 +251,13 @@ async def list_issues(
     elif current_user.role == UserRole.DEVELOPER:
         # Testers see only issues assigned to them
         query = query.where(Issue.assignee_id == current_user.id)
-    # ADMIN sees all â€” no base filter
+    # ADMIN sees all — no base filter
+
+    # ---- Test-data filter ------------------------------------------------- #
+    if not include_test:
+        query = query.join(Project, Issue.project_id == Project.id).where(
+            Project.is_test == False  # noqa: E712
+        )
 
     # ---- Optional filters ------------------------------------------------- #
     if status_filter is not None:

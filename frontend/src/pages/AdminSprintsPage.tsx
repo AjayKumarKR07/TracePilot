@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   AlertCircle,
@@ -268,12 +268,12 @@ export const AdminSprintsPage: React.FC = () => {
     setActionLoadingId(selectedSprintForAssign.id);
     try {
       await SprintService.assignTester(selectedSprintForAssign.id, testerId);
-      setToastMessage({ type: 'success', text: 'Tester assigned and sprint activated' });
+      setToastMessage({ type: 'success', text: 'Developer assigned and sprint activated' });
       setAssignModalOpen(false);
       setSelectedSprintForAssign(null);
       fetchData(true);
     } catch (err: any) {
-      setToastMessage({ type: 'error', text: err?.response?.data?.detail || 'Failed to assign tester' });
+      setToastMessage({ type: 'error', text: err?.response?.data?.detail || 'Failed to assign developer' });
     } finally {
       setActionLoadingId(null);
     }
@@ -377,7 +377,7 @@ export const AdminSprintsPage: React.FC = () => {
                 Sprints &amp; Planning
               </h1>
               <p className="page-subtitle" style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                Set up sprint iterations, manage defect scopes, assign QA testers, and start development sprints
+                Set up sprint iterations, manage defect scopes, assign developers, and start development sprints
               </p>
             </div>
           </div>
@@ -425,7 +425,7 @@ export const AdminSprintsPage: React.FC = () => {
           <ArrowRight size={14} style={{ color: 'var(--text-muted)' }} />
           <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>4. Add Backlog Issues</span>
           <ArrowRight size={14} style={{ color: 'var(--text-muted)' }} />
-          <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>5. Assign Tester</span>
+          <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>5. Assign Developer</span>
           <ArrowRight size={14} style={{ color: 'var(--text-muted)' }} />
           <span style={{ fontWeight: 600, color: '#10b981' }}>6. Start Sprint (ACTIVE)</span>
         </div>
@@ -492,7 +492,7 @@ export const AdminSprintsPage: React.FC = () => {
           <input
             type="text"
             className="form-input"
-            placeholder="Search sprints, testers..."
+            placeholder="Search sprints, developers..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{ paddingLeft: '2.2rem', fontSize: '0.82rem', width: '100%' }}
@@ -640,7 +640,7 @@ export const AdminSprintsPage: React.FC = () => {
                       {/* Assigned Tester Widget */}
                       <div style={{ background: 'var(--bg-surface-elevated)', padding: '0.65rem 0.95rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', minWidth: '220px' }}>
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                          Assigned QA Tester
+                          Assigned Developer
                         </div>
                         {sprint.assigned_tester_name ? (
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.65rem' }}>
@@ -657,7 +657,7 @@ export const AdminSprintsPage: React.FC = () => {
                                 setSelectedSprintForAssign(sprint);
                                 setAssignModalOpen(true);
                               }}
-                              title="Change assigned tester"
+                              title="Change assigned developer"
                             >
                               Reassign
                             </button>
@@ -673,7 +673,7 @@ export const AdminSprintsPage: React.FC = () => {
                                 setAssignModalOpen(true);
                               }}
                             >
-                              <UserCheck size={13} /> Assign Tester
+                              <UserCheck size={13} /> Assign Developer
                             </button>
                           </div>
                         )}
@@ -1013,18 +1013,18 @@ export const AdminSprintsPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Assign Tester Modal */}
+      {/* Assign Developer Modal */}
       <Modal
         isOpen={assignModalOpen}
         onClose={() => {
           setAssignModalOpen(false);
           setSelectedSprintForAssign(null);
         }}
-        title={`Assign Tester to Sprint: ${selectedSprintForAssign?.name || ''}`}
+        title={`Assign Developer to Sprint: ${selectedSprintForAssign?.name || ''}`}
       >
         <div style={{ padding: '1.25rem' }}>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-            Assigning a QA tester will transition the sprint to <strong>ACTIVE</strong> status and notify the tester.
+            Assigning a developer will transition the sprint to <strong>ACTIVE</strong> status and notify the developer.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '350px', overflowY: 'auto' }}>
@@ -1052,7 +1052,7 @@ export const AdminSprintsPage: React.FC = () => {
                   onClick={() => handleAssignTester(t.id)}
                   style={{ fontSize: '0.78rem', padding: '0.35rem 0.8rem' }}
                 >
-                  Select Tester
+                  Select Developer
                 </button>
               </div>
             ))}

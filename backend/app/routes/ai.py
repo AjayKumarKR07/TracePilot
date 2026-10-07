@@ -1,4 +1,4 @@
-﻿"""
+"""
 AI / Chatbot API routes for TracePilot.
 
 RBAC:
@@ -36,8 +36,8 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/ai", tags=["AI Assistant"])
 
-# Roles that can use the AI assistant
-_AI_ALLOWED_ROLES = [UserRole.DEVELOPER, UserRole.ADMIN]
+# Roles that can use the AI assistant (USER, DEVELOPER, and ADMIN)
+_AI_ALLOWED_ROLES = [UserRole.USER, UserRole.DEVELOPER, UserRole.ADMIN]
 
 
 # --------------------------------------------------------------------------- #
@@ -131,6 +131,8 @@ class AIHealthResponse(BaseModel):
     ai_model: str
     api_key_configured: bool
     status: str
+    fallback_model: str | None = None
+    model_verified: bool | None = None
 
 
 # --------------------------------------------------------------------------- #
@@ -173,7 +175,7 @@ async def ai_health(
     current_user: User = Depends(get_current_user),
 ) -> AIHealthResponse:
     """Check if the AI service is configured and available."""
-    key_configured = bool(settings.GEMINI_API_KEY)
+    key_configured = bool(settings.GEMINI_API_KEY or settings.GROQ_API_KEY)
     if settings.AI_ENABLED and key_configured:
         status = "available"
     elif settings.AI_ENABLED and not key_configured:
@@ -181,12 +183,37 @@ async def ai_health(
     else:
         status = "disabled"
 
+    active_provider = (
+        "groq"
+        if (settings.AI_PROVIDER == "groq" or (not settings.GEMINI_API_KEY and settings.GROQ_API_KEY))
+        else settings.AI_PROVIDER
+    )
+    active_model = (
+        settings.GROQ_MODEL
+        if active_provider == "groq"
+        else settings.AI_MODEL
+    )
+    fallback_model = settings.GROQ_FALLBACK_MODEL if active_provider == "groq" else None
+
+    # Safe model verification for Groq (uses cached GET /models check, never leaks key)
+    model_verified: bool | None = None
+    if active_provider == "groq" and settings.GROQ_API_KEY and settings.AI_ENABLED:
+        try:
+            disc = ai_service.verify_groq_models_available()
+            model_verified = bool(disc.get("verified") and disc.get("primary_available"))
+            if disc.get("error") == "Invalid API key":
+                status = "misconfigured"
+        except Exception:
+            model_verified = False
+
     return AIHealthResponse(
         ai_enabled=settings.AI_ENABLED,
-        ai_provider=settings.AI_PROVIDER,
-        ai_model=settings.AI_MODEL,
+        ai_provider=active_provider,
+        ai_model=active_model,
         api_key_configured=key_configured,
         status=status,
+        fallback_model=fallback_model,
+        model_verified=model_verified,
     )
 
 

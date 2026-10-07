@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import {
   FileDown,
@@ -61,7 +61,28 @@ export const IssuesPage: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<IssueType | ''>('');
   const [projectFilter, setProjectFilter] = useState<number | ''>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [showFilters, setShowFilters] = useState<boolean>(() => searchParams.get('unassigned') === 'true');
+  const [unassignedFilter, setUnassignedFilter] = useState<boolean>(() => searchParams.get('unassigned') === 'true');
+  const [sortBy, setSortBy] = useState<string | undefined>(() => searchParams.get('sort_by') || undefined);
+  const [sortDesc, setSortDesc] = useState<boolean | undefined>(() => {
+    const s = searchParams.get('sort_desc');
+    return s !== null ? s === 'true' : undefined;
+  });
+
+  useEffect(() => {
+    if (searchParams.get('unassigned') === 'true') {
+      setUnassignedFilter(true);
+      setShowFilters(true);
+    }
+    const sb = searchParams.get('sort_by');
+    const sd = searchParams.get('sort_desc');
+    if (sb) {
+      setSortBy(sb);
+    }
+    if (sd !== null) {
+      setSortDesc(sd === 'true');
+    }
+  }, [searchParams]);
 
   // Report Defect Modal state (for User / Tester / Admin)
   const [isReportOpen, setIsReportOpen] = useState<boolean>(false);
@@ -93,6 +114,9 @@ export const IssuesPage: React.FC = () => {
         issue_type: typeFilter ? typeFilter : undefined,
         project_id: projectFilter ? projectFilter : undefined,
         search: searchQuery.trim() ? searchQuery.trim() : undefined,
+        unassigned: unassignedFilter ? true : undefined,
+        sort_by: sortBy,
+        sort_desc: sortDesc,
       });
       setIssues(data.items);
       setTotal(data.total);
@@ -122,7 +146,7 @@ export const IssuesPage: React.FC = () => {
 
   useEffect(() => {
     fetchIssues();
-  }, [page, statusFilter, severityFilter, priorityFilter, typeFilter, projectFilter]);
+  }, [page, statusFilter, severityFilter, priorityFilter, typeFilter, projectFilter, unassignedFilter, sortBy, sortDesc]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -206,6 +230,7 @@ export const IssuesPage: React.FC = () => {
     setPriorityFilter('');
     setTypeFilter('');
     setProjectFilter('');
+    setUnassignedFilter(false);
     setSearchQuery('');
     setPage(1);
   };
@@ -393,7 +418,7 @@ export const IssuesPage: React.FC = () => {
             Filters
           </button>
 
-          {(statusFilter || severityFilter || priorityFilter || typeFilter || projectFilter || searchQuery) && (
+          {(statusFilter || severityFilter || priorityFilter || typeFilter || projectFilter || searchQuery || unassignedFilter) && (
             <button
               type="button"
               onClick={handleResetFilters}
@@ -514,6 +539,23 @@ export const IssuesPage: React.FC = () => {
                 <option value="SUPPORT_TICKET">SUPPORT_TICKET</option>
               </select>
             </div>
+
+            {isAdmin && (
+              <div>
+                <label className="form-label" style={{ fontSize: '0.75rem' }}>Assignment</label>
+                <select
+                  className="form-select"
+                  value={unassignedFilter ? 'unassigned' : ''}
+                  onChange={(e) => {
+                    setUnassignedFilter(e.target.value === 'unassigned');
+                    setPage(1);
+                  }}
+                >
+                  <option value="">All Assignment</option>
+                  <option value="unassigned">Unassigned Only</option>
+                </select>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Admin dashboard service â€” Phase 6.
 
 Computes system-wide statistics using efficient SQL aggregation queries.
@@ -35,6 +35,8 @@ from app.schemas.admin import (
     UserStats,
     InactiveAssigneeItem,
     InactiveAssigneeList,
+    IssueAgingResponse,
+    OldestUnresolvedIssue,
 )
 
 
@@ -332,6 +334,125 @@ async def _backlog_stats(db: AsyncSession) -> BacklogStats:
         resolved=row.resolved,
         closed=row.closed,
         kaggle_count=row.kaggle_count,
+    )
+
+
+async def get_issue_aging_stats(db: AsyncSession) -> IssueAgingResponse:
+    """Compute real issue aging statistics across all unresolved defects.
+
+    Only genuinely unresolved issues are included:
+      status NOT IN (RESOLVED, CLOSED)
+    Age buckets:
+      - under_24h: created_at >= now - 24 hours
+      - hours_24_to_72: now - 72 hours <= created_at < now - 24 hours
+      - days_3_to_7: now - 7 days <= created_at < now - 72 hours
+      - over_7d: created_at < now - 7 days
+    Operational indicators:
+      - critical_blocker_over_24h: severity in (CRITICAL, BLOCKER) and created_at < now - 24 hours
+      - unassigned_over_7d: assignee_id is null and created_at < now - 7 days
+      - reopened_over_24h: status == REOPENED and updated_at < now - 24 hours
+    Oldest unresolved issue:
+      - Single indexed lookup for 1 oldest unresolved issue by created_at asc.
+    """
+    now = datetime.now(UTC)
+    cutoff_24h = now - timedelta(hours=24)
+    cutoff_72h = now - timedelta(hours=72)
+    cutoff_7d = now - timedelta(days=7)
+
+    unresolved_cond = Issue.status.notin_([IssueStatus.RESOLVED, IssueStatus.CLOSED])
+
+    stmt = (
+        select(
+            func.count().label("total_unresolved"),
+            func.count(case((Issue.created_at >= cutoff_24h, 1))).label("under_24h"),
+            func.count(
+                case(((Issue.created_at < cutoff_24h) & (Issue.created_at >= cutoff_72h), 1))
+            ).label("hours_24_to_72"),
+            func.count(
+                case(((Issue.created_at < cutoff_72h) & (Issue.created_at >= cutoff_7d), 1))
+            ).label("days_3_to_7"),
+            func.count(case((Issue.created_at < cutoff_7d, 1))).label("over_7d"),
+            func.count(
+                case(
+                    (
+                        Issue.severity.in_([Severity.CRITICAL, Severity.BLOCKER])
+                        & (Issue.created_at < cutoff_24h),
+                        1,
+                    )
+                )
+            ).label("critical_blocker_over_24h"),
+            func.count(
+                case(
+                    (
+                        Issue.assignee_id.is_(None) & (Issue.created_at < cutoff_7d),
+                        1,
+                    )
+                )
+            ).label("unassigned_over_7d"),
+            func.count(
+                case(
+                    (
+                        (Issue.status == IssueStatus.REOPENED)
+                        & (Issue.updated_at < cutoff_24h),
+                        1,
+                    )
+                )
+            ).label("reopened_over_24h"),
+        )
+        .select_from(Issue)
+        .where(unresolved_cond)
+    )
+
+    agg_result = await db.execute(stmt)
+    agg_row = agg_result.one()
+
+    # Query oldest unresolved issue
+    oldest_stmt = (
+        select(
+            Issue.id,
+            Issue.issue_key,
+            Issue.title,
+            Issue.created_at,
+            Issue.severity,
+            Issue.priority,
+            Issue.status,
+        )
+        .where(unresolved_cond)
+        .order_by(Issue.created_at.asc())
+        .limit(1)
+    )
+    oldest_result = await db.execute(oldest_stmt)
+    oldest_row = oldest_result.first()
+
+    oldest_item: OldestUnresolvedIssue | None = None
+    if oldest_row:
+        created_dt = oldest_row.created_at
+        if created_dt.tzinfo is None:
+            created_dt = created_dt.replace(tzinfo=UTC)
+        age_seconds = (now - created_dt).total_seconds()
+        age_days = round(max(0.0, age_seconds / 86400.0), 1)
+
+        oldest_item = OldestUnresolvedIssue(
+            id=oldest_row.id,
+            issue_key=oldest_row.issue_key,
+            title=oldest_row.title,
+            created_at=oldest_row.created_at,
+            age_days=age_days,
+            severity=oldest_row.severity.value if hasattr(oldest_row.severity, "value") else str(oldest_row.severity),
+            priority=oldest_row.priority.value if hasattr(oldest_row.priority, "value") else str(oldest_row.priority),
+            status=oldest_row.status.value if hasattr(oldest_row.status, "value") else str(oldest_row.status),
+        )
+
+    return IssueAgingResponse(
+        total_unresolved=agg_row.total_unresolved,
+        under_24h=agg_row.under_24h,
+        hours_24_to_72=agg_row.hours_24_to_72,
+        days_3_to_7=agg_row.days_3_to_7,
+        over_7d=agg_row.over_7d,
+        oldest_unresolved=oldest_item,
+        critical_blocker_over_24h=agg_row.critical_blocker_over_24h,
+        unassigned_over_7d=agg_row.unassigned_over_7d,
+        reopened_over_24h=agg_row.reopened_over_24h,
     )
 
 

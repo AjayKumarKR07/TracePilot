@@ -228,7 +228,7 @@ export const AdminSprintApprovalsPage: React.FC = () => {
             Sprint Approvals &amp; Governance
           </h1>
           <p className="page-subtitle">
-            Review completed sprint testing deliverables submitted by QA Testers and grant official completion sign-off.
+            Review completed sprint deliverables submitted by Developers and grant official completion sign-off.
           </p>
         </div>
 
@@ -275,7 +275,7 @@ export const AdminSprintApprovalsPage: React.FC = () => {
           </span>
           <span style={{ color: 'var(--text-muted)' }}>or</span>
           <span style={{ padding: '0.15rem 0.5rem', background: 'rgba(245,158,11,0.2)', color: '#fbbf24', borderRadius: '4px', fontWeight: 700, fontSize: '0.75rem' }}>
-            ↺ REQUEST CHANGES → IN_PROGRESS (Tester Rework)
+            ↺ REQUEST CHANGES → IN_PROGRESS (Developer Rework)
           </span>
         </div>
       </div>
@@ -326,7 +326,7 @@ export const AdminSprintApprovalsPage: React.FC = () => {
                 All Sprint Submissions Reviewed
               </h3>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', maxWidth: '480px', margin: '0 auto' }}>
-                No sprints are currently waiting for admin sign-off. When a QA tester completes testing and submits a sprint, it will appear here for review.
+                No sprints are currently waiting for admin sign-off. When a developer completes work and submits a sprint, it will appear here for review.
               </p>
             </div>
           ) : (
@@ -393,7 +393,7 @@ export const AdminSprintApprovalsPage: React.FC = () => {
 
                         <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.8rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
                           <span>
-                            Assigned Tester: <strong style={{ color: '#34d399' }}>{sprint.assigned_tester_name || '—'}</strong>
+                            Assigned Developer: <strong style={{ color: '#34d399' }}>{sprint.assigned_tester_name || '—'}</strong>
                           </span>
                           <span>
                             Sprint Window: <strong style={{ color: 'var(--text-primary)' }}>{formatDate(sprint.start_date)}</strong> to <strong style={{ color: 'var(--text-primary)' }}>{formatDate(sprint.end_date)}</strong>
@@ -466,7 +466,7 @@ export const AdminSprintApprovalsPage: React.FC = () => {
                             setRequestChangesComment('');
                           }}
                           style={{ fontSize: '0.82rem', padding: '0.5rem 0.95rem' }}
-                          title="Request changes → Returns to IN_PROGRESS for tester rework"
+                          title="Request changes → Returns to IN_PROGRESS for developer rework"
                         >
                           <RotateCcw size={15} /> Request Changes
                         </button>
@@ -660,7 +660,7 @@ export const AdminSprintApprovalsPage: React.FC = () => {
                   <tr>
                     <th>Sprint Name</th>
                     <th>Project</th>
-                    <th>Tester</th>
+                    <th>Developer</th>
                     <th>Issues Resolved</th>
                     <th>Velocity</th>
                     <th>Completed At</th>
@@ -743,7 +743,7 @@ export const AdminSprintApprovalsPage: React.FC = () => {
         title="Request Changes on Sprint"
       >
         <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-          The sprint will be returned to the assigned tester with status <strong>IN_PROGRESS</strong>.
+          The sprint will be returned to the assigned developer with status <strong>IN_PROGRESS</strong>.
         </p>
         <div className="form-group">
           <label className="form-label">Review Comment / Feedback (Required) *</label>
@@ -771,7 +771,7 @@ export const AdminSprintApprovalsPage: React.FC = () => {
             disabled={!requestChangesComment.trim() || actionLoadingId !== null}
             onClick={handleRequestChanges}
           >
-            Send Back to Tester
+            Send Back to Developer
           </button>
         </div>
       </Modal>

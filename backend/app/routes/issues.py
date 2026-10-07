@@ -1,4 +1,4 @@
-﻿"""
+"""
 Issue / Defect management routes.
 
 RBAC summary:
@@ -140,6 +140,7 @@ async def list_issues(
     search: str | None = Query(None, min_length=3, description="Search key, title, or description"),
     sort_by: str | None = Query(None, description="Field to sort by (created_at, updated_at, priority)"),
     sort_desc: bool = Query(True, description="Sort in descending order"),
+    include_test: bool = Query(False, description="Include issues from test-fixture projects"),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -162,6 +163,7 @@ async def list_issues(
         search=search,
         sort_by=sort_by,
         sort_desc=sort_desc,
+        include_test=include_test,
     )
 
 

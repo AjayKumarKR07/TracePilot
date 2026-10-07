@@ -1,4 +1,4 @@
-﻿/**
+/**
  * AdminActionCenter
  *
  * Surfaces real actionable items for the admin.
@@ -44,7 +44,7 @@ const CATEGORY_META: Record<ActionCategory, { icon: React.ReactNode; color: stri
     icon: <ClipboardCheck size={16} />,
     color: '#818cf8',
     bg: 'rgba(99,102,241,0.10)',
-    badgeLabel: 'ACTION NEEDED',
+    badgeLabel: 'ACTION REQUIRED',
     badgeColor: '#6366f1',
   },
   critical_issues: {

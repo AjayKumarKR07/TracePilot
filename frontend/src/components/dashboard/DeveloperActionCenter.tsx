@@ -3,7 +3,7 @@
  *
  * Data sources (zero extra API calls — props from DeveloperDashboardPage):
  *   - assignedIssues: already loaded (assignee_id = current developer)
- *   - assignedSprints: already loaded (assigned_tester_id = current developer)
+ *   - assignedSprints: already loaded (assigned_tester_id = developer's DB foreign key)
  *
  * Shows issues that genuinely need attention:
  *   - Urgent/High priority active issues

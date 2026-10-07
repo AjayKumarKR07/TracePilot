@@ -107,29 +107,34 @@ const MetricCard: React.FC<MetricCardProps> = ({
     onClick={onClick}
     style={onClick ? { cursor: 'pointer', transition: 'transform 0.15s ease, box-shadow 0.15s ease' } : undefined}
   >
-    <div className="metric-info" style={{ flex: 1 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-        <span className="metric-label">{label}</span>
+    <div className="metric-info" style={{ flex: 1, minWidth: 0 }}>
+      <span className="metric-label" title={label}>{label}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginTop: '0.2rem', flexWrap: 'wrap' }}>
+        <span className="metric-value" style={{ margin: 0, ...(valueColor ? { color: valueColor } : {}) }}>
+          {value}
+        </span>
         {badge && (
           <span
             style={{
-              fontSize: '0.68rem',
+              fontSize: '0.62rem',
               fontWeight: 700,
               padding: '0.12rem 0.45rem',
               borderRadius: '999px',
               backgroundColor: badgeColor || 'rgba(99,102,241,0.2)',
               color: badgeColor ? '#fff' : '#818cf8',
+              letterSpacing: '0.03em',
+              whiteSpace: 'nowrap',
+              lineHeight: 1.2,
+              display: 'inline-flex',
+              alignItems: 'center',
             }}
           >
             {badge}
           </span>
         )}
       </div>
-      <span className="metric-value" style={valueColor ? { color: valueColor } : undefined}>
-        {value}
-      </span>
       {subtitle && (
-        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.2rem', display: 'block' }}>
+        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.25rem', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {subtitle}
         </span>
       )}

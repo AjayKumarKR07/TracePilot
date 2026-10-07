@@ -16,7 +16,7 @@ export interface NotificationNavTarget {
  * Centralized Notification-to-Route Resolver
  *
  * Implements strict role-based routing and deep linking across TracePilot:
- * 1. Tester sprint notifications â†’ /tester-sprints (?sprintId=ID)
+ * 1. Developer sprint notifications -> /developer-sprints (?sprintId=ID)
  * 2. Admin sprint approval / submission / review notifications â†’ /admin/sprint-approvals (?sprintId=ID)
  * 3. Admin sprint management notifications â†’ /admin/sprints (?sprintId=ID)
  * 4. Issue assignment / reported notifications â†’ /issues?issueId=ID (open/focus issue)
@@ -86,7 +86,7 @@ export function getNotificationDestination(
       return withQueryParam('/admin/sprints', 'sprintId', entityId);
     }
 
-    // Regular USER cannot access admin or tester sprint centers
+    // Regular USER cannot access admin or developer sprint centers
     return '/dashboard';
   }
 

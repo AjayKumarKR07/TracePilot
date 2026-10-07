@@ -106,3 +106,26 @@ export interface AdminDashboardResponse {
   backlog: BacklogStats;
 }
 
+export interface OldestUnresolvedIssue {
+  id: number;
+  issue_key: string;
+  title: string;
+  created_at: string;
+  age_days: number;
+  severity: string;
+  priority: string;
+  status: string;
+}
+
+export interface IssueAgingResponse {
+  total_unresolved: number;
+  under_24h: number;
+  hours_24_to_72: number;
+  days_3_to_7: number;
+  over_7d: number;
+  oldest_unresolved: OldestUnresolvedIssue | null;
+  critical_blocker_over_24h: number;
+  unassigned_over_7d: number;
+  reopened_over_24h: number;
+}
+

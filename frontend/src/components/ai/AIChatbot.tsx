@@ -1,5 +1,5 @@
 /**
- * AIChatbot – main AI Testing Assistant panel for the TracePilot Tester Dashboard.
+ * AIChatbot – main AI Assistant panel for the TracePilot Developer Dashboard.
  *
  * Features:
  * - Conversation history (frontend-managed, sent with each request)
@@ -87,6 +87,7 @@ export const AIChatbot: React.FC<AIChatbotProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | undefined>();
   const [aiAvailable, setAiAvailable] = useState<boolean | null>(null);
+  const [aiProvider, setAiProvider] = useState<string>('AI');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [lastUserMessage, setLastUserMessage] = useState<string>('');
 
@@ -100,7 +101,12 @@ export const AIChatbot: React.FC<AIChatbotProps> = ({
   // Check AI availability on mount
   useEffect(() => {
     aiApi.health()
-      .then((health) => setAiAvailable(health.status === 'available'))
+      .then((health) => {
+        setAiAvailable(health.status === 'available');
+        if (health.ai_provider) {
+          setAiProvider(health.ai_provider.toUpperCase());
+        }
+      })
       .catch(() => setAiAvailable(false));
   }, []);
 
@@ -302,7 +308,7 @@ export const AIChatbot: React.FC<AIChatbotProps> = ({
               background: 'var(--bg-surface-elevated)',
             }}
           >
-            <Sparkles size={9} /> Gemini
+            <Sparkles size={9} /> {aiProvider}
           </span>
 
           {/* Clear button */}

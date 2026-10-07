@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { SprintService } from "../services/SprintService";
 import { issuesApi } from "../api/issues";
@@ -545,7 +545,7 @@ export const SprintsPage: React.FC = () => {
                     )}
                     {isAdmin && (sprint.status === "PLANNED" || sprint.status === "ACTIVE" || sprint.status === "IN_PROGRESS") && (
                       <button className="btn btn-secondary btn-sm" onClick={() => openAssignTesterModal(sprint.id)}>
-                        <UserCheck size={14} /> {sprint.assigned_tester_name ? 'Reassign Tester' : 'Assign Tester'}
+                        <UserCheck size={14} /> {sprint.assigned_tester_name ? 'Reassign Developer' : 'Assign Developer'}
                       </button>
                     )}
                   </div>
@@ -675,26 +675,26 @@ export const SprintsPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Assign Tester Modal */}
-      <Modal isOpen={isAssignTesterOpen} onClose={() => setIsAssignTesterOpen(false)} title="Assign Tester to Sprint">
+      {/* Assign Developer Modal */}
+      <Modal isOpen={isAssignTesterOpen} onClose={() => setIsAssignTesterOpen(false)} title="Assign Developer to Sprint">
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", margin: 0 }}>
-            Select a tester to assign. The sprint will move to <strong>ACTIVE</strong> if currently PLANNED.
+            Select a developer to assign. The sprint will move to <strong>ACTIVE</strong> if currently PLANNED.
           </p>
           <div className="form-group">
-            <label className="form-label">Tester</label>
+            <label className="form-label">Developer</label>
             <select
               className="form-select"
               value={selectedTesterId}
               onChange={e => setSelectedTesterId(Number(e.target.value) || "")}
             >
-              <option value="">— Select a tester —</option>
+              <option value="">— Select a developer —</option>
               {testerList.map(t => (
                 <option key={t.id} value={t.id}>{t.full_name} ({t.email})</option>
               ))}
             </select>
             {testerList.length === 0 && (
-              <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "0.5rem" }}>No active testers found.</p>
+              <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "0.5rem" }}>No active developers found.</p>
             )}
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem" }}>
@@ -704,7 +704,7 @@ export const SprintsPage: React.FC = () => {
               disabled={!selectedTesterId || assigningTester}
               onClick={handleAssignTester}
             >
-              {assigningTester ? "Assigning..." : "Assign Tester"}
+              {assigningTester ? "Assigning..." : "Assign Developer"}
             </button>
           </div>
         </div>

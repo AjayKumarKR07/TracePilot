@@ -5,6 +5,8 @@ All fields are integer counts derived from pure SQL aggregation queries.
 No user secrets or sensitive data are present in these schemas.
 """
 
+from datetime import datetime
+from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 
@@ -125,4 +127,35 @@ class DashboardResponse(BaseModel):
     content: ContentStats
     sprints: SprintStats
     backlog: BacklogStats
+
+
+class OldestUnresolvedIssue(BaseModel):
+    """Details of the single oldest unresolved defect in the system."""
+    id: int
+    issue_key: str
+    title: str
+    created_at: datetime
+    age_days: float
+    severity: str
+    priority: str
+    status: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class IssueAgingResponse(BaseModel):
+    """System-wide issue aging operational metrics for Admin.
+
+    All age buckets and attention counts are derived from real created_at / updated_at
+    timestamps on active unresolved issues.
+    """
+    total_unresolved: int
+    under_24h: int
+    hours_24_to_72: int
+    days_3_to_7: int
+    over_7d: int
+    oldest_unresolved: Optional[OldestUnresolvedIssue] = None
+    critical_blocker_over_24h: int
+    unassigned_over_7d: int
+    reopened_over_24h: int
 

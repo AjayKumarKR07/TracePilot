@@ -21,6 +21,7 @@ The service handles:
 The AI is advisory-only. It must NEVER modify database records.
 """
 
+import asyncio
 import logging
 from dataclasses import dataclass, field
 from typing import Any
@@ -43,27 +44,34 @@ logger = logging.getLogger(__name__)
 MAX_MESSAGE_LENGTH = 4000
 MAX_CONVERSATION_TURNS = 10   # 10 user+assistant pairs = 20 messages max
 MAX_COMMENT_CHARS = 500       # Truncate long comments in context
-TRACEPILOT_SYSTEM_PROMPT = """You are TracePilot AI, an expert software testing assistant embedded in the TracePilot Defect Tracking System.
+TRACEPILOT_SYSTEM_PROMPT = """You are TracePilot AI, an expert software testing assistant embedded in the TracePilot Automated Defect Tracking and Resolution System.
 
-Your role is to assist testers with:
-- Analyzing bugs and defects
-- Suggesting reproduction steps
-- Root cause analysis (with appropriate uncertainty)
-- Generating structured test cases
-- Sprint and defect trend interpretation
-- QA best practices
-- API, database, and frontend/backend debugging guidance
-- General software testing questions
+SYSTEM DOMAIN & ARCHITECTURAL CONTEXT:
+- TracePilot is an automated defect tracking, QA testing, and sprint resolution system.
+- User Roles & Responsibilities:
+  * ADMIN: System administration, sprint lifecycle approvals, issue triaging, developer workload assignment, and system governance.
+  * DEVELOPER: Defect investigation, root-cause resolution, fix implementation, and unit/integration verification.
+  * USER: Issue reporting, reproduction clarification, and post-resolution verification.
+- Canonical Workflow:
+  USER (Reports Issue) → ADMIN (Triages & Assigns) → DEVELOPER (Investigates & Resolves) → RESOLUTION → ADMIN / USER VERIFICATION (Validates Fix & Closes).
+- Core TracePilot Entities & States:
+  * Issues: Types (BUG, FEATURE, TASK, IMPROVEMENT), Status (OPEN, IN_PROGRESS, RESOLVED, CLOSED), Severity (CRITICAL, HIGH, MEDIUM, LOW), Priority (URGENT, HIGH, MEDIUM, LOW), Component, Environment, Steps to Reproduce.
+  * Projects: Groupings with project keys, leads, and milestones.
+  * Sprints: Agile iterations with lifecycle (PLANNED, ACTIVE, COMPLETED, ARCHIVED), assignees, velocity, and admin review comments.
+  * Developer Assignment: Issue assignment, workload distribution, and resolution accountability.
+  * Issue Aging & Backlog Health: Monitoring stale defects, priority queues, and SLA compliance.
+  * SEO / External Context: Only referenced when explicitly provided in the request or project details.
 
-Critical rules you MUST always follow:
-1. You are ADVISORY ONLY. Never claim to change issue status, assign issues, create/delete sprints, or modify any data.
-2. When suggesting actions, always use phrasing like "I suggest...", "You may want to...", "Consider...", etc.
-3. For root cause analysis, always use "Possible cause:", "Likely area to investigate:", "Suggested test:" rather than claiming certainty.
-4. Keep responses clear, structured, and professional — suitable for a QA team.
-5. Use markdown formatting: headers (##), bullet lists (-), numbered lists, and code blocks (```) where appropriate.
-6. Be concise but thorough. Prioritize actionable guidance.
-7. Never expose sensitive system information, API keys, or database credentials.
-8. If you don't have enough information to give a definitive answer, explicitly state what additional information would help."""
+CRITICAL OPERATIONAL RULES:
+1. ADVISORY ONLY: You are strictly an advisory assistant. You must NEVER claim to have performed, or be able to automatically perform, database changes (e.g., assigning issues, closing defects, altering sprint status, deleting records, or modifying users). Always instruct the user on the appropriate actions to take through the TracePilot UI.
+2. DISTINGUISH FACTS FROM INFERENCE:
+   - Always clearly distinguish between:
+     (a) Confirmed Facts retrieved directly from TracePilot database context (e.g. specific issue details, status, sprint metrics).
+     (b) AI-generated recommendations, hypotheses, and suggested test cases.
+     (c) Information that is missing, not provided, or unavailable.
+3. NEVER FABRICATE DATA: Never hallucinate or invent non-existent database records, user names, issue IDs, project keys, timestamps, commits, or metrics. If information is not in the context, explicitly state that it is unavailable.
+4. ROOT CAUSE UNCERTAINTY: For root cause analysis, always present possibilities using cautious language ("Possible cause:", "Likely area to investigate:", "Hypothesis:") rather than claiming certainty.
+5. CONCISE & ACTIONABLE: Deliver concise, highly technical, and actionable guidance formatted in clean markdown (headers ##, bullet points -, numbered steps, and code blocks)."""
 
 
 # ---------------------------------------------------------------------------#
@@ -96,9 +104,225 @@ class AIResponse:
     error: str | None = None
 
 
+def _sanitize_error(msg: str) -> str:
+    """Ensure no API keys appear in error messages or logs."""
+    cleaned = str(msg)
+    if settings.GROQ_API_KEY and settings.GROQ_API_KEY in cleaned:
+        cleaned = cleaned.replace(settings.GROQ_API_KEY, "[REDACTED]")
+    if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY in cleaned:
+        cleaned = cleaned.replace(settings.GEMINI_API_KEY, "[REDACTED]")
+    return cleaned
+
+
+_last_groq_model_used: str = ""
+
+
+def get_last_groq_model_used() -> str:
+    """Return the model ID used by the most recent Groq inference call."""
+    return _last_groq_model_used or settings.GROQ_MODEL
+
+
+def _is_ai_available() -> bool:
+    """Return True if AI is enabled and at least one API key (Gemini or Groq) is configured."""
+    return bool(settings.AI_ENABLED and (settings.GEMINI_API_KEY or settings.GROQ_API_KEY))
+
+
+def _get_active_model() -> str:
+    """Return the name of the model currently active or intended as default."""
+    if settings.AI_PROVIDER == "groq" or (not settings.GEMINI_API_KEY and settings.GROQ_API_KEY):
+        return _last_groq_model_used or settings.GROQ_MODEL
+    return settings.AI_MODEL
+
+
+# ---------------------------------------------------------------------------#
+# Model Discovery & Health Check                                             #
+# ---------------------------------------------------------------------------#
+
+_models_cache: dict[str, Any] = {"timestamp": 0.0, "result": None}
+
+
+def verify_groq_models_available(cache_ttl_seconds: int = 300) -> dict[str, Any]:
+    """
+    Check if the configured Groq models exist using GET https://api.groq.com/openai/v1/models.
+    Caches results in memory for cache_ttl_seconds to avoid excessive requests.
+    Used for startup/health checks and debugging. Never called on every chat request.
+    Never exposes GROQ_API_KEY or internal credentials.
+    """
+    import time
+    now = time.time()
+    if _models_cache["result"] is not None and (now - _models_cache["timestamp"]) < cache_ttl_seconds:
+        return _models_cache["result"]
+
+    if not settings.GROQ_API_KEY:
+        res = {
+            "verified": False,
+            "error": "GROQ_API_KEY is not configured",
+            "primary_available": False,
+            "fallback_available": False,
+        }
+        _models_cache["result"] = res
+        _models_cache["timestamp"] = now
+        return res
+
+    import httpx
+    url = "https://api.groq.com/openai/v1/models"
+    headers = {"Authorization": f"Bearer {settings.GROQ_API_KEY}"}
+
+    try:
+        with httpx.Client(timeout=6.0) as client:
+            resp = client.get(url, headers=headers)
+            if resp.status_code == 200:
+                data = resp.json().get("data", [])
+                model_ids = {m.get("id") for m in data if isinstance(m, dict)}
+                primary_ok = settings.GROQ_MODEL in model_ids
+                fallback_ok = settings.GROQ_FALLBACK_MODEL in model_ids
+                res = {
+                    "verified": True,
+                    "primary_available": primary_ok,
+                    "fallback_available": fallback_ok,
+                    "primary_model": settings.GROQ_MODEL,
+                    "fallback_model": settings.GROQ_FALLBACK_MODEL,
+                    "models_count": len(model_ids),
+                }
+            elif resp.status_code == 401:
+                res = {
+                    "verified": False,
+                    "error": "Invalid API key",
+                    "primary_available": False,
+                    "fallback_available": False,
+                }
+            else:
+                res = {
+                    "verified": False,
+                    "error": f"HTTP {resp.status_code}",
+                    "primary_available": False,
+                    "fallback_available": False,
+                }
+    except Exception as exc:
+        res = {
+            "verified": False,
+            "error": f"Connection error: {type(exc).__name__}",
+            "primary_available": False,
+            "fallback_available": False,
+        }
+
+    _models_cache["result"] = res
+    _models_cache["timestamp"] = now
+    return res
+
+
 # ---------------------------------------------------------------------------#
 # Provider abstraction                                                        #
 # ---------------------------------------------------------------------------#
+
+def _call_groq(
+    system_prompt: str,
+    conversation_history: list[ConversationMessage],
+    user_message: str,
+) -> str:
+    """
+    Call the Groq API via HTTPX (OpenAI-compatible chat completions).
+
+    Routing:
+      1. Primary production model: settings.GROQ_MODEL ('openai/gpt-oss-120b')
+      2. If primary fails due to temporary errors (429, 5xx, timeout, network failure, model unavailable),
+         automatically falls back to settings.GROQ_FALLBACK_MODEL ('openai/gpt-oss-20b').
+      3. For permanent errors (401 invalid key, 403 forbidden), fails fast without retrying.
+
+    Never prints or leaks GROQ_API_KEY in logs, exceptions, or responses.
+    """
+    if not settings.GROQ_API_KEY:
+        raise ValueError("GROQ_API_KEY is not configured.")
+
+    import httpx
+
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {settings.GROQ_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    messages: list[dict[str, str]] = [{"role": "system", "content": system_prompt}]
+    for msg in conversation_history:
+        role = "user" if msg.role == "user" else "assistant"
+        messages.append({"role": role, "content": msg.content})
+    messages.append({"role": "user", "content": user_message})
+
+    # Strict production model routing: Primary -> Fallback
+    models_to_try = [settings.GROQ_MODEL]
+    if settings.GROQ_FALLBACK_MODEL and settings.GROQ_FALLBACK_MODEL != settings.GROQ_MODEL:
+        models_to_try.append(settings.GROQ_FALLBACK_MODEL)
+
+    global _last_groq_model_used
+    last_exc: Exception | None = None
+
+    for idx, model_name in enumerate(models_to_try):
+        is_primary = (idx == 0)
+        # Timeout budget: primary 10s, fallback 8s (well under Axios 15s limit)
+        timeout_val = 10.0 if is_primary else 8.0
+
+        try:
+            payload = {
+                "model": model_name,
+                "messages": messages,
+                "temperature": 0.4,
+                "max_tokens": 4096,
+            }
+            with httpx.Client(timeout=timeout_val) as client:
+                res = client.post(url, headers=headers, json=payload)
+
+                # Permanent Authentication / Authorization errors: fail fast, do not retry fallback
+                if res.status_code == 401:
+                    logger.error("Groq authentication failed (HTTP 401). Invalid API key.")
+                    raise ValueError("Groq authentication failed. Please verify GROQ_API_KEY configuration.")
+                if res.status_code == 403:
+                    logger.error("Groq permission denied (HTTP 403).")
+                    raise ValueError("Groq API access forbidden.")
+
+                if res.status_code == 200:
+                    data = res.json()
+                    choices = data.get("choices", [])
+                    if choices and "message" in choices[0]:
+                        msg_obj = choices[0]["message"]
+                        content = msg_obj.get("content") or ""
+                        if not content.strip() and msg_obj.get("reasoning"):
+                            content = msg_obj.get("reasoning", "")
+                        if content and content.strip():
+                            _last_groq_model_used = model_name
+                            return content.strip()
+
+                    raise ValueError("Groq returned malformed or empty message response.")
+
+                # Temporary errors (429 rate limit, 5xx server error, 404/400 model unavailable)
+                status = res.status_code
+                if status == 429:
+                    logger.warning("Groq rate limit (HTTP 429) on model %s", model_name)
+                elif status >= 500:
+                    logger.warning("Groq server error (HTTP %s) on model %s", status, model_name)
+                else:
+                    logger.warning("Groq HTTP error (%s) on model %s", status, model_name)
+
+                res.raise_for_status()
+
+        except ValueError:
+            # Re-raise auth/config validation errors immediately
+            raise
+        except Exception as exc:
+            last_exc = exc
+            sanitized_exc = _sanitize_error(str(exc))
+            logger.warning(
+                "Groq call failed for model %s: %s%s",
+                model_name,
+                sanitized_exc,
+                " -> attempting fallback..." if is_primary and len(models_to_try) > 1 else "",
+            )
+            continue
+
+    if last_exc:
+        sanitized_msg = _sanitize_error(str(last_exc))
+        raise RuntimeError(f"All Groq model attempts failed: {sanitized_msg}")
+    raise RuntimeError("All Groq model attempts failed.")
+
 
 def _call_gemini(
     system_prompt: str,
@@ -106,13 +330,37 @@ def _call_gemini(
     user_message: str,
 ) -> str:
     """
-    Call the Gemini API using the new google.genai SDK (google-genai package).
-    The old google.generativeai package is deprecated as of mid-2025.
+    Call the AI provider.
+    - If AI_PROVIDER is 'groq', routes to Groq first.
+    - If AI_PROVIDER is 'gemini' (or default):
+        Calls Gemini using google.genai.
+        If Gemini is unconfigured, or encounters any error (503 overload, quota,
+        model unavailable, invalid key), automatically falls back to Groq if configured.
     """
+    # 1. Direct Groq preference
+    if (settings.AI_PROVIDER == "groq" or not settings.GEMINI_API_KEY) and settings.GROQ_API_KEY:
+        try:
+            return _call_groq(system_prompt, conversation_history, user_message)
+        except Exception as exc:
+            logger.warning("Groq provider call failed: %s", _sanitize_error(str(exc)))
+            if settings.GEMINI_API_KEY:
+                logger.info("Falling back from Groq to Gemini...")
+            else:
+                raise
+
+    # 2. If Gemini API key is missing or blank but Groq is available: use Groq directly
+    if not settings.GEMINI_API_KEY and settings.GROQ_API_KEY:
+        logger.info("GEMINI_API_KEY not set; using Groq as default AI provider.")
+        return _call_groq(system_prompt, conversation_history, user_message)
+
+    # 3. Call Gemini
     try:
         from google import genai  # type: ignore[import]
         from google.genai import types as genai_types  # type: ignore[import]
     except ImportError:
+        if settings.GROQ_API_KEY:
+            logger.warning("google-genai package not installed; falling back to Groq.")
+            return _call_groq(system_prompt, conversation_history, user_message)
         raise RuntimeError(
             "google-genai package is not installed. "
             "Run: pip install google-genai"
@@ -172,6 +420,18 @@ def _call_gemini(
             except Exception as exc:
                 last_exc = exc
                 exc_str = str(exc)
+
+                # If Groq is available, immediately fallback to Groq to avoid slow client timeouts
+                if settings.GROQ_API_KEY:
+                    logger.warning(
+                        "Gemini encounter error (%s); immediately trying Groq fallback...",
+                        exc_str[:120],
+                    )
+                    try:
+                        return _call_groq(system_prompt, conversation_history, user_message)
+                    except Exception as groq_exc:
+                        logger.error("Groq fallback failed: %s; continuing Gemini retries", groq_exc)
+
                 is_overload = "503" in exc_str or "UNAVAILABLE" in exc_str or "high demand" in exc_str.lower()
                 is_not_found = "404" in exc_str or "NOT_FOUND" in exc_str
                 is_empty = isinstance(exc, ValueError)
@@ -182,7 +442,7 @@ def _call_gemini(
                         candidate_model, retry + 1, exc_str[:100],
                     )
                     if retry == 0:
-                        _time.sleep(2)
+                        _time.sleep(1)
                         continue
                     else:
                         break  # try next fallback model
@@ -190,7 +450,15 @@ def _call_gemini(
                     logger.warning("Gemini model error — model=%s: %s", candidate_model, exc_str[:100])
                     break  # try next fallback model
                 else:
-                    raise  # non-retriable (auth, quota exhausted, etc.)
+                    raise
+
+    # 4. If all Gemini candidate models failed, try Groq fallback
+    if settings.GROQ_API_KEY:
+        logger.warning("All Gemini candidate models exhausted; falling back to Groq...")
+        try:
+            return _call_groq(system_prompt, conversation_history, user_message)
+        except Exception as groq_exc:
+            logger.error("Groq fallback failed: %s", groq_exc)
 
     raise last_exc  # type: ignore[misc]  # all fallbacks exhausted
 
@@ -538,12 +806,12 @@ async def chat(request: AIRequest, db: AsyncSession) -> AIResponse:
             error="AI_DISABLED",
         )
 
-    if not settings.GEMINI_API_KEY:
+    if not (settings.GEMINI_API_KEY or settings.GROQ_API_KEY):
         return AIResponse(
             success=False,
-            message="AI service is not configured. Please set GEMINI_API_KEY in the backend environment.",
+            message="AI service is not configured. Please set GEMINI_API_KEY or GROQ_API_KEY in the backend environment.",
             conversation_id=request.conversation_id or str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             error="AI_NOT_CONFIGURED",
         )
 
@@ -555,7 +823,7 @@ async def chat(request: AIRequest, db: AsyncSession) -> AIResponse:
             success=False,
             message=f"Message is too long. Please limit your message to {MAX_MESSAGE_LENGTH} characters.",
             conversation_id=conversation_id,
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             error="MESSAGE_TOO_LONG",
         )
 
@@ -600,26 +868,27 @@ async def chat(request: AIRequest, db: AsyncSession) -> AIResponse:
         )
 
     try:
-        ai_message = _call_gemini(
-            system_prompt=TRACEPILOT_SYSTEM_PROMPT,
-            conversation_history=history,
-            user_message=full_user_message,
+        ai_message = await asyncio.to_thread(
+            _call_gemini,
+            TRACEPILOT_SYSTEM_PROMPT,
+            history,
+            full_user_message,
         )
         return AIResponse(
             success=True,
             message=ai_message,
             conversation_id=conversation_id,
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             issue_context_used=issue_context_used,
             sprint_context_used=sprint_context_used,
         )
     except Exception as exc:
-        logger.error("AI provider error: %s", exc, exc_info=True)
+        logger.error("AI provider error: %s", _sanitize_error(str(exc)), exc_info=True)
         return AIResponse(
             success=False,
             message="AI service is temporarily unavailable. Please try again in a moment.",
             conversation_id=conversation_id,
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             error=str(type(exc).__name__),
         )
 
@@ -632,12 +901,12 @@ async def analyze_issue(issue_id: int, db: AsyncSession) -> AIResponse:
     """Perform structured defect analysis for a specific issue."""
     import uuid
 
-    if not settings.AI_ENABLED or not settings.GEMINI_API_KEY:
+    if not _is_ai_available():
         return AIResponse(
             success=False,
             message="AI service is not available or not configured.",
             conversation_id=str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             error="AI_DISABLED",
         )
 
@@ -647,27 +916,27 @@ async def analyze_issue(issue_id: int, db: AsyncSession) -> AIResponse:
             success=False,
             message=f"Issue with ID {issue_id} was not found.",
             conversation_id=str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             error="ISSUE_NOT_FOUND",
         )
 
     prompt = _build_issue_analysis_prompt(issue_context)
     try:
-        response_text = _call_gemini(TRACEPILOT_SYSTEM_PROMPT, [], prompt)
+        response_text = await asyncio.to_thread(_call_gemini, TRACEPILOT_SYSTEM_PROMPT, [], prompt)
         return AIResponse(
             success=True,
             message=response_text,
             conversation_id=str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             issue_context_used=True,
         )
     except Exception as exc:
-        logger.error("AI analyze_issue error: %s", exc, exc_info=True)
+        logger.error("AI analyze_issue error: %s", _sanitize_error(str(exc)), exc_info=True)
         return AIResponse(
             success=False,
             message="AI service is temporarily unavailable. Please try again.",
             conversation_id=str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             error=str(type(exc).__name__),
         )
 
@@ -678,12 +947,12 @@ async def generate_test_cases(
     """Generate structured test cases for an issue or description."""
     import uuid
 
-    if not settings.AI_ENABLED or not settings.GEMINI_API_KEY:
+    if not _is_ai_available():
         return AIResponse(
             success=False,
             message="AI service is not available or not configured.",
             conversation_id=str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             error="AI_DISABLED",
         )
 
@@ -693,12 +962,12 @@ async def generate_test_cases(
 
     prompt = _build_test_cases_prompt(issue_context, description)
     try:
-        response_text = _call_gemini(TRACEPILOT_SYSTEM_PROMPT, [], prompt)
+        response_text = await asyncio.to_thread(_call_gemini, TRACEPILOT_SYSTEM_PROMPT, [], prompt)
         return AIResponse(
             success=True,
             message=response_text,
             conversation_id=str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             issue_context_used=bool(issue_context),
         )
     except Exception as exc:
@@ -707,7 +976,7 @@ async def generate_test_cases(
             success=False,
             message="AI service is temporarily unavailable. Please try again.",
             conversation_id=str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             error=str(type(exc).__name__),
         )
 
@@ -718,12 +987,12 @@ async def reproduction_steps(
     """Generate detailed reproduction steps for a defect."""
     import uuid
 
-    if not settings.AI_ENABLED or not settings.GEMINI_API_KEY:
+    if not _is_ai_available():
         return AIResponse(
             success=False,
             message="AI service is not available or not configured.",
             conversation_id=str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             error="AI_DISABLED",
         )
 
@@ -733,12 +1002,12 @@ async def reproduction_steps(
 
     prompt = _build_reproduction_steps_prompt(issue_context, description)
     try:
-        response_text = _call_gemini(TRACEPILOT_SYSTEM_PROMPT, [], prompt)
+        response_text = await asyncio.to_thread(_call_gemini, TRACEPILOT_SYSTEM_PROMPT, [], prompt)
         return AIResponse(
             success=True,
             message=response_text,
             conversation_id=str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             issue_context_used=bool(issue_context),
         )
     except Exception as exc:
@@ -747,7 +1016,7 @@ async def reproduction_steps(
             success=False,
             message="AI service is temporarily unavailable. Please try again.",
             conversation_id=str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             error=str(type(exc).__name__),
         )
 
@@ -758,12 +1027,12 @@ async def root_cause_analysis(
     """Perform root cause analysis for a defect."""
     import uuid
 
-    if not settings.AI_ENABLED or not settings.GEMINI_API_KEY:
+    if not _is_ai_available():
         return AIResponse(
             success=False,
             message="AI service is not available or not configured.",
             conversation_id=str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             error="AI_DISABLED",
         )
 
@@ -773,21 +1042,21 @@ async def root_cause_analysis(
 
     prompt = _build_root_cause_prompt(issue_context, description)
     try:
-        response_text = _call_gemini(TRACEPILOT_SYSTEM_PROMPT, [], prompt)
+        response_text = await asyncio.to_thread(_call_gemini, TRACEPILOT_SYSTEM_PROMPT, [], prompt)
         return AIResponse(
             success=True,
             message=response_text,
             conversation_id=str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             issue_context_used=bool(issue_context),
         )
     except Exception as exc:
-        logger.error("AI root_cause_analysis error: %s", exc, exc_info=True)
+        logger.error("AI root_cause_analysis error: %s", _sanitize_error(str(exc)), exc_info=True)
         return AIResponse(
             success=False,
             message="AI service is temporarily unavailable. Please try again.",
             conversation_id=str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             error=str(type(exc).__name__),
         )
 
@@ -798,12 +1067,12 @@ async def sprint_summary(
     """Generate an AI-powered sprint summary and analysis."""
     import uuid
 
-    if not settings.AI_ENABLED or not settings.GEMINI_API_KEY:
+    if not _is_ai_available():
         return AIResponse(
             success=False,
             message="AI service is not available or not configured.",
             conversation_id=str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             error="AI_DISABLED",
         )
 
@@ -813,27 +1082,27 @@ async def sprint_summary(
             success=False,
             message=f"Sprint with ID {sprint_id} was not found.",
             conversation_id=str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             error="SPRINT_NOT_FOUND",
         )
 
     prompt = _build_sprint_summary_prompt(sprint_context, description)
     try:
-        response_text = _call_gemini(TRACEPILOT_SYSTEM_PROMPT, [], prompt)
+        response_text = await asyncio.to_thread(_call_gemini, TRACEPILOT_SYSTEM_PROMPT, [], prompt)
         return AIResponse(
             success=True,
             message=response_text,
             conversation_id=str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             sprint_context_used=True,
         )
     except Exception as exc:
-        logger.error("AI sprint_summary error: %s", exc, exc_info=True)
+        logger.error("AI sprint_summary error: %s", _sanitize_error(str(exc)), exc_info=True)
         return AIResponse(
             success=False,
             message="AI service is temporarily unavailable. Please try again.",
             conversation_id=str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             error=str(type(exc).__name__),
         )
 
@@ -842,30 +1111,30 @@ async def explain_metrics(metrics_context: str, question: str) -> AIResponse:
     """Explain TracePilot analytics metrics in plain language."""
     import uuid
 
-    if not settings.AI_ENABLED or not settings.GEMINI_API_KEY:
+    if not _is_ai_available():
         return AIResponse(
             success=False,
             message="AI service is not available or not configured.",
             conversation_id=str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             error="AI_DISABLED",
         )
 
     prompt = _build_metrics_prompt(metrics_context, question)
     try:
-        response_text = _call_gemini(TRACEPILOT_SYSTEM_PROMPT, [], prompt)
+        response_text = await asyncio.to_thread(_call_gemini, TRACEPILOT_SYSTEM_PROMPT, [], prompt)
         return AIResponse(
             success=True,
             message=response_text,
             conversation_id=str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
         )
     except Exception as exc:
-        logger.error("AI explain_metrics error: %s", exc, exc_info=True)
+        logger.error("AI explain_metrics error: %s", _sanitize_error(str(exc)), exc_info=True)
         return AIResponse(
             success=False,
             message="AI service is temporarily unavailable. Please try again.",
             conversation_id=str(uuid.uuid4()),
-            model=settings.AI_MODEL,
+            model=_get_active_model(),
             error=str(type(exc).__name__),
         )
