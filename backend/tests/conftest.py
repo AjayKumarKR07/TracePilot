@@ -1,4 +1,4 @@
-﻿"""
+"""
 conftest.py â€” Phase 4 test fixtures.
 
 Creates verified test users directly in the database (bypassing the
@@ -60,10 +60,11 @@ async def _ensure_verified_user(
             )
             session.add(user)
             await session.commit()
-        elif not existing.is_active or not existing.is_email_verified:
-            # Fix existing unverified user
+        elif not existing.is_active or not existing.is_email_verified or existing.role != role:
+            # Fix existing unverified or wrong-role user
             existing.is_active = True
             existing.is_email_verified = True
+            existing.role = role
             await session.commit()
 
 

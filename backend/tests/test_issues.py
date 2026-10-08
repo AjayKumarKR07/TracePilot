@@ -382,7 +382,7 @@ class TestIssueAssignment:
         assert r.status_code == 403
 
     def test_cannot_assign_non_tester_400(self) -> None:
-        """Non-TESTER (e.g. USER) cannot be assigned issues."""
+        """Non-DEVELOPER (e.g. USER) cannot be assigned issues."""
         pid = _get_or_create_project(_fresh_key("ASSI"), "Invalid Assign Test")
         issue = _create_issue(pid)
         user_id = client.get("/auth/me", headers=auth_header(_user_tok())).json()["id"]
@@ -392,7 +392,7 @@ class TestIssueAssignment:
             headers=auth_header(_admin_tok()),
         )
         assert r.status_code == 400
-        assert "TESTER" in r.text
+        assert "DEVELOPER" in r.text
 
     def test_cannot_assign_nonexistent_user_404(self) -> None:
         pid = _get_or_create_project(_fresh_key("ASSG5"), "Ghost Assign Test")

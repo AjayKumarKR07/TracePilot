@@ -10,10 +10,13 @@ Design principles:
 """
 
 from datetime import UTC, datetime, timedelta
+import time
 
-from sqlalchemy import case, func, select
+from sqlalchemy import case, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
+from app.database.connection import engine
 from app.models.issue import Issue, IssueStatus, Priority, Severity
 from app.models.issue_attachment import IssueAttachment
 from app.models.issue_comment import IssueComment
@@ -22,9 +25,14 @@ from app.models.project import Project, ProjectStatus
 from app.models.sprint import Sprint, SprintStatus
 from app.models.user import User, UserRole
 from app.schemas.admin import (
+    AppHealthInfo,
     BacklogStats,
+    BackgroundServiceItem,
     ContentStats,
     DashboardResponse,
+    DatabaseHealthInfo,
+    AIHealthInfo,
+    AuthHealthInfo,
     IssuePriorityStats,
     IssueSeverityStats,
     IssueStatusStats,
@@ -32,12 +40,16 @@ from app.schemas.admin import (
     ProjectStats,
     RecentActivity,
     SprintStats,
+    SystemHealthResponse,
     UserStats,
+    WebSocketHealthInfo,
     InactiveAssigneeItem,
     InactiveAssigneeList,
     IssueAgingResponse,
     OldestUnresolvedIssue,
 )
+from app.services import ai_service
+from app.services.websocket_manager import ws_manager
 
 
 async def get_dashboard_stats(db: AsyncSession) -> DashboardResponse:
@@ -453,6 +465,157 @@ async def get_issue_aging_stats(db: AsyncSession) -> IssueAgingResponse:
         critical_blocker_over_24h=agg_row.critical_blocker_over_24h,
         unassigned_over_7d=agg_row.unassigned_over_7d,
         reopened_over_24h=agg_row.reopened_over_24h,
+    )
+
+
+async def get_system_health(db: AsyncSession) -> SystemHealthResponse:
+    """Return aggregated live system health across app, database, websocket, AI, auth, and background services.
+
+    Sanitized: Database credentials, API keys, and JWT secrets are never exposed.
+    """
+    now = datetime.now(UTC)
+
+    # 1. Database live check
+    db_status = "healthy"
+    db_connected = False
+    latency_ms: float | None = None
+    try:
+        t0 = time.perf_counter()
+        await db.execute(text("SELECT 1"))
+        latency_ms = round((time.perf_counter() - t0) * 1000, 2)
+        db_connected = True
+        if latency_ms > 1000:
+            db_status = "degraded"
+        else:
+            db_status = "healthy"
+    except Exception:
+        db_status = "down"
+        db_connected = False
+        latency_ms = None
+
+    pool_size = None
+    try:
+        pool_size = engine.pool.size()
+    except Exception:
+        pool_size = None
+
+    database_info = DatabaseHealthInfo(
+        status=db_status,
+        connected=db_connected,
+        driver=settings.DB_DRIVER,
+        database_name=settings.DB_NAME,
+        host=settings.DB_HOST,
+        port=settings.DB_PORT,
+        latency_ms=latency_ms,
+        pool_size=pool_size,
+        checked_at=now,
+    )
+
+    # 2. Application
+    app_status = "healthy"
+    app_info = AppHealthInfo(
+        status=app_status,
+        service="TracePilot API",
+        version="0.9.0",
+        environment=settings.APP_ENV,
+        debug=settings.DEBUG,
+        api_prefix=settings.API_V1_PREFIX,
+    )
+
+    # 3. WebSocket Manager
+    ws_active_users = ws_manager.active_user_count()
+    ws_total_conns = sum(len(conns) for conns in ws_manager._connections.values())
+    ws_status = "healthy"
+    websocket_info = WebSocketHealthInfo(
+        status=ws_status,
+        active_users=ws_active_users,
+        total_connections=ws_total_conns,
+        service="FastAPI WebSocket Manager",
+    )
+
+    # 4. AI Service
+    key_configured = bool(settings.GEMINI_API_KEY or settings.GROQ_API_KEY)
+    if settings.AI_ENABLED and key_configured:
+        ai_status = "available"
+    elif settings.AI_ENABLED and not key_configured:
+        ai_status = "misconfigured"
+    else:
+        ai_status = "disabled"
+
+    active_provider = (
+        "groq"
+        if (settings.AI_PROVIDER == "groq" or (not settings.GEMINI_API_KEY and settings.GROQ_API_KEY))
+        else settings.AI_PROVIDER
+    )
+    active_model = (
+        settings.GROQ_MODEL
+        if active_provider == "groq"
+        else settings.AI_MODEL
+    )
+    fallback_model = settings.GROQ_FALLBACK_MODEL if active_provider == "groq" else None
+
+    model_verified: bool | None = None
+    if active_provider == "groq" and settings.GROQ_API_KEY and settings.AI_ENABLED:
+        try:
+            disc = ai_service.verify_groq_models_available()
+            model_verified = bool(disc.get("verified") and disc.get("primary_available"))
+            if disc.get("error") == "Invalid API key":
+                ai_status = "misconfigured"
+        except Exception:
+            model_verified = False
+
+    ai_info = AIHealthInfo(
+        status=ai_status,
+        ai_enabled=settings.AI_ENABLED,
+        provider=active_provider,
+        primary_model=active_model,
+        fallback_model=fallback_model,
+        api_key_configured=key_configured,
+        model_verified=model_verified,
+    )
+
+    # 5. Auth (JWT)
+    jwt_configured = bool(settings.JWT_SECRET_KEY and settings.JWT_SECRET_KEY != "CHANGE_ME_TO_A_LONG_RANDOM_SECRET")
+    auth_status = "healthy" if jwt_configured else "degraded"
+    auth_info = AuthHealthInfo(
+        status=auth_status,
+        jwt_algorithm=settings.JWT_ALGORITHM,
+        token_expire_minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+        secret_configured=jwt_configured,
+    )
+
+    # 6. Background Services (real TracePilot workers)
+    smtp_configured = bool(settings.SMTP_USERNAME and settings.SMTP_PASSWORD)
+    bg_services = [
+        BackgroundServiceItem(
+            name="WebSocket Notification Dispatcher",
+            status="healthy",
+            description="Asynchronous push delivery of alerts to active browser sessions",
+        ),
+        BackgroundServiceItem(
+            name="SMTP Email Delivery Worker",
+            status="healthy" if smtp_configured else "degraded",
+            description="Background email worker for OTP verification codes and notification emails",
+        ),
+    ]
+
+    # Overall Status Calculation
+    if db_status == "down" or app_status == "down":
+        overall_status = "down"
+    elif db_status == "degraded" or ai_status == "misconfigured" or auth_status == "degraded":
+        overall_status = "degraded"
+    else:
+        overall_status = "healthy"
+
+    return SystemHealthResponse(
+        overall_status=overall_status,
+        timestamp=now,
+        application=app_info,
+        database=database_info,
+        websocket=websocket_info,
+        ai=ai_info,
+        auth=auth_info,
+        background_services=bg_services,
     )
 
 

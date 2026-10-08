@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
+  Activity,
   ArrowLeftRight,
   BarChart3,
   Bug,
@@ -185,6 +186,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
               >
                 <ShieldCheck size={18} />
                 <span>Admin Management</span>
+              </NavLink>
+
+              <NavLink
+                to="/admin/system-health"
+                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                onClick={onCloseMobile}
+              >
+                <Activity size={18} />
+                <span>System Health</span>
               </NavLink>
             </>
           )}

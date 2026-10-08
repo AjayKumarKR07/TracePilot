@@ -78,13 +78,41 @@ const MetricCard: React.FC<MetricCardProps> = ({
   onClick,
 }) => (
   <div
-    className="metric-card"
+    className="metric-card tp-kpi-card"
     onClick={onClick}
-    style={onClick ? { cursor: 'pointer', transition: 'transform 0.15s ease, box-shadow 0.15s ease' } : undefined}
+    style={{
+      padding: '0.95rem 1.15rem',
+      borderRadius: '10px',
+      backgroundColor: 'var(--card-bg, #ffffff)',
+      border: badge ? '1px solid rgba(99, 102, 241, 0.4)' : '1px solid var(--border-subtle, #e2e8f0)',
+      cursor: onClick ? 'pointer' : undefined,
+      transition: 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: '0.75rem',
+      minWidth: 0,
+    }}
   >
     <div className="metric-info" style={{ flex: 1, minWidth: 0 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-        <span className="metric-label" style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+      {/* Label + Badge Header Row */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.4rem', marginBottom: '0.25rem' }}>
+        <span
+          className="metric-label"
+          title={label}
+          style={{
+            fontSize: '0.74rem',
+            fontWeight: 700,
+            color: 'var(--text-secondary, #64748b)',
+            letterSpacing: '0.03em',
+            textTransform: 'uppercase',
+            display: 'block',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            lineHeight: 1.2,
+          }}
+        >
           {label}
         </span>
         {badge && (
@@ -92,35 +120,70 @@ const MetricCard: React.FC<MetricCardProps> = ({
             style={{
               fontSize: '0.62rem',
               fontWeight: 700,
-              padding: '0.12rem 0.4rem',
+              padding: '0.12rem 0.45rem',
               borderRadius: '999px',
               backgroundColor: badgeColor || 'var(--primary-color, #6366f1)',
-              color: '#fff',
+              color: '#ffffff',
               letterSpacing: '0.03em',
+              whiteSpace: 'nowrap',
+              lineHeight: 1.2,
+              boxShadow: '0 1px 3px rgba(99,102,241,0.3)',
+              flexShrink: 0,
             }}
           >
             {badge}
           </span>
         )}
       </div>
+
+      {/* Value */}
       <div
         className="metric-value"
         style={{
           fontSize: '1.65rem',
           fontWeight: 800,
-          color: valueColor || 'var(--text-primary)',
-          lineHeight: 1.2,
+          color: valueColor || 'var(--text-primary, #0f172a)',
+          lineHeight: 1.15,
+          letterSpacing: '-0.02em',
         }}
       >
         {value}
       </div>
+
+      {/* Subtitle */}
       {subtitle && (
-        <span className="metric-subtitle" style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.25rem', display: 'block' }}>
+        <span
+          className="metric-subtitle"
+          title={subtitle}
+          style={{
+            fontSize: '0.72rem',
+            color: 'var(--text-muted, #94a3b8)',
+            marginTop: '0.25rem',
+            display: 'block',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            lineHeight: 1.2,
+          }}
+        >
           {subtitle}
         </span>
       )}
     </div>
-    <div className={`metric-icon ${iconClass}`} style={{ flexShrink: 0 }}>
+
+    {/* Icon */}
+    <div
+      className={`metric-icon ${iconClass}`}
+      style={{
+        flexShrink: 0,
+        width: '36px',
+        height: '36px',
+        borderRadius: '8px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
       {icon}
     </div>
   </div>
@@ -509,18 +572,41 @@ export const AdminDashboardPage: React.FC = () => {
       </div>
 
       {/* ───────────────────────────────────────────────────────────────────── */}
-      {/* 3. KPI SUMMARY (Exactly 7 Compact Cards)                              */}
+      {/* 3. KPI SUMMARY (7 Compact Cards: 4 Core Scope + 3 Workflow Cards)     */}
       {/* ───────────────────────────────────────────────────────────────────── */}
-      <div
-        className="metrics-grid"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: '1rem',
-          marginBottom: '1.75rem',
-        }}
-      >
-        {/* 1. Total Projects */}
+      <style>{`
+        .admin-kpi-row-1 {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 0.85rem;
+          margin-bottom: 0.85rem;
+        }
+        .admin-kpi-row-2 {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 0.85rem;
+          margin-bottom: 1.5rem;
+        }
+        @media (max-width: 1024px) {
+          .admin-kpi-row-1 {
+            grid-template-columns: repeat(2, 1fr);
+          }
+          .admin-kpi-row-2 {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+        @media (max-width: 580px) {
+          .admin-kpi-row-1 {
+            grid-template-columns: 1fr;
+          }
+          .admin-kpi-row-2 {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+
+      {/* Row 1: Core System & Defect Scope (4 Cards) */}
+      <div className="admin-kpi-row-1">
         <MetricCard
           label="Total Projects"
           value={stats.projects.total}
@@ -529,8 +615,6 @@ export const AdminDashboardPage: React.FC = () => {
           subtitle={`${stats.projects.active} Active • ${stats.projects.inactive} Inactive`}
           onClick={() => navigate('/projects')}
         />
-
-        {/* 2. Total Issues */}
         <MetricCard
           label="Total Issues"
           value={stats.issues.total.toLocaleString()}
@@ -539,8 +623,6 @@ export const AdminDashboardPage: React.FC = () => {
           subtitle="Includes Kaggle ISEC dataset"
           onClick={() => navigate('/issues')}
         />
-
-        {/* 3. Open Issues */}
         <MetricCard
           label="Open Issues"
           value={stats.issues.unresolved.toLocaleString()}
@@ -550,8 +632,6 @@ export const AdminDashboardPage: React.FC = () => {
           subtitle={`${resolutionRate}% Resolution Rate`}
           onClick={() => navigate('/issues?status=REPORTED')}
         />
-
-        {/* 4. Critical & Blocker */}
         <MetricCard
           label="Critical & Blocker"
           value={(stats.severity.critical + stats.severity.blocker).toLocaleString()}
@@ -561,8 +641,10 @@ export const AdminDashboardPage: React.FC = () => {
           subtitle={`${stats.severity.blocker} Blocker • ${stats.severity.critical.toLocaleString()} Critical`}
           onClick={() => navigate('/issues?severity=CRITICAL')}
         />
+      </div>
 
-        {/* 5. Active Sprints */}
+      {/* Row 2: Operational Flow & Review Pipeline (3 Cards) */}
+      <div className="admin-kpi-row-2">
         <MetricCard
           label="Active Sprints"
           value={(stats.sprints?.active || 0) + (stats.sprints?.in_progress || 0)}
@@ -571,8 +653,6 @@ export const AdminDashboardPage: React.FC = () => {
           subtitle={`${stats.sprints?.in_progress || 0} In Progress • ${stats.sprints?.active || 0} Active`}
           onClick={() => navigate('/admin/sprints')}
         />
-
-        {/* 6. Awaiting Approval */}
         <MetricCard
           label="Awaiting Approval"
           value={awaitingApproval.length || (stats.sprints?.ready_for_approval || 0)}
@@ -584,8 +664,6 @@ export const AdminDashboardPage: React.FC = () => {
           subtitle={awaitingApproval.length > 0 ? 'Admin Review Pending' : 'All Sprints Reviewed'}
           onClick={() => navigate('/admin/sprint-approvals')}
         />
-
-        {/* 7. Unassigned Backlog */}
         <MetricCard
           label="Unassigned Backlog"
           value={(stats.backlog?.unassigned || 0).toLocaleString()}

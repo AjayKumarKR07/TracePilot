@@ -9,6 +9,7 @@ import { AdminPage } from '../pages/AdminPage';
 import { AdminDashboardPage } from '../pages/AdminDashboardPage';
 import { AdminSprintsPage } from '../pages/AdminSprintsPage';
 import { AdminSprintApprovalsPage } from '../pages/AdminSprintApprovalsPage';
+import { AdminSystemHealthPage } from '../pages/AdminSystemHealthPage';
 import { AnalyticsPage } from '../pages/AnalyticsPage';
 
 import { DashboardPage } from '../pages/DashboardPage';
@@ -58,6 +59,8 @@ export const AppRoutes: React.FC = () => {
               <Route path="/admin/sprint-approvals" element={<AdminSprintApprovalsPage />} />
               <Route path="/admin-sprint-approvals" element={<AdminSprintApprovalsPage />} />
               <Route path="/sprint-approvals" element={<Navigate to="/admin/sprint-approvals" replace />} />
+              <Route path="/admin/system-health" element={<AdminSystemHealthPage />} />
+              <Route path="/admin-system-health" element={<Navigate to="/admin/system-health" replace />} />
             </Route>
 
             {/* Developer Protected Routes */}

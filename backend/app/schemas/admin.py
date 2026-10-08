@@ -159,3 +159,65 @@ class IssueAgingResponse(BaseModel):
     unassigned_over_7d: int
     reopened_over_24h: int
 
+
+class AppHealthInfo(BaseModel):
+    status: str
+    service: str
+    version: str
+    environment: str
+    debug: bool
+    api_prefix: str
+
+
+class DatabaseHealthInfo(BaseModel):
+    status: str
+    connected: bool
+    driver: str
+    database_name: str
+    host: str
+    port: int
+    latency_ms: Optional[float] = None
+    pool_size: Optional[int] = None
+    checked_at: datetime
+
+
+class WebSocketHealthInfo(BaseModel):
+    status: str
+    active_users: int
+    total_connections: int
+    service: str
+
+
+class AIHealthInfo(BaseModel):
+    status: str
+    ai_enabled: bool
+    provider: str
+    primary_model: str
+    fallback_model: Optional[str] = None
+    api_key_configured: bool
+    model_verified: Optional[bool] = None
+
+
+class AuthHealthInfo(BaseModel):
+    status: str
+    jwt_algorithm: str
+    token_expire_minutes: int
+    secret_configured: bool
+
+
+class BackgroundServiceItem(BaseModel):
+    name: str
+    status: str
+    description: str
+
+
+class SystemHealthResponse(BaseModel):
+    overall_status: str
+    timestamp: datetime
+    application: AppHealthInfo
+    database: DatabaseHealthInfo
+    websocket: WebSocketHealthInfo
+    ai: AIHealthInfo
+    auth: AuthHealthInfo
+    background_services: list[BackgroundServiceItem]
+

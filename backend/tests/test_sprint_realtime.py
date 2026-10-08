@@ -13,7 +13,7 @@ from tests.conftest import (
 
 def _get_tester3_id() -> int:
     email = _ci_email('tester3')
-    r = _CLIENT.get('/users', params={'role': 'TESTER', 'search': email, 'page_size': 10},
+    r = _CLIENT.get('/users', params={'role': 'DEVELOPER', 'search': email, 'page_size': 10},
                     headers=auth_header(admin_token()))
     assert r.status_code == 200
     for u in r.json().get('items', []):

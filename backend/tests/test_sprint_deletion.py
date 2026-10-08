@@ -51,7 +51,7 @@ def _setup_project_and_tester():
 
     target_email = _ci_email("tester3")
     r_users = _CLIENT.get(
-        "/users", params={"role": "TESTER", "search": target_email, "page_size": 10}, headers=admin_headers
+        "/users", params={"role": "DEVELOPER", "search": target_email, "page_size": 10}, headers=admin_headers
     )
     assert r_users.status_code == 200
     tester_id = None

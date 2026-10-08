@@ -80,13 +80,13 @@ class TestSwitchRoleSecurity:
         assert "Target user not found" in res.json()["detail"]
 
     def test_admin_can_switch_to_tester(self, api_client: TestClient) -> None:
-        """Admin successfully switches to a TESTER user.
+        """Admin successfully switches to a DEVELOPER (formerly TESTER) user.
 
         Verifies:
           - 200 OK
           - Target user info in response
-          - JWT claims: sub=target_id, role=TESTER
-          - GET /auth/me returns TESTER profile
+          - JWT claims: sub=target_id, role=DEVELOPER
+          - GET /auth/me returns DEVELOPER profile
           - Preserves RBAC: new token cannot call GET /users (403 Forbidden)
         """
         tester = _get_user_by_email("tester.p4ci@example.com")
@@ -102,7 +102,7 @@ class TestSwitchRoleSecurity:
         assert "access_token" in data
         assert data["token_type"] == "bearer"
         assert data["user"]["id"] == tester.id
-        assert data["user"]["role"] == "TESTER"
+        assert data["user"]["role"] == "DEVELOPER"
         assert data["user"]["email"] == tester.email
 
         # Decode JWT and inspect claims
@@ -113,12 +113,12 @@ class TestSwitchRoleSecurity:
             algorithms=[settings.JWT_ALGORITHM],
         )
         assert payload["sub"] == str(tester.id)
-        assert payload["role"] == "TESTER"
+        assert payload["role"] == "DEVELOPER"
 
         # Using new token for GET /auth/me
         me_res = api_client.get("/auth/me", headers={"Authorization": f"Bearer {new_token}"})
         assert me_res.status_code == 200
-        assert me_res.json()["role"] == "TESTER"
+        assert me_res.json()["role"] == "DEVELOPER"
         assert me_res.json()["id"] == tester.id
 
         # RBAC Check: New token cannot call admin-only GET /users
@@ -176,7 +176,7 @@ class TestSwitchRoleSecurity:
         assert audit.entity_id == tester.id
         assert audit.entity_key == tester.email
         assert audit.new_values.get("target_user_id") == tester.id
-        assert audit.new_values.get("target_role") == "TESTER"
+        assert audit.new_values.get("target_role") == "DEVELOPER"
         assert audit.new_values.get("action") == "ADMIN_SWITCH_ROLE"
         assert audit.old_values.get("admin_user_id") == admin.id
         assert audit.created_at is not None

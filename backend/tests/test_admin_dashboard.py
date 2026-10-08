@@ -347,3 +347,95 @@ class TestIssueAging:
             assert "created_at" in oldest
             assert "age_days" in oldest
             assert oldest["age_days"] >= 0.0
+
+
+class TestSystemHealth:
+    def test_unauth_returns_401(self) -> None:
+        r = _CLIENT.get("/admin/system-health")
+        assert r.status_code == 401
+
+    def test_user_returns_403(self) -> None:
+        r = _CLIENT.get(
+            "/admin/system-health",
+            headers=auth_header(user_token()),
+        )
+        assert r.status_code == 403
+
+    def test_tester_returns_403(self) -> None:
+        r = _CLIENT.get(
+            "/admin/system-health",
+            headers=auth_header(tester_token()),
+        )
+        assert r.status_code == 403
+
+    def test_admin_returns_200_and_valid_schema(self) -> None:
+        r = _CLIENT.get(
+            "/admin/system-health",
+            headers=auth_header(admin_token()),
+        )
+        assert r.status_code == 200
+        data = r.json()
+
+        assert "overall_status" in data
+        assert data["overall_status"] in ("healthy", "degraded", "down")
+        assert "timestamp" in data
+
+        # Application
+        app = data["application"]
+        assert app["status"] in ("healthy", "degraded", "down")
+        assert app["service"] == "TracePilot API"
+        assert "version" in app
+        assert "environment" in app
+
+        # Database
+        db = data["database"]
+        assert db["status"] in ("healthy", "degraded", "down")
+        assert db["connected"] is True
+        assert "driver" in db
+        assert "database_name" in db
+        assert "host" in db
+        assert "port" in db
+        assert isinstance(db["latency_ms"], (float, int))
+        assert db["latency_ms"] >= 0.0
+
+        # WebSocket
+        ws = data["websocket"]
+        assert ws["status"] in ("healthy", "degraded", "down")
+        assert isinstance(ws["active_users"], int)
+        assert isinstance(ws["total_connections"], int)
+
+        # AI
+        ai = data["ai"]
+        assert ai["status"] in ("available", "misconfigured", "disabled")
+        assert "provider" in ai
+        assert "primary_model" in ai
+
+        # Auth
+        auth = data["auth"]
+        assert auth["status"] in ("healthy", "degraded", "down")
+        assert "jwt_algorithm" in auth
+        assert "token_expire_minutes" in auth
+
+        # Background services
+        bg = data["background_services"]
+        assert isinstance(bg, list)
+        assert len(bg) >= 1
+        for s in bg:
+            assert "name" in s
+            assert "status" in s
+            assert "description" in s
+
+    def test_system_health_sanitized_no_secrets(self) -> None:
+        r = _CLIENT.get(
+            "/admin/system-health",
+            headers=auth_header(admin_token()),
+        )
+        assert r.status_code == 200
+        text = r.text.lower()
+        # Verify no passwords, raw secrets, or connection strings are leaked
+        assert "password" not in text or "password_hash" not in text
+        assert "secret_key" not in text
+        assert "groq_api_key" not in text
+        assert "gemini_api_key" not in text
+        assert "postgresql://" not in text
+        assert "postgresql+psycopg://" not in text

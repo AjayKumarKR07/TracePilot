@@ -181,20 +181,20 @@ class TestUserListSearch:
         assert r.status_code == 200
         assert any(u["id"] == uid for u in r.json()["items"])
 
-    def test_filter_by_role_tester(self):
+    def test_filter_by_role_developer(self):
         r = _CLIENT.get(
             "/users",
-            params={"role": "TESTER"},
+            params={"role": "DEVELOPER"},
             headers=auth_header(admin_token()),
         )
         assert r.status_code == 200
         for u in r.json()["items"]:
-            assert u["role"] == "TESTER"
+            assert u["role"] == "DEVELOPER"
 
-    def test_filter_by_role_developer_rejected_422(self):
+    def test_filter_by_role_invalid_rejected_422(self):
         r = _CLIENT.get(
             "/users",
-            params={"role": "DEVELOPER"},
+            params={"role": "INVALID_ROLE"},
             headers=auth_header(admin_token()),
         )
         assert r.status_code == 422
@@ -444,15 +444,18 @@ async def _set_user_active_direct(user_id: int, active: bool) -> None:
         await session.commit()
 
 
+async def _get_all_active_admin_ids_direct() -> list[int]:
+    from app.database.connection import engine
+    async with AsyncSession(engine) as session:
+        result = await session.execute(
+            select(User.id).where(User.role == UserRole.ADMIN, User.is_active == True)
+        )
+        return list(result.scalars().all())
+
+
 def _get_all_active_admin_ids() -> list[int]:
     """Return IDs of all currently active ADMIN users."""
-    r = _CLIENT.get(
-        "/users",
-        params={"role": "ADMIN", "is_active": "true", "page_size": 100},
-        headers=auth_header(admin_token()),
-    )
-    assert r.status_code == 200, r.text
-    return [u["id"] for u in r.json()["items"]]
+    return _run_sync(_get_all_active_admin_ids_direct())
 
 
 # --------------------------------------------------------------------------- #
@@ -500,7 +503,7 @@ class TestLastAdminProtection:
         try:
             r = _CLIENT.patch(
                 f"/users/{ci_uid}/role",
-                json={"role": "TESTER"},
+                json={"role": "USER"},
                 headers=auth_header(admin_token()),
             )
             assert r.status_code == 400
@@ -546,7 +549,7 @@ class TestRoleManagement:
         assert r.status_code == 200
         assert r.json()["role"] == "ADMIN"
         # Demote back
-        _CLIENT.patch(f"/users/{uid}/role", json={"role": "TESTER"}, headers=auth_header(admin_token()))
+        _CLIENT.patch(f"/users/{uid}/role", json={"role": "DEVELOPER"}, headers=auth_header(admin_token()))
 
     def test_admin_can_change_tester_to_user(self):
         uid, _ = self._create_temp_tester()
@@ -562,7 +565,7 @@ class TestRoleManagement:
         uid, _ = self._create_temp_tester()
         r = _CLIENT.patch(
             f"/users/{uid}/role",
-            json={"role": "TESTER"},
+            json={"role": "DEVELOPER"},
             headers=auth_header(admin_token()),
         )
         assert r.status_code == 400
@@ -576,15 +579,19 @@ class TestRoleManagement:
         )
         assert r.status_code == 422
 
-    def test_developer_role_rejected_422(self):
-        """Negative test proving DEVELOPER role is rejected."""
+    def test_admin_can_change_role_to_developer(self):
+        """Admin can assign canonical DEVELOPER role to a user."""
         uid, _ = self._create_temp_tester()
+        # Change to USER first
+        _CLIENT.patch(f"/users/{uid}/role", json={"role": "USER"}, headers=auth_header(admin_token()))
+        # Now change to DEVELOPER
         r = _CLIENT.patch(
             f"/users/{uid}/role",
             json={"role": "DEVELOPER"},
             headers=auth_header(admin_token()),
         )
-        assert r.status_code == 422
+        assert r.status_code == 200
+        assert r.json()["role"] == "DEVELOPER"
 
     def test_user_cannot_change_role_403(self):
         uid, _ = self._create_temp_tester()

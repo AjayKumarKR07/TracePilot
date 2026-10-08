@@ -129,3 +129,65 @@ export interface IssueAgingResponse {
   reopened_over_24h: number;
 }
 
+export interface AppHealthInfo {
+  status: 'healthy' | 'degraded' | 'down';
+  service: string;
+  version: string;
+  environment: string;
+  debug: boolean;
+  api_prefix: string;
+}
+
+export interface DatabaseHealthInfo {
+  status: 'healthy' | 'degraded' | 'down';
+  connected: boolean;
+  driver: string;
+  database_name: string;
+  host: string;
+  port: number;
+  latency_ms: number | null;
+  pool_size: number | null;
+  checked_at: string;
+}
+
+export interface WebSocketHealthInfo {
+  status: 'healthy' | 'degraded' | 'down';
+  active_users: number;
+  total_connections: number;
+  service: string;
+}
+
+export interface AIHealthInfo {
+  status: 'available' | 'misconfigured' | 'disabled';
+  ai_enabled: boolean;
+  provider: string;
+  primary_model: string;
+  fallback_model: string | null;
+  api_key_configured: boolean;
+  model_verified: boolean | null;
+}
+
+export interface AuthHealthInfo {
+  status: 'healthy' | 'degraded' | 'down';
+  jwt_algorithm: string;
+  token_expire_minutes: number;
+  secret_configured: boolean;
+}
+
+export interface BackgroundServiceItem {
+  name: string;
+  status: 'healthy' | 'degraded' | 'down';
+  description: string;
+}
+
+export interface SystemHealthResponse {
+  overall_status: 'healthy' | 'degraded' | 'down';
+  timestamp: string;
+  application: AppHealthInfo;
+  database: DatabaseHealthInfo;
+  websocket: WebSocketHealthInfo;
+  ai: AIHealthInfo;
+  auth: AuthHealthInfo;
+  background_services: BackgroundServiceItem[];
+}
+

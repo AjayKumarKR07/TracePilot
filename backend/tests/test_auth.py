@@ -98,14 +98,14 @@ class TestPasswordHashing:
 
 class TestJWT:
     def test_create_token_returns_string(self) -> None:
-        token = create_access_token(user_id=42, role="TESTER")
+        token = create_access_token(user_id=42, role="DEVELOPER")
         assert isinstance(token, str) and len(token) > 10
 
     def test_decode_valid_token_returns_payload(self) -> None:
-        token = _make_token(user_id=7, role="TESTER")
+        token = _make_token(user_id=7, role="DEVELOPER")
         payload = decode_access_token(token)
         assert payload["sub"] == "7"
-        assert payload["role"] == "TESTER"
+        assert payload["role"] == "DEVELOPER"
 
     def test_decode_invalid_token_raises_401(self) -> None:
         from fastapi import HTTPException
@@ -126,14 +126,26 @@ class TestJWT:
 # =========================================================================== #
 
 class TestRegistration:
-    def test_developer_registration_rejected_422(self) -> None:
-        """POST /auth/register with DEVELOPER role returns 422 — DEVELOPER is rejected in three-role model."""
+    def test_developer_registration_allowed(self) -> None:
+        """POST /auth/register with DEVELOPER role succeeds in canonical three-role model."""
+        import uuid
         with patch("app.routes.auth.send_otp_email", new_callable=AsyncMock):
             response = client.post("/auth/register", json={
                 "full_name": "Test Developer",
-                "email": _email("dev_reg"),
+                "email": _email(f"dev_reg_{uuid.uuid4().hex[:6]}"),
                 "password": "SecurePass123",
                 "role": "DEVELOPER",
+            })
+        assert response.status_code in (200, 201)
+
+    def test_invalid_role_registration_rejected_422(self) -> None:
+        """POST /auth/register with invalid role returns 422."""
+        with patch("app.routes.auth.send_otp_email", new_callable=AsyncMock):
+            response = client.post("/auth/register", json={
+                "full_name": "Invalid Role User",
+                "email": _email("invalid_role"),
+                "password": "SecurePass123",
+                "role": "INVALID_ROLE",
             })
         assert response.status_code == 422
 
@@ -142,7 +154,7 @@ class TestRegistration:
             "full_name": "Bad Email User",
             "email": "not-an-email",
             "password": "SecurePass123",
-            "role": "TESTER",
+            "role": "DEVELOPER",
         })
         assert response.status_code == 422
 
@@ -152,17 +164,18 @@ class TestRegistration:
             "full_name": "Weak Password User",
             "email": _email("weakpass"),
             "password": "short",
-            "role": "TESTER",
+            "role": "DEVELOPER",
         })
         assert response.status_code == 422
 
     def test_duplicate_email_returns_409(self) -> None:
         """Second registration with the same email must return 409."""
+        import uuid
         payload = {
             "full_name": "Duplicate User",
-            "email": _email("dup"),
+            "email": _email(f"dup_{uuid.uuid4().hex[:6]}"),
             "password": "SecurePass123",
-            "role": "TESTER",
+            "role": "DEVELOPER",
         }
         with patch("app.routes.auth.send_otp_email", new_callable=AsyncMock):
             client.post("/auth/register", json=payload)  # first
@@ -336,7 +349,7 @@ class TestLogin:
                 "full_name": "Login OK",
                 "email": email,
                 "password": password,
-                "role": "TESTER",
+                "role": "DEVELOPER",
             })
 
         if reg.status_code == 409:
@@ -369,7 +382,7 @@ class TestLogin:
                 "full_name": "Unverified Login",
                 "email": email,
                 "password": "SecurePass123",
-                "role": "TESTER",
+                "role": "DEVELOPER",
             })
         if reg.status_code == 409:
             pytest.skip("User may already be verified")
@@ -417,7 +430,7 @@ class TestAuthMe:
                 "full_name": "Me Test User",
                 "email": email,
                 "password": password,
-                "role": "TESTER",
+                "role": "DEVELOPER",
             })
 
         if reg.status_code == 201 and captured_otp:
@@ -482,7 +495,7 @@ class TestEmailService:
                 "full_name": "Mock Email Test",
                 "email": _email("mockemail"),
                 "password": "SecurePass123",
-                "role": "TESTER",
+                "role": "DEVELOPER",
             })
             assert mock_email.call_count in (0, 1)
 
@@ -529,7 +542,7 @@ class TestPasswordlessAuth:
         assert "access_token" in data
         assert data["token_type"] == "bearer"
         assert data["user"]["email"] == email
-        assert data["user"]["role"] in ("TESTER", "ADMIN", "USER")
+        assert data["user"]["role"] in ("DEVELOPER", "ADMIN", "USER")
         assert data["user"]["is_active"] is True
         assert data["user"]["is_email_verified"] is True
 

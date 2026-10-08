@@ -175,7 +175,7 @@ async def create_issue(body: IssueCreate, reporter: User, db: AsyncSession) -> t
         user_ids=admin_ids,
         notification_type=NotificationType.ISSUE_REPORTED,
         title="New issue reported",
-        message=f"New issue reported by {reporter.full_name}: {issue_key} â€” {body.title}",
+        message=f"New issue reported by {reporter.full_name}: {issue_key} - {body.title}",
         actor_id=reporter.id,
         entity_type="ISSUE",
         entity_id=issue.id,
