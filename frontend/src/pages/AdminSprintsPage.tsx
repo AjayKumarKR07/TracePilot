@@ -18,6 +18,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { SprintLifecycleIndicator } from '../components/sprints/SprintLifecycleIndicator';
+import { AdminSprintHealth } from '../components/dashboard/AdminSprintHealth';
 import { SprintService } from '../services/SprintService';
 import { projectsApi } from '../api/projects';
 import { issuesApi } from '../api/issues';
@@ -432,6 +433,9 @@ export const AdminSprintsPage: React.FC = () => {
       </div>
 
       {error && <ErrorMessage message={error} onRetry={() => fetchData()} />}
+
+      {/* Sprint Health Overview */}
+      <AdminSprintHealth sprints={sprints} />
 
       {/* Filters Toolbar */}
       <div

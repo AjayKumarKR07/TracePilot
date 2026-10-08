@@ -16,6 +16,7 @@ import { EmptyState } from '../components/common/EmptyState';
 import { ErrorMessage } from '../components/common/ErrorMessage';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { Modal } from '../components/common/Modal';
+import { AdminProjectHealth } from '../components/dashboard/AdminProjectHealth';
 import { useAuth } from '../hooks/useAuth';
 import type { Project, ProjectCreate, ProjectStatus, ProjectUpdate } from '../types/project';
 import { formatDate } from '../utils/formatters';
@@ -178,6 +179,9 @@ export const ProjectsPage: React.FC = () => {
       </div>
 
       {error && <ErrorMessage message={error} onRetry={fetchProjects} />}
+
+      {/* Admin Project Health Overview */}
+      {isAdmin && <AdminProjectHealth />}
 
       {/* Filter and Search Bar */}
       <div

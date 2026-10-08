@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from '../components/common/ProtectedRoute';
 import { RoleProtectedRoute } from '../components/common/RoleProtectedRoute';
@@ -57,6 +57,7 @@ export const AppRoutes: React.FC = () => {
               <Route path="/admin-sprints" element={<AdminSprintsPage />} />
               <Route path="/admin/sprint-approvals" element={<AdminSprintApprovalsPage />} />
               <Route path="/admin-sprint-approvals" element={<AdminSprintApprovalsPage />} />
+              <Route path="/sprint-approvals" element={<Navigate to="/admin/sprint-approvals" replace />} />
             </Route>
 
             {/* Developer Protected Routes */}

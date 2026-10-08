@@ -38,10 +38,12 @@ import type { IssueStatus, Priority, Severity } from "../../types/issue";
 
 interface AdminIssueAgingMonitorProps {
   refreshTrigger?: number;
+  compact?: boolean;
 }
 
 export const AdminIssueAgingMonitor: React.FC<AdminIssueAgingMonitorProps> = ({
   refreshTrigger,
+  compact = false,
 }) => {
   const navigate = useNavigate();
   const [data, setData] = useState<IssueAgingResponse | null>(null);
@@ -253,6 +255,260 @@ export const AdminIssueAgingMonitor: React.FC<AdminIssueAgingMonitorProps> = ({
   const hours24To72Pct = total > 0 ? Math.round((data.hours_24_to_72 / total) * 100) : 0;
   const days3To7Pct = total > 0 ? Math.round((data.days_3_to_7 / total) * 100) : 0;
   const over7dPct = total > 0 ? Math.round((data.over_7d / total) * 100) : 0;
+
+  if (compact) {
+    return (
+      <div
+        className="card admin-dashboard-card"
+        style={{
+          padding: "1.25rem 1.5rem",
+          borderRadius: "12px",
+          background: "var(--card-bg, #ffffff)",
+          border: "1px solid var(--border-subtle, #e2e8f0)",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          height: "100%",
+          boxSizing: "border-box",
+        }}
+      >
+        <div>
+          {/* Header */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.85rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <div
+                style={{
+                  width: "28px",
+                  height: "28px",
+                  borderRadius: "8px",
+                  background: "rgba(239,68,68,0.1)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#ef4444",
+                }}
+              >
+                <Clock size={16} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 700, color: "var(--text-primary)" }}>
+                  Issue Aging &amp; Urgent Backlog
+                </h3>
+                <p style={{ margin: 0, fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                  {total.toLocaleString()} active unresolved defects tracking
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => fetchData(true)}
+              disabled={refreshing}
+              style={{
+                background: "none",
+                border: "none",
+                padding: "0.3rem",
+                borderRadius: "6px",
+                color: "var(--text-muted)",
+                cursor: refreshing ? "not-allowed" : "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+              }}
+              title="Refresh aging metrics"
+              aria-label="Refresh aging metrics"
+            >
+              <RefreshCw size={13} className={refreshing ? "spin" : ""} />
+            </button>
+          </div>
+
+          {/* 3 Metric Cards Grid */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: "0.5rem",
+              marginBottom: "0.85rem",
+            }}
+          >
+            {/* 7+ Days Old */}
+            <div
+              onClick={() => navigate("/issues?sort_by=created_at&sort_desc=false")}
+              style={{
+                padding: "0.6rem 0.5rem",
+                borderRadius: "8px",
+                background: data.over_7d > 0 ? "rgba(239,68,68,0.06)" : "rgba(148,163,184,0.05)",
+                border: data.over_7d > 0 ? "1px solid rgba(239,68,68,0.2)" : "1px solid var(--border-subtle, #e2e8f0)",
+                cursor: "pointer",
+                textAlign: "center",
+                transition: "all 0.15s ease",
+              }}
+              title="Click to view 7+ day unresolved issues"
+            >
+              <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "#dc2626", textTransform: "uppercase" }}>
+                7+ Days Old
+              </div>
+              <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "#dc2626", margin: "0.15rem 0" }}>
+                {data.over_7d.toLocaleString()}
+              </div>
+              <div style={{ fontSize: "0.62rem", color: "var(--text-muted)" }}>
+                Unresolved
+              </div>
+            </div>
+
+            {/* Critical/Blocker Aging */}
+            <div
+              onClick={() => navigate("/issues?severity=CRITICAL")}
+              style={{
+                padding: "0.6rem 0.5rem",
+                borderRadius: "8px",
+                background: data.critical_blocker_over_24h > 0 ? "rgba(249,115,22,0.06)" : "rgba(148,163,184,0.05)",
+                border: data.critical_blocker_over_24h > 0 ? "1px solid rgba(249,115,22,0.2)" : "1px solid var(--border-subtle, #e2e8f0)",
+                cursor: "pointer",
+                textAlign: "center",
+                transition: "all 0.15s ease",
+              }}
+              title="Click to view Critical/Blocker issues > 24h"
+            >
+              <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "#ea580c", textTransform: "uppercase" }}>
+                Crit/Block &gt;24h
+              </div>
+              <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "#ea580c", margin: "0.15rem 0" }}>
+                {data.critical_blocker_over_24h.toLocaleString()}
+              </div>
+              <div style={{ fontSize: "0.62rem", color: "var(--text-muted)" }}>
+                High-impact
+              </div>
+            </div>
+
+            {/* Unassigned Aging */}
+            <div
+              onClick={() => navigate("/issues?unassigned=true")}
+              style={{
+                padding: "0.6rem 0.5rem",
+                borderRadius: "8px",
+                background: data.unassigned_over_7d > 0 ? "rgba(168,85,247,0.06)" : "rgba(148,163,184,0.05)",
+                border: data.unassigned_over_7d > 0 ? "1px solid rgba(168,85,247,0.2)" : "1px solid var(--border-subtle, #e2e8f0)",
+                cursor: "pointer",
+                textAlign: "center",
+                transition: "all 0.15s ease",
+              }}
+              title="Click to view unassigned backlog > 7d"
+            >
+              <div style={{ fontSize: "0.65rem", fontWeight: 700, color: "#9333ea", textTransform: "uppercase" }}>
+                Unassigned &gt;7d
+              </div>
+              <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "#9333ea", margin: "0.15rem 0" }}>
+                {data.unassigned_over_7d.toLocaleString()}
+              </div>
+              <div style={{ fontSize: "0.62rem", color: "var(--text-muted)" }}>
+                Unowned
+              </div>
+            </div>
+          </div>
+
+          {/* Oldest Unresolved Issue preview */}
+          {data.oldest_unresolved && (
+            <div
+              style={{
+                padding: "0.55rem 0.75rem",
+                borderRadius: "8px",
+                background: "rgba(241,245,249,0.6)",
+                border: "1px solid var(--border-subtle, #e2e8f0)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "0.5rem",
+                marginBottom: "0.85rem",
+              }}
+            >
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <span style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>
+                    Oldest:
+                  </span>
+                  <button
+                    onClick={() => navigate(`/issues/${data.oldest_unresolved?.id}`)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      padding: 0,
+                      color: "var(--primary-color, #4f46e5)",
+                      fontWeight: 700,
+                      fontSize: "0.8rem",
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.2rem",
+                    }}
+                  >
+                    {data.oldest_unresolved.issue_key}
+                    <ExternalLink size={11} />
+                  </button>
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "var(--text-secondary)",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {data.oldest_unresolved.title}
+                  </span>
+                </div>
+              </div>
+              <span
+                style={{
+                  fontSize: "0.72rem",
+                  fontWeight: 700,
+                  color: "#dc2626",
+                  flexShrink: 0,
+                  background: "rgba(239,68,68,0.1)",
+                  padding: "0.15rem 0.45rem",
+                  borderRadius: "4px",
+                }}
+              >
+                {data.oldest_unresolved.age_days}d old
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Footer Action */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            paddingTop: "0.5rem",
+            borderTop: "1px solid var(--border-subtle, #e2e8f0)",
+          }}
+        >
+          <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
+            Tracking age risks across active defects
+          </span>
+          <button
+            onClick={() => navigate("/issues?sort_by=created_at&sort_desc=false")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.35rem",
+              padding: "0.35rem 0.75rem",
+              borderRadius: "6px",
+              background: "var(--primary-color, #4f46e5)",
+              color: "#ffffff",
+              fontSize: "0.78rem",
+              fontWeight: 600,
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            View Aging Issues
+            <ArrowRight size={13} />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
