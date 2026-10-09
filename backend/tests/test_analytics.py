@@ -582,3 +582,106 @@ class TestQualityMetrics:
         assert r_dev.status_code == 200
         r_usr = _CLIENT.get("/analytics/quality-metrics", headers=auth_header(user_token()))
         assert r_usr.status_code == 200
+
+
+# =========================================================================== #
+# 10. Defect Trends & Quality History Tests (Feature 01)                       #
+# =========================================================================== #
+
+class TestDefectTrendsHistory:
+    def test_unauthenticated_returns_401(self):
+        r = _CLIENT.get("/analytics/defect-trends/history")
+        assert r.status_code == 401
+
+    def test_admin_returns_200_with_all_trend_fields(self):
+        r = _CLIENT.get("/analytics/defect-trends/history?preset=30d", headers=auth_header(admin_token()))
+        assert r.status_code == 200
+        data = r.json()
+        assert "range_preset" in data
+        assert data["range_preset"] == "30d"
+        assert "start_date" in data
+        assert "end_date" in data
+        assert "opening_backlog" in data
+        assert "closing_backlog" in data
+        assert "total_reported" in data
+        assert "total_resolved" in data
+        assert "total_closed" in data
+        assert "net_backlog_change" in data
+        assert "comparison" in data
+        assert "timeline" in data
+        assert "status_trend" in data
+
+        comp = data["comparison"]
+        assert "current_reported" in comp
+        assert "previous_reported" in comp
+        assert "current_resolved" in comp
+        assert "previous_resolved" in comp
+        assert "opening_backlog" in comp
+        assert "closing_backlog" in comp
+        assert "current_net_backlog" in comp
+
+        status_trend = data["status_trend"]
+        assert "open" in status_trend
+        assert "resolved" in status_trend
+        assert "closed" in status_trend
+        assert "reopened" in status_trend
+        assert "total" in status_trend
+
+        assert isinstance(data["timeline"], list)
+        assert len(data["timeline"]) == 31
+        point = data["timeline"][0]
+        assert "date" in point
+        assert "reported_count" in point
+        assert "resolved_count" in point
+        assert "closed_count" in point
+        assert "net_change" in point
+        assert "cumulative_net" in point
+
+    def test_range_presets(self):
+        for preset, expected_len in [("7d", 8), ("30d", 31), ("90d", 91)]:
+            r = _CLIENT.get(f"/analytics/defect-trends/history?preset={preset}", headers=auth_header(admin_token()))
+            assert r.status_code == 200
+            data = r.json()
+            assert data["range_preset"] == preset
+            assert len(data["timeline"]) == expected_len
+
+    def test_custom_date_range_validation(self):
+        # Missing dates returns 400
+        r_miss = _CLIENT.get("/analytics/defect-trends/history?preset=custom", headers=auth_header(admin_token()))
+        assert r_miss.status_code == 400
+
+        # Inverted range returns 400
+        r_inv = _CLIENT.get(
+            "/analytics/defect-trends/history?preset=custom&start_date=2026-10-10T00:00:00Z&end_date=2026-10-01T00:00:00Z",
+            headers=auth_header(admin_token()),
+        )
+        assert r_inv.status_code == 400
+        assert "start_date cannot be greater than end_date" in r_inv.text
+
+        # Valid custom range returns 200
+        r_ok = _CLIENT.get(
+            "/analytics/defect-trends/history?preset=custom&start_date=2026-10-01T00:00:00Z&end_date=2026-10-05T00:00:00Z",
+            headers=auth_header(admin_token()),
+        )
+        assert r_ok.status_code == 200
+        assert len(r_ok.json()["timeline"]) == 5
+
+    def test_project_filter_isolation(self):
+        proj = _create_test_project()
+        r = _CLIENT.get(
+            f"/analytics/defect-trends/history?project_id={proj['id']}&include_test=true",
+            headers=auth_header(admin_token()),
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert data["total_reported"] == 0
+        assert data["total_resolved"] == 0
+        assert data["opening_backlog"] == 0
+        assert data["closing_backlog"] == 0
+
+    def test_developer_and_user_scoped_access(self):
+        r_dev = _CLIENT.get("/analytics/defect-trends/history", headers=auth_header(tester_token()))
+        assert r_dev.status_code == 200
+        r_usr = _CLIENT.get("/analytics/defect-trends/history", headers=auth_header(user_token()))
+        assert r_usr.status_code == 200
+

@@ -21,12 +21,12 @@ import { getApiErrorMessage } from '../api/client';
 import { ErrorMessage } from '../components/common/ErrorMessage';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { PlotlyDashboard } from '../components/common/PlotlyDashboard';
+import { DefectTrendsSection } from '../components/analytics/DefectTrendsSection';
 import { useAuth } from '../hooks/useAuth';
 import type {
   DeveloperAnalyticsItem,
   DeveloperSuggestion,
   IssueStatusDistributionResponse,
-  IssueTrendResponse,
   PriorityCalcRequest,
   PriorityCalcResponse,
   ProjectAnalyticsResponse,
@@ -115,10 +115,8 @@ export const AnalyticsPage: React.FC = () => {
   const [systemOverview, setSystemOverview] = useState<SystemAnalyticsResponse | null>(null);
   const [statusDist, setStatusDist] = useState<IssueStatusDistributionResponse | null>(null);
   const [severityDist, setSeverityDist] = useState<SeverityDistributionResponse | null>(null);
-  const [trends, setTrends] = useState<IssueTrendResponse | null>(null);
   const [projectAnalytics, setProjectAnalytics] = useState<ProjectAnalyticsResponse[]>([]);
   const [devAnalytics, setDevAnalytics] = useState<DeveloperAnalyticsItem[]>([]);
-  const [interval, setInterval] = useState<'day' | 'week' | 'month'>('day');
 
   // ── M2 state ──────────────────────────────────────────────────────────────
   const [qualityMetrics, setQualityMetrics] = useState<QualityMetricsResponse | null>(null);
@@ -156,7 +154,6 @@ export const AnalyticsPage: React.FC = () => {
       const promises: Promise<any>[] = [
         analyticsApi.getStatusDistribution(),
         analyticsApi.getSeverityDistribution(),
-        analyticsApi.getTrends({ interval }),
         analyticsApi.getAllProjectsAnalytics(),
       ];
       if (isAdmin) {
@@ -166,11 +163,10 @@ export const AnalyticsPage: React.FC = () => {
       const results = await Promise.all(promises);
       setStatusDist(results[0]);
       setSeverityDist(results[1]);
-      setTrends(results[2]);
-      setProjectAnalytics(results[3].items);
+      setProjectAnalytics(results[2].items);
       if (isAdmin) {
-        setSystemOverview(results[4]);
-        setDevAnalytics(results[5].items);
+        setSystemOverview(results[3]);
+        setDevAnalytics(results[4].items);
       }
     } catch (err: unknown) {
       setError(getApiErrorMessage(err));
@@ -195,7 +191,7 @@ export const AnalyticsPage: React.FC = () => {
     }
   };
 
-  useEffect(() => { fetchAnalytics(); }, [interval]);
+  useEffect(() => { fetchAnalytics(); }, []);
 
   useEffect(() => {
     if (activeTab === 'M2_QUALITY' && !qualityMetrics) {
@@ -466,58 +462,14 @@ export const AnalyticsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Trends */}
-          <div className="card" style={{ marginBottom: '1.75rem' }}>
-            <div className="card-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <TrendingUp size={18} color="#34d399" />
-                <h3 className="card-title">Defect Creation vs Resolution Trends</h3>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                {(['day', 'week', 'month'] as const).map(mode => (
-                  <button key={mode} onClick={() => setInterval(mode)} className="btn btn-sm"
-                    style={{
-                      textTransform: 'capitalize',
-                      backgroundColor: interval === mode ? 'var(--primary)' : 'var(--bg-surface-elevated)',
-                      color: interval === mode ? '#fff' : 'var(--text-secondary)',
-                    }}>
-                    {mode}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="card-body">
-              {!trends || trends.items.length === 0 ? (
-                <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '1.5rem' }}>
-                  No time-series trend data available for this timeframe.
-                </p>
-              ) : (
-                <div style={{ overflowX: 'auto' }}>
-                  <div style={{ minWidth: '500px', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', paddingBottom: '0.4rem', borderBottom: '1px solid var(--border-subtle)' }}>
-                      <span>Period</span>
-                      <span>Created vs Resolved</span>
-                    </div>
-                    {trends.items.map(item => (
-                      <div key={item.date} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', fontSize: '0.85rem' }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', minWidth: '100px', color: 'var(--text-secondary)' }}>{item.date}</span>
-                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <div style={{ flex: 1, display: 'flex', height: '12px', borderRadius: 'var(--radius-full)', backgroundColor: 'var(--bg-input)', overflow: 'hidden' }}>
-                            <div style={{ width: `${Math.min(item.created_count * 10, 50)}%`, backgroundColor: '#f87171' }} title={`Created: ${item.created_count}`} />
-                            <div style={{ width: `${Math.min(item.resolved_count * 10, 50)}%`, backgroundColor: '#34d399' }} title={`Resolved: ${item.resolved_count}`} />
-                          </div>
-                          <span style={{ fontSize: '0.8rem', minWidth: '120px', textAlign: 'right' }}>
-                            <span style={{ color: '#f87171' }}>+{item.created_count}</span>{' / '}
-                            <span style={{ color: '#34d399' }}>✓{item.resolved_count}</span>
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          {/* Defect Trends & Quality History — Feature 01 */}
+          <DefectTrendsSection
+            projects={projectAnalytics.map((p) => ({
+              id: p.project_id,
+              name: p.project_name,
+              key: p.project_key,
+            }))}
+          />
 
           {/* Project Analytics Table */}
           <div className="card" style={{ marginBottom: '1.75rem' }}>

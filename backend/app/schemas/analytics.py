@@ -202,3 +202,84 @@ class QualityMetricsResponse(BaseModel):
     total_issues: int = 0
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# --------------------------------------------------------------------------- #
+# Defect Trends & Quality History Schemas (Feature 01)                        #
+# --------------------------------------------------------------------------- #
+
+class DefectTrendPoint(BaseModel):
+    """Daily data point for defect history time-series."""
+
+    date: str
+    reported_count: int = 0
+    resolved_count: int = 0
+    closed_count: int = 0
+    net_change: int = 0
+    cumulative_net: int = 0
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PeriodComparison(BaseModel):
+    """Comparison of current period against immediately preceding period of equal duration."""
+
+    current_reported: int = 0
+    previous_reported: int = 0
+    reported_pct_change: float | None = None
+
+    current_resolved: int = 0
+    previous_resolved: int = 0
+    resolved_pct_change: float | None = None
+
+    current_closed: int = 0
+    previous_closed: int = 0
+    closed_pct_change: float | None = None
+
+    opening_backlog: int = 0
+    closing_backlog: int = 0
+    prev_opening_backlog: int = 0
+    prev_closing_backlog: int = 0
+
+    current_net_backlog: int = 0
+    previous_net_backlog: int = 0
+    net_backlog_pct_change: float | None = None
+
+    start_date: str
+    end_date: str
+    prev_start_date: str
+    prev_end_date: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DefectStatusTrend(BaseModel):
+    """Status distribution breakdown for issues reported in the selected period."""
+
+    open: int = 0
+    resolved: int = 0
+    closed: int = 0
+    reopened: int = 0
+    total: int = 0
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DefectTrendsHistoryResponse(BaseModel):
+    """Comprehensive defect trends and historical quality metrics response."""
+
+    range_preset: str
+    start_date: str
+    end_date: str
+    opening_backlog: int = 0
+    closing_backlog: int = 0
+    total_reported: int = 0
+    total_resolved: int = 0
+    total_closed: int = 0
+    net_backlog_change: int = 0
+    comparison: PeriodComparison
+    timeline: list[DefectTrendPoint]
+    status_trend: DefectStatusTrend
+
+    model_config = ConfigDict(from_attributes=True)
+

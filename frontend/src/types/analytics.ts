@@ -178,3 +178,68 @@ export interface PlotlyChartsData {
   severity_distribution: Record<string, number>;
   workflow_pipeline: Record<string, number>;
 }
+
+// -------------------------------------------------------------------------- //
+// Defect Trends & Quality History — Feature 01
+// -------------------------------------------------------------------------- //
+
+export interface DefectTrendPoint {
+  date: string;
+  reported_count: number;
+  resolved_count: number;
+  closed_count: number;
+  net_change: number;
+  cumulative_net: number;
+}
+
+export interface PeriodComparison {
+  current_reported: number;
+  previous_reported: number;
+  reported_pct_change: number | null;
+
+  current_resolved: number;
+  previous_resolved: number;
+  resolved_pct_change: number | null;
+
+  current_closed: number;
+  previous_closed: number;
+  closed_pct_change: number | null;
+
+  opening_backlog: number;
+  closing_backlog: number;
+  prev_opening_backlog: number;
+  prev_closing_backlog: number;
+
+  current_net_backlog: number;
+  previous_net_backlog: number;
+  net_backlog_pct_change: number | null;
+
+  start_date: string;
+  end_date: string;
+  prev_start_date: string;
+  prev_end_date: string;
+}
+
+export interface DefectStatusTrend {
+  open: number;
+  resolved: number;
+  closed: number;
+  reopened: number;
+  total: number;
+}
+
+export interface DefectTrendsHistoryResponse {
+  range_preset: string;
+  start_date: string;
+  end_date: string;
+  opening_backlog: number;
+  closing_backlog: number;
+  total_reported: number;
+  total_resolved: number;
+  total_closed: number;
+  net_backlog_change: number;
+  comparison: PeriodComparison;
+  timeline: DefectTrendPoint[];
+  status_trend: DefectStatusTrend;
+}
+

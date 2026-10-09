@@ -14,6 +14,7 @@ import type {
   PriorityDistributionResponse,
   SystemAnalyticsResponse,
   AnalyticsReportDataResponse,
+  DefectTrendsHistoryResponse,
 } from '../types/analytics';
 import type { IssueStatus, Severity } from '../types/issue';
 
@@ -21,6 +22,14 @@ export interface AnalyticsFilterParams {
   project_id?: number;
   start_date?: string;
   end_date?: string;
+  include_test?: boolean;
+}
+
+export interface DefectTrendsHistoryParams {
+  preset?: '7d' | '30d' | '90d' | 'custom' | string;
+  start_date?: string;
+  end_date?: string;
+  project_id?: number;
   include_test?: boolean;
 }
 
@@ -136,6 +145,16 @@ export const analyticsApi = {
   getQualityMetrics: async (params?: { project_id?: number }): Promise<QualityMetricsResponse> => {
     const response = await apiClient.get<QualityMetricsResponse>(
       '/analytics/quality-metrics',
+      { params }
+    );
+    return response.data;
+  },
+
+  getDefectTrendsHistory: async (
+    params?: DefectTrendsHistoryParams
+  ): Promise<DefectTrendsHistoryResponse> => {
+    const response = await apiClient.get<DefectTrendsHistoryResponse>(
+      '/analytics/defect-trends/history',
       { params }
     );
     return response.data;

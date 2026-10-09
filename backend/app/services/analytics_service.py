@@ -13,7 +13,7 @@ RBAC:
 
 import csv
 import io
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException, Response, status
 from sqlalchemy import and_, case, func, or_, select
@@ -904,6 +904,245 @@ async def get_quality_metrics(
         avg_age_open_days=avg_age_open_days,
         total_issues=total,
     )
+
+
+# --------------------------------------------------------------------------- #
+# J. Defect Trends & Quality History — Feature 01                             #
+# --------------------------------------------------------------------------- #
+
+async def get_defect_trends_history(
+    db: AsyncSession,
+    current_user: User,
+    preset: str = "30d",
+    start_date: datetime | None = None,
+    end_date: datetime | None = None,
+    project_id: int | None = None,
+    include_test: bool = False,
+) -> "DefectTrendsHistoryResponse":  # noqa: F821
+    """
+    Compute time-series defect trends, status distributions, and period-over-period
+    comparisons using aggregated PostgreSQL queries.
+    """
+    from app.schemas.analytics import (
+        DefectTrendPoint,
+        DefectStatusTrend,
+        PeriodComparison,
+        DefectTrendsHistoryResponse,
+    )
+
+    preset_clean = preset.strip().lower() if preset else "30d"
+    now_utc = datetime.now(timezone.utc)
+
+    if preset_clean == "7d":
+        end_dt = now_utc
+        start_dt = end_dt - timedelta(days=7)
+    elif preset_clean == "90d":
+        end_dt = now_utc
+        start_dt = end_dt - timedelta(days=90)
+    elif preset_clean == "custom":
+        if not start_date or not end_date:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Both start_date and end_date are required for custom date range.",
+            )
+        start_dt = start_date if start_date.tzinfo else start_date.replace(tzinfo=timezone.utc)
+        end_dt = end_date if end_date.tzinfo else end_date.replace(tzinfo=timezone.utc)
+        if start_dt > end_dt:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="start_date cannot be greater than end_date.",
+            )
+    else:  # default to 30d
+        preset_clean = "30d"
+        end_dt = now_utc
+        start_dt = end_dt - timedelta(days=30)
+
+    duration = end_dt - start_dt
+    prev_end_dt = start_dt
+    prev_start_dt = start_dt - duration
+
+    # Base query with project join
+    base_q = select(Issue).join(Project, Issue.project_id == Project.id)
+    if not include_test:
+        base_q = base_q.where(Project.is_test == False)  # noqa: E712
+
+    if current_user.role == UserRole.USER:
+        base_q = base_q.where(Issue.reporter_id == current_user.id)
+    elif current_user.role == UserRole.DEVELOPER:
+        base_q = base_q.where(Issue.assignee_id == current_user.id)
+
+    if project_id is not None:
+        base_q = base_q.where(Issue.project_id == project_id)
+
+    open_statuses = [
+        IssueStatus.REPORTED, IssueStatus.TRIAGED,
+        IssueStatus.ASSIGNED, IssueStatus.IN_DEVELOPMENT,
+        IssueStatus.IN_REVIEW, IssueStatus.IN_TESTING,
+    ]
+
+    # 1. Aggregated summary and comparison query
+    q_summary = base_q.with_only_columns(
+        # Current period events
+        func.count(case((and_(Issue.created_at >= start_dt, Issue.created_at <= end_dt), 1))).label("curr_reported"),
+        func.count(case((and_(Issue.resolved_at.isnot(None), Issue.resolved_at >= start_dt, Issue.resolved_at <= end_dt), 1))).label("curr_resolved"),
+        func.count(case((and_(Issue.status == IssueStatus.CLOSED, Issue.resolved_at.isnot(None), Issue.resolved_at >= start_dt, Issue.resolved_at <= end_dt), 1))).label("curr_closed"),
+        # Previous period events
+        func.count(case((and_(Issue.created_at >= prev_start_dt, Issue.created_at < start_dt), 1))).label("prev_reported"),
+        func.count(case((and_(Issue.resolved_at.isnot(None), Issue.resolved_at >= prev_start_dt, Issue.resolved_at < start_dt), 1))).label("prev_resolved"),
+        func.count(case((and_(Issue.status == IssueStatus.CLOSED, Issue.resolved_at.isnot(None), Issue.resolved_at >= prev_start_dt, Issue.resolved_at < start_dt), 1))).label("prev_closed"),
+        # Backlog snapshots
+        func.count(case((and_(Issue.created_at < start_dt, or_(Issue.resolved_at.is_(None), Issue.resolved_at >= start_dt)), 1))).label("opening_backlog"),
+        func.count(case((and_(Issue.created_at <= end_dt, or_(Issue.resolved_at.is_(None), Issue.resolved_at > end_dt)), 1))).label("closing_backlog"),
+        func.count(case((and_(Issue.created_at < prev_start_dt, or_(Issue.resolved_at.is_(None), Issue.resolved_at >= prev_start_dt)), 1))).label("prev_opening_backlog"),
+        # Status distribution of defects created in current period
+        func.count(case((and_(Issue.created_at >= start_dt, Issue.created_at <= end_dt, Issue.status.in_(open_statuses)), 1))).label("status_open"),
+        func.count(case((and_(Issue.created_at >= start_dt, Issue.created_at <= end_dt, Issue.status == IssueStatus.RESOLVED), 1))).label("status_resolved"),
+        func.count(case((and_(Issue.created_at >= start_dt, Issue.created_at <= end_dt, Issue.status == IssueStatus.CLOSED), 1))).label("status_closed"),
+        func.count(case((and_(Issue.created_at >= start_dt, Issue.created_at <= end_dt, Issue.status == IssueStatus.REOPENED), 1))).label("status_reopened"),
+    )
+
+    summary_res = await db.execute(q_summary)
+    row = summary_res.one()
+
+    curr_rep = row.curr_reported or 0
+    curr_res = row.curr_resolved or 0
+    curr_closed = row.curr_closed or 0
+    opening_b = row.opening_backlog or 0
+    closing_b = row.closing_backlog or 0
+    curr_net = closing_b - opening_b
+
+    prev_rep = row.prev_reported or 0
+    prev_res = row.prev_resolved or 0
+    prev_closed = row.prev_closed or 0
+    prev_opening_b = row.prev_opening_backlog or 0
+    prev_closing_b = opening_b
+    prev_net = prev_closing_b - prev_opening_b
+
+    rep_pct_change = round((curr_rep - prev_rep) / prev_rep * 100.0, 1) if prev_rep > 0 else None
+    res_pct_change = round((curr_res - prev_res) / prev_res * 100.0, 1) if prev_res > 0 else None
+    closed_pct_change = round((curr_closed - prev_closed) / prev_closed * 100.0, 1) if prev_closed > 0 else None
+    net_pct_change = round((curr_net - prev_net) / abs(prev_net) * 100.0, 1) if prev_net != 0 else None
+
+    # 2. Timeline series query (daily aggregation)
+    q_daily_rep = (
+        base_q.with_only_columns(
+            func.date_trunc("day", Issue.created_at).label("day"),
+            func.count().label("cnt"),
+        )
+        .where(Issue.created_at >= start_dt, Issue.created_at <= end_dt)
+        .group_by("day")
+        .order_by("day")
+    )
+    daily_rep_res = await db.execute(q_daily_rep)
+    rep_map: dict[str, int] = {
+        r.day.strftime("%Y-%m-%d"): r.cnt for r in daily_rep_res.all() if r.day
+    }
+
+    q_daily_res = (
+        base_q.with_only_columns(
+            func.date_trunc("day", Issue.resolved_at).label("day"),
+            func.count().label("cnt"),
+        )
+        .where(Issue.resolved_at.isnot(None), Issue.resolved_at >= start_dt, Issue.resolved_at <= end_dt)
+        .group_by("day")
+        .order_by("day")
+    )
+    daily_res_res = await db.execute(q_daily_res)
+    res_map: dict[str, int] = {
+        r.day.strftime("%Y-%m-%d"): r.cnt for r in daily_res_res.all() if r.day
+    }
+
+    q_daily_closed = (
+        base_q.with_only_columns(
+            func.date_trunc("day", Issue.resolved_at).label("day"),
+            func.count().label("cnt"),
+        )
+        .where(
+            Issue.status == IssueStatus.CLOSED,
+            Issue.resolved_at.isnot(None),
+            Issue.resolved_at >= start_dt,
+            Issue.resolved_at <= end_dt,
+        )
+        .group_by("day")
+        .order_by("day")
+    )
+    daily_closed_res = await db.execute(q_daily_closed)
+    closed_map: dict[str, int] = {
+        r.day.strftime("%Y-%m-%d"): r.cnt for r in daily_closed_res.all() if r.day
+    }
+
+    # Generate complete day-by-day sequence
+    timeline: list[DefectTrendPoint] = []
+    curr_date = start_dt.date()
+    end_date_d = end_dt.date()
+    cum_net = 0
+
+    while curr_date <= end_date_d:
+        d_str = curr_date.strftime("%Y-%m-%d")
+        d_rep = rep_map.get(d_str, 0)
+        d_res = res_map.get(d_str, 0)
+        d_closed = closed_map.get(d_str, 0)
+        d_net = d_rep - d_res
+        cum_net += d_net
+
+        timeline.append(
+            DefectTrendPoint(
+                date=d_str,
+                reported_count=d_rep,
+                resolved_count=d_res,
+                closed_count=d_closed,
+                net_change=d_net,
+                cumulative_net=cum_net,
+            )
+        )
+        curr_date += timedelta(days=1)
+
+    status_trend = DefectStatusTrend(
+        open=row.status_open or 0,
+        resolved=row.status_resolved or 0,
+        closed=row.status_closed or 0,
+        reopened=row.status_reopened or 0,
+        total=curr_rep,
+    )
+
+    comparison = PeriodComparison(
+        current_reported=curr_rep,
+        previous_reported=prev_rep,
+        reported_pct_change=rep_pct_change,
+        current_resolved=curr_res,
+        previous_resolved=prev_res,
+        resolved_pct_change=res_pct_change,
+        current_closed=curr_closed,
+        previous_closed=prev_closed,
+        closed_pct_change=closed_pct_change,
+        opening_backlog=opening_b,
+        closing_backlog=closing_b,
+        prev_opening_backlog=prev_opening_b,
+        prev_closing_backlog=prev_closing_b,
+        current_net_backlog=curr_net,
+        previous_net_backlog=prev_net,
+        net_backlog_pct_change=net_pct_change,
+        start_date=start_dt.isoformat(),
+        end_date=end_dt.isoformat(),
+        prev_start_date=prev_start_dt.isoformat(),
+        prev_end_date=prev_end_dt.isoformat(),
+    )
+
+    return DefectTrendsHistoryResponse(
+        range_preset=preset_clean,
+        start_date=start_dt.isoformat(),
+        end_date=end_dt.isoformat(),
+        opening_backlog=opening_b,
+        closing_backlog=closing_b,
+        total_reported=curr_rep,
+        total_resolved=curr_res,
+        total_closed=curr_closed,
+        net_backlog_change=curr_net,
+        comparison=comparison,
+        timeline=timeline,
+        status_trend=status_trend,
+    )
+
 
 
 

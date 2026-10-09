@@ -34,6 +34,7 @@ from app.schemas.analytics import (
     SystemAnalyticsResponse,
     AnalyticsReportDataResponse,
     QualityMetricsResponse,
+    DefectTrendsHistoryResponse,
 )
 from app.services import analytics_service
 
@@ -419,6 +420,42 @@ async def defect_trends(
         "created": [item.created_count for item in trends.items],
         "resolved": [item.resolved_count for item in trends.items],
     }
+
+
+# --------------------------------------------------------------------------- #
+# 11b. Defect Trends & Quality History (Feature 01)                           #
+# --------------------------------------------------------------------------- #
+
+@router.get(
+    "/defect-trends/history",
+    response_model=DefectTrendsHistoryResponse,
+    summary="Historical Defect Trends & Quality History",
+    description=(
+        "Returns comprehensive historical defect trends over 7d, 30d, 90d, or custom range.\n"
+        "Includes time-series timeline (reported, resolved, cumulative net), status breakdown,\n"
+        "and period-over-period comparison against the preceding equal period."
+    ),
+)
+async def defect_trends_history(
+    preset: str = Query("30d", description="Range preset: 7d, 30d, 90d, custom"),
+    start_date: datetime | None = Query(None, description="Custom start date (ISO-8601)"),
+    end_date: datetime | None = Query(None, description="Custom end date (ISO-8601)"),
+    project_id: int | None = Query(None, description="Filter by project ID"),
+    include_test: bool = Query(False, description="Include test fixture projects"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> DefectTrendsHistoryResponse:
+    """Return historical defect trends and period comparison metrics."""
+    return await analytics_service.get_defect_trends_history(
+        db=db,
+        current_user=current_user,
+        preset=preset,
+        start_date=start_date,
+        end_date=end_date,
+        project_id=project_id,
+        include_test=include_test,
+    )
+
 
 
 # --------------------------------------------------------------------------- #
