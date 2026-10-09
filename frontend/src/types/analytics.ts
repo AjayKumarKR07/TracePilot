@@ -113,6 +113,7 @@ export interface QualityMetricsResponse {
   backlog_health_score: number;
   open_critical_count: number;
   avg_age_open_days: number;
+  total_issues?: number;
 }
 
 // -------------------------------------------------------------------------- //

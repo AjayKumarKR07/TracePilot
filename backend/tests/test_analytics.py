@@ -538,3 +538,47 @@ class TestAdminDashboardIntegration:
         assert isinstance(content["total_attachments"], int)
         assert isinstance(content["total_notifications"], int)
         assert isinstance(content["unread_notifications"], int)
+
+
+# =========================================================================== #
+# 9. Quality Metrics Tests (Milestone 2)                                      #
+# =========================================================================== #
+
+class TestQualityMetrics:
+    def test_unauthenticated_returns_401(self):
+        r = _CLIENT.get("/analytics/quality-metrics")
+        assert r.status_code == 401
+
+    def test_admin_returns_200_with_all_kpi_fields(self):
+        r = _CLIENT.get("/analytics/quality-metrics", headers=auth_header(admin_token()))
+        assert r.status_code == 200
+        data = r.json()
+        assert "fix_rate" in data
+        assert isinstance(data["fix_rate"], (int, float))
+        assert "mttr_hours" in data
+        assert data["mttr_hours"] is None or isinstance(data["mttr_hours"], (int, float))
+        assert "defect_leakage_rate" in data
+        assert isinstance(data["defect_leakage_rate"], (int, float))
+        assert "backlog_health_score" in data
+        assert isinstance(data["backlog_health_score"], (int, float))
+        assert "open_critical_count" in data
+        assert isinstance(data["open_critical_count"], int)
+        assert "avg_age_open_days" in data
+        assert isinstance(data["avg_age_open_days"], (int, float))
+        assert "total_issues" in data
+        assert isinstance(data["total_issues"], int)
+
+    def test_project_filter(self):
+        proj = _create_test_project()
+        r = _CLIENT.get(f"/analytics/quality-metrics?project_id={proj['id']}", headers=auth_header(admin_token()))
+        assert r.status_code == 200
+        data = r.json()
+        assert data["total_issues"] == 0
+        assert data["fix_rate"] == 0.0
+        assert data["backlog_health_score"] == 100.0
+
+    def test_developer_and_user_access_scoped(self):
+        r_dev = _CLIENT.get("/analytics/quality-metrics", headers=auth_header(tester_token()))
+        assert r_dev.status_code == 200
+        r_usr = _CLIENT.get("/analytics/quality-metrics", headers=auth_header(user_token()))
+        assert r_usr.status_code == 200

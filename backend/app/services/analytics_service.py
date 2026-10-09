@@ -16,7 +16,7 @@ import io
 from datetime import datetime
 
 from fastapi import HTTPException, Response, status
-from sqlalchemy import case, func, or_, select
+from sqlalchemy import and_, case, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -811,18 +811,24 @@ async def get_quality_metrics(
             ).label("total_critical"),
             func.count(
                 case((
-                    Issue.severity.in_([Severity.CRITICAL, Severity.BLOCKER]),
-                    Issue.status.in_([IssueStatus.REPORTED, IssueStatus.TRIAGED,
-                                      IssueStatus.ASSIGNED, IssueStatus.REOPENED,
-                                      IssueStatus.IN_DEVELOPMENT, IssueStatus.IN_REVIEW,
-                                      IssueStatus.IN_TESTING]),
+                    and_(
+                        Issue.severity.in_([Severity.CRITICAL, Severity.BLOCKER]),
+                        Issue.status.in_([
+                            IssueStatus.REPORTED, IssueStatus.TRIAGED,
+                            IssueStatus.ASSIGNED, IssueStatus.REOPENED,
+                            IssueStatus.IN_DEVELOPMENT, IssueStatus.IN_REVIEW,
+                            IssueStatus.IN_TESTING,
+                        ]),
+                    ),
                     1,
                 ))
             ).label("open_critical"),
             func.count(
                 case((
-                    Issue.severity.in_([Severity.CRITICAL, Severity.BLOCKER]),
-                    Issue.status == IssueStatus.REOPENED,
+                    and_(
+                        Issue.severity.in_([Severity.CRITICAL, Severity.BLOCKER]),
+                        Issue.status == IssueStatus.REOPENED,
+                    ),
                     1,
                 ))
             ).label("reopened_critical"),
@@ -838,10 +844,10 @@ async def get_quality_metrics(
     open_critical: int = row.open_critical or 0
     reopened_critical: int = row.reopened_critical or 0
 
-    # â”€â”€ Fix Rate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── Fix Rate ──────────────────────────────────────────────────────────────
     fix_rate = round((resolved + closed) / total * 100, 2) if total > 0 else 0.0
 
-    # â”€â”€ MTTR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── MTTR ──────────────────────────────────────────────────────────────────
     mttr_result = await db.execute(
         base_q.with_only_columns(
             func.avg(
@@ -857,13 +863,13 @@ async def get_quality_metrics(
     if mttr_row.avg_hours is not None:
         mttr_hours = round(float(mttr_row.avg_hours), 2)
 
-    # â”€â”€ Defect Leakage Rate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── Defect Leakage Rate ───────────────────────────────────────────────────
     defect_leakage_rate = (
         round(reopened_critical / total_critical * 100, 2)
         if total_critical > 0 else 0.0
     )
 
-    # â”€â”€ Average Age of Open Issues â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── Average Age of Open Issues ────────────────────────────────────────────
     age_result = await db.execute(
         base_q.with_only_columns(
             func.avg(
@@ -880,11 +886,14 @@ async def get_quality_metrics(
     age_row = age_result.one()
     avg_age_open_days: float = round(float(age_row.avg_days), 2) if age_row.avg_days else 0.0
 
-    # â”€â”€ Backlog Health Score â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    critical_weight = min(40.0, open_critical * 4.0)
-    age_weight = min(40.0, avg_age_open_days * 0.5)
-    fix_rate_penalty = max(0.0, (50.0 - fix_rate) / 50.0 * 20.0) if fix_rate < 50 else 0.0
-    backlog_health_score = round(max(0.0, 100.0 - critical_weight - age_weight - fix_rate_penalty), 2)
+    # ── Backlog Health Score ──────────────────────────────────────────────────
+    if total == 0:
+        backlog_health_score = 100.0
+    else:
+        critical_weight = min(40.0, open_critical * 4.0)
+        age_weight = min(40.0, avg_age_open_days * 0.5)
+        fix_rate_penalty = max(0.0, (50.0 - fix_rate) / 50.0 * 20.0) if fix_rate < 50 else 0.0
+        backlog_health_score = round(max(0.0, 100.0 - critical_weight - age_weight - fix_rate_penalty), 2)
 
     return QualityMetricsResponse(
         fix_rate=fix_rate,
@@ -893,6 +902,7 @@ async def get_quality_metrics(
         backlog_health_score=backlog_health_score,
         open_critical_count=open_critical,
         avg_age_open_days=avg_age_open_days,
+        total_issues=total,
     )
 
 

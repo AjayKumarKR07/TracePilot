@@ -123,6 +123,7 @@ export const AnalyticsPage: React.FC = () => {
   // ── M2 state ──────────────────────────────────────────────────────────────
   const [qualityMetrics, setQualityMetrics] = useState<QualityMetricsResponse | null>(null);
   const [isLoadingQuality, setIsLoadingQuality] = useState(false);
+  const [qualityError, setQualityError] = useState<string | null>(null);
 
   // ── M3 Smart Priority state (mentor formula) ──────────────────────────────
   const [calcSeverity, setCalcSeverity] = useState('CRITICAL');
@@ -181,11 +182,14 @@ export const AnalyticsPage: React.FC = () => {
   // ── Fetch M2 quality metrics ───────────────────────────────────────────────
   const fetchQualityMetrics = async () => {
     setIsLoadingQuality(true);
+    setQualityError(null);
     try {
       const data = await analyticsApi.getQualityMetrics();
       setQualityMetrics(data);
     } catch (err: unknown) {
-      console.error('Quality metrics error:', getApiErrorMessage(err));
+      const errMsg = getApiErrorMessage(err);
+      console.error('Quality metrics error:', errMsg);
+      setQualityError(errMsg);
     } finally {
       setIsLoadingQuality(false);
     }
@@ -622,14 +626,52 @@ export const AnalyticsPage: React.FC = () => {
               </p>
             </div>
             <button onClick={fetchQualityMetrics} disabled={isLoadingQuality} className="btn btn-secondary btn-sm">
-              <RefreshCw size={14} />
+              <RefreshCw size={14} className={isLoadingQuality ? 'spin' : ''} />
               <span>Refresh</span>
             </button>
           </div>
 
           {isLoadingQuality && <LoadingSpinner message="Computing quality metrics..." />}
 
-          {!isLoadingQuality && qualityMetrics && (
+          {!isLoadingQuality && qualityError && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <ErrorMessage
+                message={`Failed to load quality metrics: ${qualityError}`}
+                onRetry={fetchQualityMetrics}
+              />
+            </div>
+          )}
+
+          {!isLoadingQuality && !qualityError && qualityMetrics && qualityMetrics.total_issues === 0 && (
+            <div className="card" style={{ padding: '3.5rem 2rem', textAlign: 'center', marginBottom: '1.5rem' }}>
+              <Shield size={48} style={{ color: 'var(--text-muted)', margin: '0 auto 1rem', opacity: 0.4 }} />
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.4rem' }}>
+                No Defect Records Found
+              </h3>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', maxWidth: '440px', margin: '0 auto 1.5rem' }}>
+                There are currently no defect issues recorded to calculate quality metrics. As defects are reported and triaged, live KPIs (Fix Rate, MTTR, Defect Leakage Rate, and Backlog Health) will appear here.
+              </p>
+              <button onClick={fetchQualityMetrics} className="btn btn-secondary btn-sm" style={{ margin: '0 auto' }}>
+                <RefreshCw size={14} />
+                <span>Refresh Data</span>
+              </button>
+            </div>
+          )}
+
+          {!isLoadingQuality && !qualityError && !qualityMetrics && (
+            <div className="card" style={{ padding: '3rem 2rem', textAlign: 'center', marginBottom: '1.5rem' }}>
+              <Shield size={40} style={{ color: 'var(--text-muted)', margin: '0 auto 1rem', opacity: 0.5 }} />
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                No quality metrics loaded yet.
+              </p>
+              <button onClick={fetchQualityMetrics} className="btn btn-secondary btn-sm" style={{ margin: '0 auto' }}>
+                <RefreshCw size={14} />
+                <span>Load Quality Metrics</span>
+              </button>
+            </div>
+          )}
+
+          {!isLoadingQuality && !qualityError && qualityMetrics && (qualityMetrics.total_issues === undefined || qualityMetrics.total_issues > 0) && (
             <>
               {/* KPI Gauge Row */}
               <div className="card" style={{ marginBottom: '1.5rem' }}>
@@ -706,6 +748,80 @@ export const AnalyticsPage: React.FC = () => {
                         </div>
                         <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Avg Age of Open Issues</div>
                       </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* KPI Benchmark & SLA Targets Comparison Card */}
+              <div className="card" style={{ marginTop: '1.5rem' }}>
+                <div className="card-header">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <BarChart3 size={18} color="#38bdf8" />
+                    <h3 className="card-title">KPI Benchmark & SLA Targets</h3>
+                  </div>
+                </div>
+                <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  {/* Fix Rate Benchmark */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem', fontSize: '0.82rem' }}>
+                      <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Fix Rate</span>
+                      <span style={{ color: 'var(--text-muted)' }}>
+                        {qualityMetrics.fix_rate.toFixed(1)}% &nbsp;|&nbsp; Target: ≥ 70.0%
+                      </span>
+                    </div>
+                    <div style={{ height: '8px', background: 'var(--bg-input)', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          height: '100%',
+                          width: `${Math.min(100, Math.max(0, qualityMetrics.fix_rate))}%`,
+                          backgroundColor: qualityMetrics.fix_rate >= 70 ? '#34d399' : qualityMetrics.fix_rate >= 40 ? '#fbbf24' : '#f87171',
+                          borderRadius: '4px',
+                          transition: 'width 0.5s ease',
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Backlog Health Score Benchmark */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem', fontSize: '0.82rem' }}>
+                      <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Backlog Health Score</span>
+                      <span style={{ color: 'var(--text-muted)' }}>
+                        {qualityMetrics.backlog_health_score.toFixed(1)} / 100 &nbsp;|&nbsp; Target: ≥ 75.0
+                      </span>
+                    </div>
+                    <div style={{ height: '8px', background: 'var(--bg-input)', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          height: '100%',
+                          width: `${Math.min(100, Math.max(0, qualityMetrics.backlog_health_score))}%`,
+                          backgroundColor: qualityMetrics.backlog_health_score >= 70 ? '#34d399' : qualityMetrics.backlog_health_score >= 40 ? '#fbbf24' : '#f87171',
+                          borderRadius: '4px',
+                          transition: 'width 0.5s ease',
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Defect Leakage Rate Benchmark */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem', fontSize: '0.82rem' }}>
+                      <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Defect Leakage Rate</span>
+                      <span style={{ color: 'var(--text-muted)' }}>
+                        {qualityMetrics.defect_leakage_rate.toFixed(1)}% &nbsp;|&nbsp; Threshold: ≤ 5.0%
+                      </span>
+                    </div>
+                    <div style={{ height: '8px', background: 'var(--bg-input)', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          height: '100%',
+                          width: `${Math.min(100, Math.max(0, qualityMetrics.defect_leakage_rate * 5))}%`,
+                          backgroundColor: qualityMetrics.defect_leakage_rate === 0 ? '#34d399' : qualityMetrics.defect_leakage_rate <= 5 ? '#fbbf24' : '#f87171',
+                          borderRadius: '4px',
+                          transition: 'width 0.5s ease',
+                        }}
+                      />
                     </div>
                   </div>
                 </div>

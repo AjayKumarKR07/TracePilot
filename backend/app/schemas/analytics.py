@@ -199,5 +199,6 @@ class QualityMetricsResponse(BaseModel):
     backlog_health_score: float
     open_critical_count: int
     avg_age_open_days: float
+    total_issues: int = 0
 
     model_config = ConfigDict(from_attributes=True)
