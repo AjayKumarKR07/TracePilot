@@ -945,6 +945,7 @@ async def assign_tester(
         )
 
     old_tester_id = sprint.assigned_tester_id
+    sprint.assigned_developer_id = tester_id
     sprint.assigned_tester_id = tester_id
 
     # Move PLANNED → ACTIVE automatically when developer is assigned
@@ -953,11 +954,11 @@ async def assign_tester(
         sprint.actual_start_date = datetime.now(timezone.utc)
 
     await create_audit_log(
-        db=db, actor=actor, action=AuditAction.SPRINT_TESTER_ASSIGNED,
+        db=db, actor=actor, action=AuditAction.SPRINT_DEVELOPER_ASSIGNED,
         entity_type="SPRINT", entity_id=sprint.id, entity_key=sprint.name,
         description=f"Sprint '{sprint.name}' assigned to developer '{developer.full_name}'",
-        old_values={"assigned_tester_id": old_tester_id},
-        new_values={"assigned_tester_id": tester_id, "developer_name": developer.full_name},
+        old_values={"assigned_developer_id": old_tester_id, "assigned_tester_id": old_tester_id},
+        new_values={"assigned_developer_id": tester_id, "assigned_tester_id": tester_id, "developer_name": developer.full_name},
     )
 
     # Real-time notification to assigned developer
@@ -996,14 +997,14 @@ async def assign_tester(
 
 
 async def submit_for_approval(db: AsyncSession, sprint_id: int, actor: User) -> Sprint:
-    """Tester submits a sprint for admin review."""
+    """Developer submits a sprint for admin review."""
     sprint = await get_sprint_by_id(db, sprint_id)
 
-    # Must be the assigned tester (or an admin acting on behalf)
+    # Must be the assigned developer (or an admin acting on behalf)
     if actor.role == UserRole.DEVELOPER and sprint.assigned_tester_id != actor.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You are not the assigned tester for this sprint"
+            detail="You are not the assigned developer for this sprint"
         )
 
     # Only IN_PROGRESS â†’ READY_FOR_APPROVAL is allowed.
@@ -1293,11 +1294,11 @@ async def begin_work(
     """Tester begins work on an ACTIVE sprint â†’ IN_PROGRESS."""
     sprint = await get_sprint_by_id(db, sprint_id)
 
-    # Only the assigned tester (or admin) may begin work
+    # Only the assigned developer (or admin) may begin work
     if actor.role == UserRole.DEVELOPER and sprint.assigned_tester_id != actor.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You are not the assigned tester for this sprint"
+            detail="You are not the assigned developer for this sprint"
         )
 
     if sprint.status != SprintStatus.ACTIVE:
@@ -1312,7 +1313,7 @@ async def begin_work(
     await create_audit_log(
         db=db, actor=actor, action=AuditAction.SPRINT_UPDATED,
         entity_type="SPRINT", entity_id=sprint.id, entity_key=sprint.name,
-        description=f"Tester '{actor.full_name}' began work on sprint '{sprint.name}'",
+        description=f"Developer '{actor.full_name}' began work on sprint '{sprint.name}'",
         old_values={"status": old_status.value},
         new_values={"status": SprintStatus.IN_PROGRESS.value},
     )
@@ -1323,7 +1324,7 @@ async def begin_work(
         user_ids=admin_ids,
         notification_type=NotificationType.SPRINT_STARTED,
         title="Sprint In Progress",
-        message=f"Tester '{actor.full_name}' began work on sprint '{sprint.name}'.",
+        message=f"Developer '{actor.full_name}' began work on sprint '{sprint.name}'.",
         actor_id=actor.id,
         entity_type="SPRINT",
         entity_id=sprint.id,
@@ -1336,4 +1337,9 @@ async def begin_work(
         await _broadcast_ws_notification(n.user_id, n)
 
     return await get_sprint_by_id(db, sprint.id)
+
+
+# Aliases for canonical developer naming
+assign_developer = assign_tester
+get_assigned_sprints_for_developer = get_assigned_sprints_for_tester
 

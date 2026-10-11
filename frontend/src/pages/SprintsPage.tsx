@@ -158,7 +158,7 @@ const TeamWorkloadChart: React.FC<{ workload: SprintAnalytics["workload"] }> = (
     </div>
   );
   const data = workload.map((wl) => ({
-    name: (wl.tester_name || wl.developer_name || "DEVELOPER").split(" ")[0],
+    name: (wl.developer_name || wl.tester_name || "DEVELOPER").split(" ")[0],
     Completed: wl.completed_issues,
     "In Progress": wl.in_progress_issues,
     Open: wl.open_issues,
@@ -196,8 +196,8 @@ const TeamWorkloadChart: React.FC<{ workload: SprintAnalytics["workload"] }> = (
           </thead>
           <tbody>
             {workload.map((wl) => (
-              <tr key={wl.tester_id || wl.developer_id}>
-                <td style={{ fontWeight: 600, color: "#f8fafc" }}>{wl.tester_name || wl.developer_name}</td>
+              <tr key={wl.developer_id || wl.tester_id}>
+                <td style={{ fontWeight: 600, color: "#f8fafc" }}>{wl.developer_name || wl.tester_name}</td>
                 <td>
                   <span style={{
                     fontSize: "0.7rem",
@@ -293,12 +293,12 @@ export const SprintsPage: React.FC = () => {
   const [extendSprintId, setExtendSprintId] = useState<number | null>(null);
   const [formExtendEnd, setFormExtendEnd] = useState("");
 
-  // Assign tester state
-  const [isAssignTesterOpen, setIsAssignTesterOpen] = useState(false);
-  const [assignTesterSprintId, setAssignTesterSprintId] = useState<number | null>(null);
-  const [testerList, setTesterList] = useState<UserDetail[]>([]);
-  const [selectedTesterId, setSelectedTesterId] = useState<number | "">("");
-  const [assigningTester, setAssigningTester] = useState(false);
+  // Assign developer state
+  const [isAssignDevOpen, setIsAssignDevOpen] = useState(false);
+  const [assignDevSprintId, setAssignDevSprintId] = useState<number | null>(null);
+  const [devList, setDevList] = useState<UserDetail[]>([]);
+  const [selectedDevId, setSelectedDevId] = useState<number | "">("");
+  const [assigningDev, setAssigningDev] = useState(false);
 
   const fetchData = async () => {
     setIsLoading(true); setError(null);
@@ -353,25 +353,25 @@ export const SprintsPage: React.FC = () => {
     }
   };
 
-  const openAssignTesterModal = async (sprintId: number) => {
-    setAssignTesterSprintId(sprintId);
-    setSelectedTesterId("");
-    setIsAssignTesterOpen(true);
+  const openAssignDevModal = async (sprintId: number) => {
+    setAssignDevSprintId(sprintId);
+    setSelectedDevId("");
+    setIsAssignDevOpen(true);
     try {
       const res = await usersApi.list({ role: 'DEVELOPER', is_active: true, page_size: 100 });
-      setTesterList(res.items);
+      setDevList(res.items);
     } catch (err) { console.error(err); }
   };
 
-  const handleAssignTester = async () => {
-    if (!assignTesterSprintId || !selectedTesterId) return;
-    setAssigningTester(true);
+  const handleAssignDeveloper = async () => {
+    if (!assignDevSprintId || !selectedDevId) return;
+    setAssigningDev(true);
     try {
-      await SprintService.assignTester(assignTesterSprintId, Number(selectedTesterId));
-      setIsAssignTesterOpen(false);
+      await SprintService.assignDeveloper(assignDevSprintId, Number(selectedDevId));
+      setIsAssignDevOpen(false);
       fetchData();
     } catch (err) { alert(getApiErrorMessage(err)); }
-    finally { setAssigningTester(false); }
+    finally { setAssigningDev(false); }
   };
 
   if (isLoading) return <LoadingSpinner message="Loading sprints..." />;
@@ -518,9 +518,9 @@ export const SprintsPage: React.FC = () => {
                          sprint.status === "READY_FOR_APPROVAL" ? "Awaiting Approval" :
                          sprint.status}
                       </span>
-                      {sprint.assigned_tester_name && (
+                      {(sprint.assigned_developer_name || sprint.assigned_tester_name) && (
                         <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                          <UserCheck size={12} /> {sprint.assigned_tester_name}
+                          <UserCheck size={12} /> {sprint.assigned_developer_name || sprint.assigned_tester_name}
                         </span>
                       )}
                       {healthCfg && <span style={{ fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "12px", fontWeight: 600, backgroundColor: healthCfg.bg, color: healthCfg.color, border: `1px solid ${healthCfg.color}44` }}>{healthCfg.label}</span>}
@@ -544,8 +544,8 @@ export const SprintsPage: React.FC = () => {
                       </button>
                     )}
                     {isAdmin && (sprint.status === "PLANNED" || sprint.status === "ACTIVE" || sprint.status === "IN_PROGRESS") && (
-                      <button className="btn btn-secondary btn-sm" onClick={() => openAssignTesterModal(sprint.id)}>
-                        <UserCheck size={14} /> {sprint.assigned_tester_name ? 'Reassign Developer' : 'Assign Developer'}
+                      <button className="btn btn-secondary btn-sm" onClick={() => openAssignDevModal(sprint.id)}>
+                        <UserCheck size={14} /> {(sprint.assigned_developer_name || sprint.assigned_tester_name) ? 'Reassign Developer' : 'Assign Developer'}
                       </button>
                     )}
                   </div>
@@ -676,7 +676,7 @@ export const SprintsPage: React.FC = () => {
       </Modal>
 
       {/* Assign Developer Modal */}
-      <Modal isOpen={isAssignTesterOpen} onClose={() => setIsAssignTesterOpen(false)} title="Assign Developer to Sprint">
+      <Modal isOpen={isAssignDevOpen} onClose={() => setIsAssignDevOpen(false)} title="Assign Developer to Sprint">
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", margin: 0 }}>
             Select a developer to assign. The sprint will move to <strong>ACTIVE</strong> if currently PLANNED.
@@ -685,26 +685,26 @@ export const SprintsPage: React.FC = () => {
             <label className="form-label">Developer</label>
             <select
               className="form-select"
-              value={selectedTesterId}
-              onChange={e => setSelectedTesterId(Number(e.target.value) || "")}
+              value={selectedDevId}
+              onChange={e => setSelectedDevId(Number(e.target.value) || "")}
             >
               <option value="">— Select a developer —</option>
-              {testerList.map(t => (
+              {devList.map(t => (
                 <option key={t.id} value={t.id}>{t.full_name} ({t.email})</option>
               ))}
             </select>
-            {testerList.length === 0 && (
+            {devList.length === 0 && (
               <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "0.5rem" }}>No active developers found.</p>
             )}
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem" }}>
-            <button className="btn btn-secondary" onClick={() => setIsAssignTesterOpen(false)}>Cancel</button>
+            <button className="btn btn-secondary" onClick={() => setIsAssignDevOpen(false)}>Cancel</button>
             <button
               className="btn btn-primary"
-              disabled={!selectedTesterId || assigningTester}
-              onClick={handleAssignTester}
+              disabled={!selectedDevId || assigningDev}
+              onClick={handleAssignDeveloper}
             >
-              {assigningTester ? "Assigning..." : "Assign Developer"}
+              {assigningDev ? "Assigning..." : "Assign Developer"}
             </button>
           </div>
         </div>

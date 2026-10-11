@@ -60,7 +60,7 @@ export const AdminApprovalCenter: React.FC<Props> = ({ awaitingApproval, recentl
                       <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                         <Clock size={10} />
                         {s.submitted_at ? formatRelativeTime(s.submitted_at) : 'Submitted'}
-                        {s.assigned_tester_name && <span>&bull; by {s.assigned_tester_name}</span>}
+                        {(s.assigned_developer_name || s.assigned_tester_name) && <span>&bull; by {s.assigned_developer_name || s.assigned_tester_name}</span>}
                       </div>
                     </div>
                     <Link to="/admin/sprint-approvals" style={{ fontSize: '0.68rem', fontWeight: 700, color: '#818cf8', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', padding: '0.25rem 0.6rem', borderRadius: '5px', textDecoration: 'none', flexShrink: 0 }}>

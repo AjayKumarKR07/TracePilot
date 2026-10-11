@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Bell,
   Calendar,
@@ -380,8 +380,8 @@ export const ProfilePage: React.FC = () => {
                 {profile.role === 'USER' && (
                   <>
                     <li>Report new defects with reproduction steps, environment, and evidence.</li>
-                    <li>Track real-time defect investigation status from assigned testers.</li>
-                    <li>Verify tester solutions and 1-click confirm resolution as Closed.</li>
+                    <li>Track real-time defect investigation status from assigned developers.</li>
+                    <li>Verify developer solutions and 1-click confirm resolution as Closed.</li>
                     <li>Reopen defects with detailed feedback if issues persist.</li>
                     <li>Export personal defect analytics and audit reports to PDF and CSV.</li>
                   </>
@@ -397,9 +397,9 @@ export const ProfilePage: React.FC = () => {
                 {profile.role === 'ADMIN' && (
                   <>
                     <li>Full organization-wide administration and project management.</li>
-                    <li>Assign defects to testers and reassign workloads.</li>
+                    <li>Assign defects to developers and reassign workloads.</li>
                     <li>Manage user accounts, roles, and activation status.</li>
-                    <li>View global defect analytics and tester productivity metrics.</li>
+                    <li>View global defect analytics and developer productivity metrics.</li>
                   </>
                 )}
               </ul>
@@ -758,7 +758,7 @@ export const ProfilePage: React.FC = () => {
                     Issue Resolved
                   </span>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    Immediate alert when tester marks issue resolved
+                    Immediate alert when developer marks issue resolved
                   </span>
                 </div>
                 <input

@@ -178,6 +178,7 @@ function getActionConfig(action: string): ActionDisplayConfig {
         badgeBg: "rgba(139,92,246,0.08)",
         badgeColor: "#7c3aed",
       };
+    case "SPRINT_DEVELOPER_ASSIGNED":
     case "SPRINT_TESTER_ASSIGNED":
       return {
         label: "Sprint assigned",

@@ -52,7 +52,7 @@ export const IssueDetailPage: React.FC = () => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [activityLogs, setActivityLogs] = useState<AuditLogItem[]>([]);
-  const [testers, setTesters] = useState<UserDetail[]>([]);
+  const [developers, setDevelopers] = useState<UserDetail[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,7 +61,7 @@ export const IssueDetailPage: React.FC = () => {
 
   // Modals & Action States
   const [isAssignOpen, setIsAssignOpen] = useState<boolean>(false);
-  const [selectedTesterId, setSelectedTesterId] = useState<number | ''>('');
+  const [selectedDeveloperId, setSelectedDeveloperId] = useState<number | ''>('');
   const [isResolveOpen, setIsResolveOpen] = useState<boolean>(false);
   const [resolutionSummary, setResolutionSummary] = useState<string>('');
   const [isReopenOpen, setIsReopenOpen] = useState<boolean>(false);
@@ -113,13 +113,13 @@ export const IssueDetailPage: React.FC = () => {
     }
   };
 
-  const fetchTesters = async () => {
+  const fetchDevelopers = async () => {
     if (user?.role === 'ADMIN') {
       try {
         const data = await usersApi.list({ role: 'DEVELOPER', is_active: true });
-        setTesters(data.items || []);
+        setDevelopers(data.items || []);
         if (data.items.length > 0) {
-          setSelectedTesterId(data.items[0].id);
+          setSelectedDeveloperId(data.items[0].id);
         }
       } catch {
         // Ignore
@@ -129,17 +129,17 @@ export const IssueDetailPage: React.FC = () => {
 
   useEffect(() => {
     fetchIssueData();
-    fetchTesters();
+    fetchDevelopers();
   }, [id]);
 
   // Actions
   const handleAssignSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedTesterId) return;
+    if (!selectedDeveloperId) return;
     setIsActionSubmitting(true);
     setActionError(null);
     try {
-      const updated = await issuesApi.assign(issueId, { tester_id: Number(selectedTesterId) });
+      const updated = await issuesApi.assign(issueId, { developer_id: Number(selectedDeveloperId), tester_id: Number(selectedDeveloperId) });
       setIssue(updated);
       setIsAssignOpen(false);
       fetchIssueData();
@@ -319,9 +319,9 @@ export const IssueDetailPage: React.FC = () => {
   // Issue Progress Steps Calculation
   const progressSteps = [
     { key: 'REPORTED', label: '1. Reported', sub: 'Submitted by User' },
-    { key: 'ASSIGNED', label: '2. Assigned', sub: 'Assigned to Tester' },
+    { key: 'ASSIGNED', label: '2. Assigned', sub: 'Assigned to Developer' },
     { key: 'IN_PROGRESS', label: '3. In Progress', sub: 'Investigation / Fix' },
-    { key: 'RESOLVED', label: '4. Resolved', sub: 'Fixed by Tester' },
+    { key: 'RESOLVED', label: '4. Resolved', sub: 'Resolved by Developer' },
     { key: 'CLOSED', label: '5. Closed', sub: 'Confirmed by User' },
   ];
 
@@ -405,7 +405,7 @@ export const IssueDetailPage: React.FC = () => {
             {user?.role === 'ADMIN' && (
               <button onClick={() => setIsAssignOpen(true)} className="btn btn-secondary btn-sm">
                 <UserPlus size={14} />
-                {issue.assignee ? 'Reassign Tester' : 'Assign Tester'}
+                {issue.assignee ? 'Reassign Developer' : 'Assign Developer'}
               </button>
             )}
 
@@ -593,7 +593,7 @@ export const IssueDetailPage: React.FC = () => {
                 </span>
               </div>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.75rem' }}>
-                The tester has marked this defect as resolved. Please review the resolution details below and confirm whether the problem is fixed.
+                The developer has marked this defect as resolved. Please review the resolution details below and confirm whether the problem is fixed.
               </p>
               {issue.resolution_summary && (
                 <div
@@ -1058,7 +1058,7 @@ export const IssueDetailPage: React.FC = () => {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      Comments are visible to User, Admin, and assigned Tester.
+                      Comments are visible to User, Admin, and assigned Developer.
                     </span>
                     <button type="submit" disabled={!newCommentBody.trim()} className="btn btn-primary btn-sm">
                       <Send size={13} />
@@ -1180,7 +1180,7 @@ export const IssueDetailPage: React.FC = () => {
               </div>
 
               <div>
-                <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', textTransform: 'uppercase' }}>Assignee (Tester)</span>
+                <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', textTransform: 'uppercase' }}>Assignee (Developer)</span>
                 {issue.assignee ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.2rem' }}>
                     <User size={14} color="var(--primary)" />
@@ -1239,11 +1239,11 @@ export const IssueDetailPage: React.FC = () => {
         </Modal>
       )}
 
-      {/* Assign Tester Modal (ADMIN only) */}
+      {/* Assign Developer Modal (ADMIN only) */}
       <Modal
         isOpen={isAssignOpen}
         onClose={() => setIsAssignOpen(false)}
-        title="Assign Issue to Tester"
+        title="Assign Issue to Developer"
       >
         {actionError && (
           <div className="alert-box alert-danger">
@@ -1253,16 +1253,16 @@ export const IssueDetailPage: React.FC = () => {
         <form onSubmit={handleAssignSubmit}>
           <div className="form-group">
             <label className="form-label" htmlFor="dev-select">
-              Select Active Tester
+              Select Active Developer
             </label>
             <select
-              id="tester-select"
+              id="dev-select"
               required
               className="form-select"
-              value={selectedTesterId}
-              onChange={(e) => setSelectedTesterId(Number(e.target.value))}
+              value={selectedDeveloperId}
+              onChange={(e) => setSelectedDeveloperId(Number(e.target.value))}
             >
-              {testers.map((t) => (
+              {developers.map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.full_name} ({t.email})
                 </option>

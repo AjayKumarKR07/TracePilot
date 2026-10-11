@@ -37,11 +37,21 @@ class SprintExtend(BaseModel):
 # ── Approval workflow request schemas ─────────────────────────────────────────
 
 class SprintAssignTester(BaseModel):
-    tester_id: int = Field(..., description="ID of the TESTER user to assign")
+    developer_id: int | None = Field(None, description="ID of the DEVELOPER user to assign")
+    tester_id: int | None = Field(None, description="Legacy alias for developer_id")
+
+    def get_assignee_id(self) -> int:
+        target = self.developer_id or self.tester_id
+        if target is None:
+            raise ValueError("developer_id or tester_id is required.")
+        return target
+
+
+SprintAssignDeveloper = SprintAssignTester
 
 
 class SprintRequestChanges(BaseModel):
-    comment: str | None = Field(None, max_length=2000, description="Optional reason/feedback for the tester")
+    comment: str | None = Field(None, max_length=2000, description="Optional reason/feedback for the developer")
 
 
 # ── Read schema ───────────────────────────────────────────────────────────────
@@ -57,6 +67,8 @@ class SprintRead(SprintBase):
     # Approval workflow fields
     assigned_tester_id: int | None = None
     assigned_tester_name: str | None = None   # resolved from relationship
+    assigned_developer_id: int | None = None
+    assigned_developer_name: str | None = None
     submitted_by_id: int | None = None
     submitted_at: datetime | None = None
     approved_by_id: int | None = None
@@ -88,9 +100,13 @@ class SprintRead(SprintBase):
             unloaded = insp.unloaded if insp else set()
 
             if "assigned_tester" not in unloaded:
-                tester = getattr(obj, "assigned_tester", None)
-                if tester and hasattr(tester, "full_name"):
-                    instance.assigned_tester_name = tester.full_name
+                dev = getattr(obj, "assigned_tester", None)
+                if dev and hasattr(dev, "full_name"):
+                    instance.assigned_tester_name = dev.full_name
+                    instance.assigned_developer_name = dev.full_name
+                    instance.assigned_developer_id = dev.id
+            if instance.assigned_tester_id and not instance.assigned_developer_id:
+                instance.assigned_developer_id = instance.assigned_tester_id
 
             if "project" not in unloaded:
                 proj = getattr(obj, "project", None)

@@ -62,6 +62,9 @@ class Sprint(Base):
     # ------------------------------------------------------------------ #
     # Approval workflow                                                    #
     # ------------------------------------------------------------------ #
+    assigned_developer_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
     assigned_tester_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
@@ -110,6 +113,11 @@ class Sprint(Base):
         cascade="save-update, merge",
         lazy="selectin",
     )
+    assigned_developer: Mapped["User | None"] = relationship(  # type: ignore[name-defined]
+        "User",
+        foreign_keys=[assigned_developer_id],
+        lazy="selectin",
+    )
     assigned_tester: Mapped["User | None"] = relationship(  # type: ignore[name-defined]
         "User",
         foreign_keys=[assigned_tester_id],
@@ -127,12 +135,17 @@ class Sprint(Base):
     )
 
     @property
-    def assigned_tester_name(self) -> str | None:
-        """Name of the assigned developer (column kept as assigned_tester_id for DB compat)."""
-        developer = self.__dict__.get("assigned_tester")
-        if developer and hasattr(developer, "full_name"):
-            return developer.full_name
+    def assigned_developer_name(self) -> str | None:
+        """Name of the assigned developer."""
+        dev = self.__dict__.get("assigned_developer") or self.__dict__.get("assigned_tester")
+        if dev and hasattr(dev, "full_name"):
+            return dev.full_name
         return None
+
+    @property
+    def assigned_tester_name(self) -> str | None:
+        """Name of the assigned developer (kept for backward compatibility)."""
+        return self.assigned_developer_name
 
     def __repr__(self) -> str:
         return f"<Sprint id={self.id} name={self.name!r} status={self.status}>"

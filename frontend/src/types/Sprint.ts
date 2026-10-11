@@ -23,8 +23,10 @@ export interface Sprint {
   created_at: string;
   updated_at: string;
   // Approval workflow
-  assigned_tester_id: number | null;
-  assigned_tester_name: string | null;
+  assigned_developer_id?: number | null;
+  assigned_developer_name?: string | null;
+  assigned_tester_id?: number | null;
+  assigned_tester_name?: string | null;
   submitted_by_id: number | null;
   submitted_at: string | null;
   approved_by_id: number | null;
@@ -67,9 +69,12 @@ export interface SprintExtend {
   new_end_date: string;
 }
 
-export interface SprintAssignTester {
-  tester_id: number;
+export interface SprintAssignDeveloper {
+  developer_id: number;
+  tester_id?: number;
 }
+
+export type SprintAssignTester = SprintAssignDeveloper;
 
 export interface SprintRequestChanges {
   comment?: string | null;

@@ -87,8 +87,19 @@ export const SprintService = {
 
   // ── Approval Workflow ─────────────────────────────────────────────────────
 
+  assignDeveloper: async (sprintId: number, developerId: number): Promise<Sprint> => {
+    const response = await apiClient.post(`/sprints/${sprintId}/assign-developer`, {
+      developer_id: developerId,
+      tester_id: developerId,
+    });
+    return response.data;
+  },
+
   assignTester: async (sprintId: number, testerId: number): Promise<Sprint> => {
-    const response = await apiClient.post(`/sprints/${sprintId}/assign-tester`, { tester_id: testerId });
+    const response = await apiClient.post(`/sprints/${sprintId}/assign-developer`, {
+      developer_id: testerId,
+      tester_id: testerId,
+    });
     return response.data;
   },
 

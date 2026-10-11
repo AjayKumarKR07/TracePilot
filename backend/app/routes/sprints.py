@@ -1,4 +1,4 @@
-﻿from typing import Sequence
+from typing import Sequence
 from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.responses import StreamingResponse
@@ -200,15 +200,17 @@ async def add_issue_to_sprint_alias(
 # Sprint Approval Workflow                                                      #
 # --------------------------------------------------------------------------- #
 
+@router.post("/{sprint_id}/assign-developer", response_model=SprintRead)
 @router.post("/{sprint_id}/assign-tester", response_model=SprintRead)
-async def assign_tester(
+async def assign_developer(
     sprint_id: int,
     body: SprintAssignTester,
     current_user: User = Depends(require_role(UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
-    """Assign a tester to a sprint. Moves PLANNED â†’ ACTIVE automatically. ADMIN only."""
-    return await sprint_service.assign_tester(db, sprint_id, body.tester_id, actor=current_user)
+    """Assign a developer to a sprint. Moves PLANNED -> ACTIVE automatically. ADMIN only."""
+    assignee_id = body.get_assignee_id()
+    return await sprint_service.assign_tester(db, sprint_id, assignee_id, actor=current_user)
 
 
 @router.post("/{sprint_id}/submit-for-approval", response_model=SprintRead)
@@ -217,7 +219,7 @@ async def submit_for_approval(
     current_user: User = Depends(require_role(UserRole.DEVELOPER, UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
-    """Tester submits a sprint for admin approval. Moves IN_PROGRESS â†’ READY_FOR_APPROVAL."""
+    """Developer submits a sprint for admin approval. Moves IN_PROGRESS -> READY_FOR_APPROVAL."""
     return await sprint_service.submit_for_approval(db, sprint_id, actor=current_user)
 
 
@@ -227,7 +229,7 @@ async def begin_work(
     current_user: User = Depends(require_role(UserRole.DEVELOPER, UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db),
 ):
-    """Tester begins work on an ACTIVE sprint. Moves ACTIVE â†’ IN_PROGRESS. TESTER/ADMIN only."""
+    """Developer begins work on an ACTIVE sprint. Moves ACTIVE -> IN_PROGRESS. DEVELOPER/ADMIN only."""
     return await sprint_service.begin_work(db, sprint_id, actor=current_user)
 
 

@@ -204,7 +204,7 @@ async def update_issue(
 @router.patch(
     "/{issue_id}/assign",
     response_model=IssueDetailResponse,
-    summary="Assign issue to a tester",
+    summary="Assign issue to a developer",
 )
 async def assign_issue(
     issue_id: int,
@@ -213,7 +213,7 @@ async def assign_issue(
     current_user: User = Depends(require_role(UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db),
 ) -> IssueDetailResponse:
-    """Assign or reassign an issue to a tester. **ADMIN only.**"""
+    """Assign or reassign an issue to a developer. **ADMIN only.**"""
     from app.services.websocket_manager import ws_manager
     detail, notifications = await issue_service.assign_issue(issue_id, body, current_user, db)
     for notif in notifications:
@@ -329,7 +329,7 @@ async def reopen_issue(
         from fastapi import HTTPException
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only USER, TESTER, or ADMIN can reopen issues.",
+            detail="Only USER, DEVELOPER, or ADMIN can reopen issues.",
         )
     from app.services.websocket_manager import ws_manager
     detail, notifications = await issue_service.reopen_issue(issue_id, body, current_user, db)
@@ -428,15 +428,15 @@ async def bulk_assign_sprint(
 
 
 # --------------------------------------------------------------------------- #
-# Smart Tester Matcher / Smart Assignee Matcher (DYNAMIC â€” after static)      #
+# Smart Assignee Matcher (DYNAMIC — after static)                             #
 # --------------------------------------------------------------------------- #
 
 @router.get(
     "/{issue_id}/suggest-assignee",
     response_model=DeveloperMatchResponse,
-    summary="Smart Assignee Matcher â€” ranked tester suggestions",
+    summary="Smart Assignee Matcher — ranked developer suggestions",
     description=(
-        "Return a ranked list of active TESTER users for the given issue, "
+        "Return a ranked list of active DEVELOPER users for the given issue, "
         "scored by resolution rate, current workload, and average resolution speed."
     ),
 )

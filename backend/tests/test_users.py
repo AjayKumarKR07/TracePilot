@@ -52,8 +52,8 @@ def _u(tag: str) -> str:
 def _setup_p6_users() -> None:
     """Ensure a fixed set of Phase 6 test users exist."""
     users = [
-        (_u("tester_a"), "Tester A P6", UserRole.DEVELOPER),
-        (_u("tester_b"), "Tester B P6", UserRole.DEVELOPER),
+        (_u("tester_a"), "Developer A P6", UserRole.DEVELOPER),
+        (_u("tester_b"), "Developer B P6", UserRole.DEVELOPER),
         (_u("user_a"),   "User A P6",   UserRole.USER),
     ]
     for email, name, role in users:
@@ -172,7 +172,7 @@ class TestUserListSearch:
         uid = _get_user_id(_u("tester_b"))
         current_name = _CLIENT.get(f"/users/{uid}", headers=auth_header(admin_token())).json()["full_name"]
         # Use a stable prefix that will always appear in the name
-        search_term = current_name[:8]  # e.g. "Tester B" or "Updated "
+        search_term = current_name[:8]  # e.g. "Developer B" or "Updated "
         r = _CLIENT.get(
             "/users",
             params={"search": search_term},
@@ -279,7 +279,7 @@ class TestUserDetail:
 class TestUserUpdate:
     def test_admin_can_update_full_name(self):
         uid = _get_user_id(_u("tester_b"))
-        new_name = f"Updated Tester B {secrets.token_hex(4)}"
+        new_name = f"Updated Developer B {secrets.token_hex(4)}"
         r = _CLIENT.patch(
             f"/users/{uid}",
             json={"full_name": new_name},

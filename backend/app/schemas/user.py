@@ -77,7 +77,7 @@ class UserUpdateRequest(BaseModel):
         None,
         min_length=1,
         max_length=200,
-        examples=["Jane Tester"],
+        examples=["Jane Developer"],
     )
     email: EmailStr | None = Field(
         None,
@@ -88,4 +88,4 @@ class UserUpdateRequest(BaseModel):
 class UserRoleUpdateRequest(BaseModel):
     """Body for PATCH /users/{user_id}/role."""
 
-    role: UserRole = Field(..., examples=["TESTER"])
+    role: UserRole = Field(..., examples=["DEVELOPER"])

@@ -46,7 +46,7 @@ export const AdminSprintsPage: React.FC = () => {
   // Data
   const [sprints, setSprints] = useState<Sprint[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [testers, setTesters] = useState<UserDetail[]>([]);
+  const [developers, setDevelopers] = useState<UserDetail[]>([]);
 
   // Filters
   const [selectedProjectId, setSelectedProjectId] = useState<number | 'ALL'>('ALL');
@@ -94,7 +94,7 @@ export const AdminSprintsPage: React.FC = () => {
     setError(null);
 
     try {
-      const [sprintList, projectRes, testerRes] = await Promise.all([
+      const [sprintList, projectRes, developerRes] = await Promise.all([
         SprintService.getAllSprints(),
         projectsApi.list({ page_size: 100 }),
         usersApi.list({ role: 'DEVELOPER', is_active: true, page_size: 100 }),
@@ -102,7 +102,7 @@ export const AdminSprintsPage: React.FC = () => {
 
       setSprints(sprintList || []);
       setProjects(projectRes.items || []);
-      setTesters(testerRes.items || []);
+      setDevelopers(developerRes.items || []);
 
       if (projectRes.items.length > 0 && createForm.project_id === 0) {
         const primaryProj = projectRes.items.find((p: Project) => p.project_key === 'ISEC' || p.name.includes('Kaggle')) || projectRes.items[0];
@@ -264,11 +264,11 @@ export const AdminSprintsPage: React.FC = () => {
     }
   };
 
-  const handleAssignTester = async (testerId: number) => {
+  const handleAssignDeveloper = async (developerId: number) => {
     if (!selectedSprintForAssign) return;
     setActionLoadingId(selectedSprintForAssign.id);
     try {
-      await SprintService.assignTester(selectedSprintForAssign.id, testerId);
+      await SprintService.assignDeveloper(selectedSprintForAssign.id, developerId);
       setToastMessage({ type: 'success', text: 'Developer assigned and sprint activated' });
       setAssignModalOpen(false);
       setSelectedSprintForAssign(null);
@@ -326,7 +326,9 @@ export const AdminSprintsPage: React.FC = () => {
       const q = searchQuery.toLowerCase();
       const matchName = s.name.toLowerCase().includes(q);
       const matchGoal = s.goal ? s.goal.toLowerCase().includes(q) : false;
-      const matchTester = s.assigned_tester_name ? s.assigned_tester_name.toLowerCase().includes(q) : false;
+      const matchTester = (s.assigned_developer_name || s.assigned_tester_name)
+        ? (s.assigned_developer_name || s.assigned_tester_name)!.toLowerCase().includes(q)
+        : false;
       const matchProject = s.project_name ? s.project_name.toLowerCase().includes(q) : false;
       if (!matchName && !matchGoal && !matchTester && !matchProject) return false;
     }
@@ -641,17 +643,17 @@ export const AdminSprintsPage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Assigned Tester Widget */}
+                      {/* Assigned Developer Widget */}
                       <div style={{ background: 'var(--bg-surface-elevated)', padding: '0.65rem 0.95rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', minWidth: '220px' }}>
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                           Assigned Developer
                         </div>
-                        {sprint.assigned_tester_name ? (
+                        {(sprint.assigned_developer_name || sprint.assigned_tester_name) ? (
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.65rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                               <UserCheck size={16} style={{ color: 'var(--success)' }} />
                               <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--success)' }}>
-                                {sprint.assigned_tester_name}
+                                {sprint.assigned_developer_name || sprint.assigned_tester_name}
                               </span>
                             </div>
                             <button
@@ -1032,7 +1034,7 @@ export const AdminSprintsPage: React.FC = () => {
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '350px', overflowY: 'auto' }}>
-            {testers.map((t) => (
+            {developers.map((t) => (
               <div
                 key={t.id}
                 style={{
@@ -1053,7 +1055,7 @@ export const AdminSprintsPage: React.FC = () => {
                 </div>
                 <button
                   className="btn btn-primary btn-sm"
-                  onClick={() => handleAssignTester(t.id)}
+                  onClick={() => handleAssignDeveloper(t.id)}
                   style={{ fontSize: '0.78rem', padding: '0.35rem 0.8rem' }}
                 >
                   Select Developer

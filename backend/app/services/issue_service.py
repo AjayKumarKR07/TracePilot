@@ -20,6 +20,7 @@ from sqlalchemy.orm import selectinload
 from app.models.audit_log import AuditAction, AuditLog
 from app.schemas.audit import AuditLogResponse
 from app.models.issue import (
+    DEVELOPER_TRANSITIONS,
     REOPENABLE_STATUSES,
     TESTER_TRANSITIONS,
     Issue,
@@ -455,9 +456,9 @@ async def update_issue(
 async def assign_issue(
     issue_id: int, body: IssueAssign, current_user: User, db: AsyncSession
 ) -> tuple[IssueDetailResponse, list]:
-    """ADMIN: assign/reassign an issue to a tester.
+    """ADMIN: assign/reassign an issue to a developer.
 
-    Accepts users with the TESTER role (the role responsible for investigating
+    Accepts users with the DEVELOPER role (the role responsible for investigating
     and resolving assigned issues in the current workflow).
 
     Returns (IssueDetailResponse, list_of_notifications) so the route handler
@@ -544,7 +545,7 @@ async def assign_issue(
 async def update_issue_status(
     issue_id: int, body: IssueStatusUpdate, current_user: User, db: AsyncSession
 ) -> tuple[IssueDetailResponse, list]:
-    """TESTER: transition their assigned issue. ADMIN: force-set any status."""
+    """DEVELOPER: transition their assigned issue. ADMIN: force-set any status."""
     issue = await _get_issue_or_404(issue_id, db)
 
     if current_user.role == UserRole.ADMIN:
@@ -558,7 +559,7 @@ async def update_issue_status(
                 detail="You can only update status on issues assigned to you.",
             )
 
-        allowed = TESTER_TRANSITIONS.get(issue.status, set())
+        allowed = DEVELOPER_TRANSITIONS.get(issue.status, set())
         if body.status not in allowed:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -659,7 +660,7 @@ async def resolve_issue(
         entity_id=issue.id,
         entity_key=issue.issue_key,
         description=(
-            f"Tester {current_user.full_name!r} resolved issue {issue.issue_key}"
+            f"Developer {current_user.full_name!r} resolved issue {issue.issue_key}"
         ),
         old_values={"status": old_status},
         new_values={
@@ -713,7 +714,7 @@ async def reopen_issue(
     elif current_user.role == UserRole.DEVELOPER and issue.assignee_id != current_user.id and issue.reporter_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Testers can only reopen issues assigned to or reported by them.",
+            detail="Developers can only reopen issues assigned to or reported by them.",
         )
 
     old_status = issue.status

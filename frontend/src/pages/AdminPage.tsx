@@ -121,7 +121,7 @@ export const AdminPage: React.FC = () => {
 
   // ── Workload State ───────────────────────
   const [devPerformance, setDevPerformance] = useState<DeveloperAnalyticsItem[]>([]);
-  const [testersList, setTestersList] = useState<UserDetail[]>([]);
+  const [activeDevsList, setActiveDevsList] = useState<UserDetail[]>([]);
   const [workloadLoading, setWorkloadLoading] = useState(false);
   const [workloadError, setWorkloadError] = useState<string | null>(null);
 
@@ -196,12 +196,12 @@ export const AdminPage: React.FC = () => {
     setWorkloadLoading(true);
     setWorkloadError(null);
     try {
-      const [perf, testers] = await Promise.all([
+      const [perf, devs] = await Promise.all([
         analyticsApi.getDeveloperPerformance(),
         usersApi.list({ role: 'DEVELOPER', is_active: true, page_size: 50 }),
       ]);
       setDevPerformance(perf.items);
-      setTestersList(testers.items.filter((u) => !u.email.endsWith('@example.com')));
+      setActiveDevsList(devs.items.filter((u) => !u.email.endsWith('@example.com')));
     } catch (err) {
       setWorkloadError(getApiErrorMessage(err));
     } finally {
@@ -298,7 +298,7 @@ export const AdminPage: React.FC = () => {
     setAssignLoading(true);
     setAssignError(null);
     try {
-      await issuesApi.assign(assignModalIssue.id, { tester_id: Number(selectedDevId) });
+      await issuesApi.assign(assignModalIssue.id, { developer_id: Number(selectedDevId), tester_id: Number(selectedDevId) });
       setAssignModalIssue(null);
       fetchIssues();
     } catch (err) {
@@ -921,11 +921,11 @@ export const AdminPage: React.FC = () => {
                     <h3 className="card-title">Active Developers</h3>
                   </div>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    {testersList.length} developer{testersList.length !== 1 ? 's' : ''}
+                    {activeDevsList.length} developer{activeDevsList.length !== 1 ? 's' : ''}
                   </span>
                 </div>
                 <div className="card-body" style={{ padding: 0 }}>
-                  {testersList.length === 0 ? (
+                  {activeDevsList.length === 0 ? (
                     <EmptyState title="No active developers" description="No developers are currently active in the system." />
                   ) : (
                     <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
@@ -939,26 +939,26 @@ export const AdminPage: React.FC = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {testersList.map((tester) => (
-                            <tr key={tester.id}>
+                          {activeDevsList.map((dev) => (
+                            <tr key={dev.id}>
                               <td>
-                                <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{tester.full_name}</div>
-                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{tester.email}</div>
+                                <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{dev.full_name}</div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{dev.email}</div>
                               </td>
                               <td>
-                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', fontWeight: '600', color: tester.is_active ? '#34d399' : '#f87171' }}>
-                                  {tester.is_active ? <CheckCircle size={13} /> : <XCircle size={13} />}
-                                  {tester.is_active ? 'Active' : 'Inactive'}
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', fontWeight: '600', color: dev.is_active ? '#34d399' : '#f87171' }}>
+                                  {dev.is_active ? <CheckCircle size={13} /> : <XCircle size={13} />}
+                                  {dev.is_active ? 'Active' : 'Inactive'}
                                 </span>
                               </td>
                               <td>
-                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', color: tester.is_email_verified ? '#34d399' : 'var(--text-muted)' }}>
-                                  {tester.is_email_verified ? <CheckCircle size={13} /> : <XCircle size={13} />}
-                                  {tester.is_email_verified ? 'Verified' : 'Pending'}
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', color: dev.is_email_verified ? '#34d399' : 'var(--text-muted)' }}>
+                                  {dev.is_email_verified ? <CheckCircle size={13} /> : <XCircle size={13} />}
+                                  {dev.is_email_verified ? 'Verified' : 'Pending'}
                                 </span>
                               </td>
                               <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                {formatDate(tester.created_at)}
+                                {formatDate(dev.created_at)}
                               </td>
                             </tr>
                           ))}

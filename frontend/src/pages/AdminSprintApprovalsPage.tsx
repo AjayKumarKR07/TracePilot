@@ -393,7 +393,7 @@ export const AdminSprintApprovalsPage: React.FC = () => {
 
                         <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.8rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
                           <span>
-                            Assigned Developer: <strong style={{ color: '#34d399' }}>{sprint.assigned_tester_name || '—'}</strong>
+                            Assigned Developer: <strong style={{ color: '#34d399' }}>{sprint.assigned_developer_name || sprint.assigned_tester_name || '—'}</strong>
                           </span>
                           <span>
                             Sprint Window: <strong style={{ color: 'var(--text-primary)' }}>{formatDate(sprint.start_date)}</strong> to <strong style={{ color: 'var(--text-primary)' }}>{formatDate(sprint.end_date)}</strong>
@@ -693,7 +693,7 @@ export const AdminSprintApprovalsPage: React.FC = () => {
                       </td>
                       <td>
                         <span style={{ fontSize: '0.82rem', color: '#34d399', fontWeight: 600 }}>
-                          {s.assigned_tester_name || '—'}
+                          {s.assigned_developer_name || s.assigned_tester_name || '—'}
                         </span>
                       </td>
                       <td>

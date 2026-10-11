@@ -1,4 +1,4 @@
-﻿﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   AlertCircle,
@@ -386,7 +386,7 @@ export const DeveloperSprintsPage: React.FC = () => {
                 <Layers size={13} /> SPRINT EXECUTION
               </span>
               <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Tester: {user?.full_name || user?.email}
+                Developer: {user?.full_name || user?.email}
               </span>
             </div>
 

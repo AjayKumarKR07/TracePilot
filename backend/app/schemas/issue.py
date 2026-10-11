@@ -42,7 +42,7 @@ class ProjectBrief(BaseModel):
 # --------------------------------------------------------------------------- #
 
 class IssueCreate(BaseModel):
-    """Payload to report a new defect. TESTER only."""
+    """Payload to report a new defect."""
 
     project_id: int
     title: str = Field(..., min_length=5, max_length=500)
@@ -64,7 +64,7 @@ class IssueCreate(BaseModel):
 
 
 class IssueUpdate(BaseModel):
-    """Fields a TESTER can update on their own reported issue."""
+    """Fields that can be updated on an issue."""
 
     title: str | None = Field(None, min_length=5, max_length=500)
     description: str | None = Field(None, min_length=10)
@@ -84,35 +84,37 @@ class IssueUpdate(BaseModel):
 
 
 class IssueAssign(BaseModel):
-    """Payload for ADMIN to assign an issue to a tester."""
+    """Payload for ADMIN to assign an issue to a developer."""
 
-    tester_id: int | None = None
-    developer_id: int | None = None  # Legacy client compatibility alias
+    developer_id: int | None = None
+    tester_id: int | None = None  # Legacy client compatibility alias
 
     @model_validator(mode="after")
     def resolve_assignee(self) -> "IssueAssign":
-        if self.tester_id is None and self.developer_id is None:
-            raise ValueError("tester_id is required.")
+        if self.developer_id is None and self.tester_id is None:
+            raise ValueError("developer_id is required.")
+        if self.developer_id is None and self.tester_id is not None:
+            self.developer_id = self.tester_id
         if self.tester_id is None and self.developer_id is not None:
             self.tester_id = self.developer_id
         return self
 
 
 class IssueStatusUpdate(BaseModel):
-    """Payload for TESTER to change their assigned issue status."""
+    """Payload for DEVELOPER or ADMIN to change assigned issue status."""
 
     status: IssueStatus
 
 
 class IssueResolve(BaseModel):
-    """Payload for TESTER to mark an assigned issue as resolved."""
+    """Payload for DEVELOPER to mark an assigned issue as resolved."""
 
     resolution_summary: str = Field(..., min_length=10)
     resolution_notes: str | None = None  # stored in resolution_summary if provided
 
 
 class IssueReopen(BaseModel):
-    """Payload for TESTER or ADMIN to reopen an issue."""
+    """Payload for USER, DEVELOPER, or ADMIN to reopen an issue."""
 
     reason: str | None = Field(None, max_length=1000)
 

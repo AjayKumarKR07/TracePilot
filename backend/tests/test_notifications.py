@@ -394,12 +394,13 @@ class TestNotificationEventTriggers:
         assert r_dev2_role.status_code == 200
         assert len(r_dev2_role.json()["items"]) >= 1
 
-        # Revert role back to TESTER
-        client.patch(
+        # Revert role back to DEVELOPER
+        r_revert = client.patch(
             f"/users/{dev2_id}/role",
-            json={"role": "TESTER"},
+            json={"role": "DEVELOPER"},
             headers=auth_header(adm),
         )
+        assert r_revert.status_code == 200
 
         # Deactivate user notification
         r_deact = client.patch(f"/users/{dev2_id}/deactivate", headers=auth_header(adm))

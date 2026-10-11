@@ -84,7 +84,7 @@ export const IssuesPage: React.FC = () => {
     }
   }, [searchParams]);
 
-  // Report Defect Modal state (for User / Tester / Admin)
+  // Report Defect Modal state (for User / Developer / Admin)
   const [isReportOpen, setIsReportOpen] = useState<boolean>(false);
   const [formProjectId, setFormProjectId] = useState<number | ''>('');
   const [formTitle, setFormTitle] = useState<string>('');

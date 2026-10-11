@@ -223,3 +223,12 @@ backend/storage/
 # Test attachment temp files
 backend/tests/tmp_attachments/
 
+# Environment files and credentials
+.env
+*.env
+backend/.env
+
+# Local scratch and diagnostic files
+scratch/
+backend/scratch/
+

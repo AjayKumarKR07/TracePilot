@@ -60,12 +60,22 @@ async def _ensure_verified_user(
             )
             session.add(user)
             await session.commit()
-        elif not existing.is_active or not existing.is_email_verified or existing.role != role:
-            # Fix existing unverified or wrong-role user
-            existing.is_active = True
-            existing.is_email_verified = True
-            existing.role = role
-            await session.commit()
+        else:
+            updated = False
+            if not existing.is_active:
+                existing.is_active = True
+                updated = True
+            if not existing.is_email_verified:
+                existing.is_email_verified = True
+                updated = True
+            if existing.role != role:
+                existing.role = role
+                updated = True
+            if existing.full_name != full_name:
+                existing.full_name = full_name
+                updated = True
+            if updated:
+                await session.commit()
 
 
 def _run_sync(coro):

@@ -3,8 +3,8 @@ export interface UserStats {
   active: number;
   inactive: number;
   admins: number;
-  developers?: number;
-  testers: number;
+  developers: number;
+  testers?: number;
   users: number;
   verified: number;
   unverified: number;

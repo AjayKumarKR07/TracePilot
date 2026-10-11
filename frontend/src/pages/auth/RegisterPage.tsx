@@ -83,7 +83,7 @@ const ROLE_OPTIONS: UIRoleOption[] = [
     capabilities: [
       'Manage system users and access',
       'Create and configure projects',
-      'Assign testers and developers',
+      'Assign developers to defects',
       'Monitor system health',
       'Access global analytics',
     ],

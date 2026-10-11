@@ -296,7 +296,7 @@ export const DashboardPage: React.FC = () => {
     ? (statusDist.REPORTED || 0) + (statusDist.TRIAGED || 0)
     : userIssues.filter((i) => i.status === 'REPORTED' || i.status === 'TRIAGED').length;
 
-  const assignedToTesterCount = statusDist
+  const assignedToDeveloperCount = statusDist
     ? statusDist.ASSIGNED || 0
     : userIssues.filter((i) => i.status === 'ASSIGNED').length;
 
@@ -1448,10 +1448,10 @@ export const DashboardPage: React.FC = () => {
             }}
           >
             <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.2rem' }}>
-              Assigned to Tester
+              Assigned to Developer
             </span>
             <span style={{ fontSize: '1.35rem', fontWeight: '700', color: '#818cf8' }}>
-              {assignedToTesterCount}
+              {assignedToDeveloperCount}
             </span>
           </div>
 

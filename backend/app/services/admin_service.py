@@ -142,7 +142,7 @@ async def _user_stats(db: AsyncSession) -> UserStats:
         active=row.active,
         inactive=row.inactive,
         admins=row.admins,
-        developers=0,
+        developers=row.testers,
         testers=row.testers,
         users=row.users,
         verified=row.verified,

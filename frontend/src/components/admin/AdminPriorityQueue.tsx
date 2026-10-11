@@ -378,7 +378,7 @@ export const AdminPriorityQueue: React.FC<AdminPriorityQueueProps> = ({
     setAssigning(true);
     setAssignError(null);
     try {
-      await issuesApi.assign(assignModalIssue.id, { tester_id: developerId });
+      await issuesApi.assign(assignModalIssue.id, { developer_id: developerId, tester_id: developerId });
       setAssignModalIssue(null);
       fetchQueue(true);
       onAssignSuccess?.();
