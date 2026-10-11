@@ -338,6 +338,19 @@ class TestIssueDetail:
         r = client.get(f"/issues/{issue['id']}", headers=auth_header(_user2_tok()))
         assert r.status_code == 403
 
+    def test_lookup_by_issue_key_string(self) -> None:
+        pid = _get_or_create_project(_fresh_key("KEYL"), "Key Lookup Project")
+        issue = _create_issue(pid)
+        r = client.get(f"/issues/{issue['issue_key']}", headers=auth_header(_admin_tok()))
+        assert r.status_code == 200
+        data = r.json()
+        assert data["id"] == issue["id"]
+        assert data["issue_key"] == issue["issue_key"]
+
+    def test_nonexistent_issue_key_returns_404(self) -> None:
+        r = client.get("/issues/NONEXISTENT-9999", headers=auth_header(_admin_tok()))
+        assert r.status_code == 404
+
 
 # =========================================================================== #
 # 5. Assignment                                                                #

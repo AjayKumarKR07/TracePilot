@@ -71,6 +71,26 @@ async def _get_issue_or_404(issue_id: int, db: AsyncSession) -> Issue:
     return issue
 
 
+async def _get_issue_by_key_or_404(issue_key: str, db: AsyncSession) -> Issue:
+    """Fetch an Issue by issue_key with relationships eagerly loaded, or raise 404."""
+    result = await db.execute(
+        select(Issue)
+        .options(
+            selectinload(Issue.project),
+            selectinload(Issue.reporter),
+            selectinload(Issue.assignee),
+        )
+        .where(func.upper(Issue.issue_key) == issue_key.strip().upper())
+    )
+    issue = result.scalar_one_or_none()
+    if issue is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Issue '{issue_key}' not found.",
+        )
+    return issue
+
+
 async def _get_project_active_or_error(project_id: int, db: AsyncSession) -> Project:
     """Fetch a Project, raising 404 if missing and 400 if inactive."""
     result = await db.execute(select(Project).where(Project.id == project_id))
@@ -188,10 +208,15 @@ async def create_issue(body: IssueCreate, reporter: User, db: AsyncSession) -> t
 
 
 async def get_issue_detail(
-    issue_id: int, db: AsyncSession, current_user: User | None = None
+    issue_id_or_key: int | str, db: AsyncSession, current_user: User | None = None
 ) -> IssueDetailResponse:
-    """Fetch full issue detail with related project, reporter, assignee and enforce RBAC."""
-    issue = await _get_issue_or_404(issue_id, db)
+    """Fetch full issue detail by ID or key with related project, reporter, assignee and enforce RBAC."""
+    str_val = str(issue_id_or_key).strip()
+    if str_val.isdigit():
+        issue = await _get_issue_or_404(int(str_val), db)
+    else:
+        issue = await _get_issue_by_key_or_404(str_val, db)
+
     if current_user is not None and current_user.role != UserRole.ADMIN:
         if current_user.role == UserRole.USER and issue.reporter_id != current_user.id:
             raise HTTPException(

@@ -5,7 +5,11 @@ All metrics are calculated via PostgreSQL aggregations.
 No sensitive data (passwords, tokens, OTPs) is exposed.
 """
 
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict
+
+from app.models.issue import IssueStatus, Priority, Severity
 
 
 # --------------------------------------------------------------------------- #
@@ -60,6 +64,9 @@ class SeverityDistributionResponse(BaseModel):
     MAJOR: int = 0
     CRITICAL: int = 0
     BLOCKER: int = 0
+    total: int = 0
+    critical_blocker_total: int = 0
+    critical_blocker_pct: float = 0.0
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -117,6 +124,11 @@ class ProjectAnalyticsResponse(BaseModel):
     closed_issues: int
     critical_issues: int
     resolution_rate: float
+    critical_blocker_open_issues: int = 0
+    resolved_closed_issues: int = 0
+    fix_rate: float = 0.0
+    avg_resolution_time_hours: float | None = None
+    unassigned_issues: int = 0
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -135,25 +147,39 @@ class ProjectAnalyticsListResponse(BaseModel):
 # --------------------------------------------------------------------------- #
 
 class DeveloperAnalyticsItem(BaseModel):
-    """Performance metrics for an individual tester (legacy schema name preserved for client compatibility)."""
+    """Performance and workload metrics for an individual developer."""
 
     developer_id: int
     developer_name: str
     developer_email: str
-    assigned_issues: int
-    resolved_issues: int
-    open_issues: int
-    resolution_rate: float
+    assigned_issues: int = 0
+    resolved_issues: int = 0
+    open_issues: int = 0
+    critical_open_issues: int = 0
+    closed_issues: int = 0
+    reopened_issues: int = 0
+    total_completed_period: int = 0
+    workload_share_pct: float = 0.0
+    resolution_rate: float = 0.0
     average_resolution_time_hours: float | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class DeveloperAnalyticsResponse(BaseModel):
-    """Aggregated performance metrics across all developers in the system."""
+    """Aggregated workload and performance metrics across all active developers."""
 
     items: list[DeveloperAnalyticsItem]
     total: int
+    total_assigned_open: int = 0
+    total_critical_open: int = 0
+    total_unassigned_open: int = 0
+    total_unassigned_critical: int = 0
+    total_resolved_period: int = 0
+    total_closed_period: int = 0
+    team_avg_resolution_time_hours: float | None = None
+    preset: str | None = None
+    project_id: int | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -282,4 +308,99 @@ class DefectTrendsHistoryResponse(BaseModel):
     status_trend: DefectStatusTrend
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# --------------------------------------------------------------------------- #
+# Backlog Aging & Risk Analysis Schemas — Feature 03                          #
+# --------------------------------------------------------------------------- #
+
+class OldestUnresolvedBacklogIssue(BaseModel):
+    """Oldest unresolved defect in the analyzed backlog."""
+
+    id: int
+    issue_key: str
+    title: str
+    project_id: int
+    project_name: str
+    project_key: str
+    severity: Severity
+    status: IssueStatus
+    created_at: datetime
+    age_days: float
+    assignee_name: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class BacklogAgingBucketItem(BaseModel):
+    """Metrics for an individual non-overlapping age bucket."""
+
+    bucket_key: str  # "under_24h", "days_1_to_3", "days_3_to_7", "over_7d"
+    label: str       # "Under 24 hours", "1–3 days", "3–7 days", "More than 7 days"
+    boundary_desc: str  # "< 24h", "24h–72h", "3d–7d", "> 7d"
+    total_issues: int = 0
+    critical_blocker_count: int = 0
+    unassigned_count: int = 0
+    percentage: float = 0.0
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class BacklogRiskSummary(BaseModel):
+    """Operational risk summary indicators for unresolved backlog."""
+
+    total_unresolved: int = 0
+    critical_blocker_unresolved: int = 0
+    unassigned_unresolved: int = 0
+    issues_older_than_7d: int = 0
+    critical_blocker_older_than_24h: int = 0
+    oldest_unresolved: OldestUnresolvedBacklogIssue | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class BacklogAgingDistributionResponse(BaseModel):
+    """Overall backlog aging distribution and risk summary."""
+
+    summary: BacklogRiskSummary
+    buckets: list[BacklogAgingBucketItem]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class BacklogRiskIssueItem(BaseModel):
+    """Detailed ranked item for highest-risk backlog defects."""
+
+    id: int
+    issue_key: str
+    title: str
+    project_id: int
+    project_name: str
+    project_key: str
+    severity: Severity
+    priority: Priority
+    status: IssueStatus
+    assignee_id: int | None = None
+    assignee_name: str | None = None
+    created_at: datetime
+    age_hours: float
+    age_days: float
+    age_bucket: str
+    risk_score: float  # 0 to 100 prioritization aid
+    risk_level: str    # CRITICAL, HIGH, MEDIUM, LOW
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class BacklogRiskIssuesResponse(BaseModel):
+    """Paginated response of ranked backlog risk defects."""
+
+    items: list[BacklogRiskIssueItem]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+    model_config = ConfigDict(from_attributes=True)
+
 

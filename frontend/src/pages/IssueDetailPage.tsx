@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -44,11 +44,11 @@ import { generateSingleIssuePdfReport } from '../utils/pdfGenerator';
 
 export const IssueDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const issueId = Number(id);
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const [issue, setIssue] = useState<IssueDetail | null>(null);
+  const issueId = issue?.id ?? (Number(id) || 0);
   const [comments, setComments] = useState<Comment[]>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [activityLogs, setActivityLogs] = useState<AuditLogItem[]>([]);
@@ -80,22 +80,28 @@ export const IssueDetailPage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchIssueData = async () => {
-    if (!issueId) return;
+    if (!id) {
+      setIsLoading(false);
+      setError('Defect identifier is missing.');
+      return;
+    }
     setIsLoading(true);
     setError(null);
     try {
-      const [issueData, commentsData, attachmentsData] = await Promise.all([
-        issuesApi.getById(issueId),
-        commentsApi.listByIssue(issueId),
-        attachmentsApi.listByIssue(issueId),
-      ]);
+      const issueData = await issuesApi.getById(id);
       setIssue(issueData);
+      const actualId = issueData.id;
+
+      const [commentsData, attachmentsData] = await Promise.all([
+        commentsApi.listByIssue(actualId),
+        attachmentsApi.listByIssue(actualId),
+      ]);
       setComments(commentsData.items || []);
       setAttachments(attachmentsData.items || []);
 
       // Fetch activity timeline
       try {
-        const activityData = await issuesApi.getActivity(issueId);
+        const activityData = await issuesApi.getActivity(actualId);
         setActivityLogs(activityData || []);
       } catch {
         // Activity timeline non-fatal fallback
@@ -124,7 +130,7 @@ export const IssueDetailPage: React.FC = () => {
   useEffect(() => {
     fetchIssueData();
     fetchTesters();
-  }, [issueId]);
+  }, [id]);
 
   // Actions
   const handleAssignSubmit = async (e: React.FormEvent) => {

@@ -251,6 +251,30 @@ class TestSeverityDistribution:
         data = r.json()
         assert data["BLOCKER"] >= 1
         assert data["MINOR"] >= 1
+        assert data["total"] >= 2
+        assert data["critical_blocker_total"] >= 1
+        assert data["critical_blocker_pct"] > 0
+
+    def test_severity_distribution_totals_and_percentages(self):
+        proj = _create_test_project()
+        _create_test_issue(proj["id"], severity=Severity.CRITICAL)
+        _create_test_issue(proj["id"], severity=Severity.BLOCKER)
+        _create_test_issue(proj["id"], severity=Severity.MAJOR)
+        _create_test_issue(proj["id"], severity=Severity.MINOR)
+
+        r = _CLIENT.get(
+            f"/analytics/issues/severity-distribution?project_id={proj['id']}",
+            headers=auth_header(admin_token()),
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert data["CRITICAL"] == 1
+        assert data["BLOCKER"] == 1
+        assert data["MAJOR"] == 1
+        assert data["MINOR"] == 1
+        assert data["total"] == 4
+        assert data["critical_blocker_total"] == 2
+        assert data["critical_blocker_pct"] == 50.0
 
 
 # =========================================================================== #
@@ -318,12 +342,25 @@ class TestIssueTrends:
 
 class TestProjectAnalytics:
     def test_all_projects_analytics_returns_200(self):
+        proj = _create_test_project()
+        _create_test_issue(proj["id"], severity=Severity.BLOCKER)
+
         r = _CLIENT.get("/analytics/projects", headers=auth_header(admin_token()))
         assert r.status_code == 200
         data = r.json()
         assert "items" in data
         assert "total" in data
         assert isinstance(data["items"], list)
+        matching = [p for p in data["items"] if p["project_id"] == proj["id"]]
+        assert len(matching) == 1
+        p_data = matching[0]
+        assert "critical_blocker_open_issues" in p_data
+        assert "resolved_closed_issues" in p_data
+        assert "fix_rate" in p_data
+        assert "avg_resolution_time_hours" in p_data
+        assert "unassigned_issues" in p_data
+        assert p_data["critical_blocker_open_issues"] >= 1
+        assert p_data["unassigned_issues"] >= 1
 
     def test_single_project_analytics_200(self):
         proj = _create_test_project()
@@ -341,6 +378,10 @@ class TestProjectAnalytics:
         assert data["open_issues"] == 1
         assert data["critical_issues"] == 1
         assert data["resolution_rate"] == 0.0
+        assert data["critical_blocker_open_issues"] == 1
+        assert data["resolved_closed_issues"] == 0
+        assert data["fix_rate"] == 0.0
+        assert data["unassigned_issues"] == 1
 
     def test_zero_issues_project_handles_resolution_rate(self):
         proj = _create_test_project()
@@ -353,6 +394,11 @@ class TestProjectAnalytics:
         data = r.json()
         assert data["total_issues"] == 0
         assert data["resolution_rate"] == 0.0
+        assert data["fix_rate"] == 0.0
+        assert data["critical_blocker_open_issues"] == 0
+        assert data["resolved_closed_issues"] == 0
+        assert data["unassigned_issues"] == 0
+        assert data["avg_resolution_time_hours"] is None
 
     def test_nonexistent_project_returns_404(self):
         r = _CLIENT.get(
@@ -440,6 +486,54 @@ class TestDeveloperAnalytics:
         assert tester3_after["resolved_issues"] >= 1
         assert tester3_after["resolution_rate"] > 0.0
         assert tester3_after["average_resolution_time_hours"] is not None
+
+    def test_feature04_workload_fields_and_presets(self):
+        """Test Feature 04 summary fields, developer item metrics, and date presets."""
+        r = _CLIENT.get("/analytics/developers?preset=30d", headers=auth_header(admin_token()))
+        assert r.status_code == 200
+        data = r.json()
+        assert "total_assigned_open" in data
+        assert "total_critical_open" in data
+        assert "total_unassigned_open" in data
+        assert "total_unassigned_critical" in data
+        assert "total_resolved_period" in data
+        assert "total_closed_period" in data
+        assert data["preset"] == "30d"
+
+        for item in data["items"]:
+            assert "critical_open_issues" in item
+            assert "closed_issues" in item
+            assert "reopened_issues" in item
+            assert "total_completed_period" in item
+            assert "workload_share_pct" in item
+
+    def test_feature04_unassigned_work_not_attributed(self):
+        """Test that unassigned issues are isolated and not counted in developer workload."""
+        proj = _create_test_project()
+        iss = _create_test_issue(proj["id"])  # unassigned
+
+        r = _CLIENT.get(
+            f"/analytics/developers?project_id={proj['id']}&include_test=true",
+            headers=auth_header(admin_token()),
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert data["total_unassigned_open"] >= 1
+        # No developer should have this unassigned issue in their open_issues
+        for item in data["items"]:
+            assert item["open_issues"] == 0
+
+    def test_feature04_project_filter(self):
+        """Test scoping developer performance to a specific project."""
+        proj = _create_test_project()
+        r = _CLIENT.get(
+            f"/analytics/developers?project_id={proj['id']}&include_test=true",
+            headers=auth_header(admin_token()),
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert data["project_id"] == proj["id"]
+
 
 
 # =========================================================================== #
@@ -684,4 +778,163 @@ class TestDefectTrendsHistory:
         assert r_dev.status_code == 200
         r_usr = _CLIENT.get("/analytics/defect-trends/history", headers=auth_header(user_token()))
         assert r_usr.status_code == 200
+
+
+# =========================================================================== #
+# 10. Feature 03: Backlog Aging & Risk Analysis Tests                         #
+# =========================================================================== #
+
+class TestBacklogAgingAndRiskAnalysis:
+    def test_aging_distribution_unauthenticated_returns_401(self):
+        r = _CLIENT.get("/analytics/backlog-aging")
+        assert r.status_code == 401
+
+    def test_aging_distribution_admin_success(self):
+        r = _CLIENT.get("/analytics/backlog-aging", headers=auth_header(admin_token()))
+        assert r.status_code == 200
+        data = r.json()
+
+        assert "summary" in data
+        assert "buckets" in data
+
+        summary = data["summary"]
+        assert "total_unresolved" in summary
+        assert "critical_blocker_unresolved" in summary
+        assert "unassigned_unresolved" in summary
+        assert "issues_older_than_7d" in summary
+        assert "critical_blocker_older_than_24h" in summary
+        assert "oldest_unresolved" in summary
+
+        buckets = data["buckets"]
+        assert len(buckets) == 4
+        bucket_keys = [b["bucket_key"] for b in buckets]
+        assert bucket_keys == ["under_24h", "days_1_to_3", "days_3_to_7", "over_7d"]
+
+        total_bucket_issues = sum(b["total_issues"] for b in buckets)
+        assert total_bucket_issues == summary["total_unresolved"]
+
+        # Check percentage calculation
+        if summary["total_unresolved"] > 0:
+            total_pct = sum(b["percentage"] for b in buckets)
+            assert 99.0 <= total_pct <= 101.0  # slight rounding margin
+        else:
+            for b in buckets:
+                assert b["percentage"] == 0.0
+
+    def test_aging_distribution_project_isolation_empty_state(self):
+        proj = _create_test_project()
+        r = _CLIENT.get(
+            f"/analytics/backlog-aging?project_id={proj['id']}&include_test=true",
+            headers=auth_header(admin_token()),
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert data["summary"]["total_unresolved"] == 0
+        assert data["summary"]["critical_blocker_unresolved"] == 0
+        assert data["summary"]["unassigned_unresolved"] == 0
+        assert data["summary"]["issues_older_than_7d"] == 0
+        assert data["summary"]["oldest_unresolved"] is None
+        for b in data["buckets"]:
+            assert b["total_issues"] == 0
+            assert b["percentage"] == 0.0
+
+    def test_aging_distribution_rbac_scoping(self):
+        # Developer and User roles should be authenticated and receive valid responses
+        r_dev = _CLIENT.get("/analytics/backlog-aging", headers=auth_header(tester_token()))
+        assert r_dev.status_code == 200
+        r_usr = _CLIENT.get("/analytics/backlog-aging", headers=auth_header(user_token()))
+        assert r_usr.status_code == 200
+
+    def test_risk_issues_unauthenticated_returns_401(self):
+        r = _CLIENT.get("/analytics/backlog-risk/issues")
+        assert r.status_code == 401
+
+    def test_risk_issues_pagination_and_structure(self):
+        r = _CLIENT.get(
+            "/analytics/backlog-risk/issues?page=1&page_size=5",
+            headers=auth_header(admin_token()),
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert "items" in data
+        assert "total" in data
+        assert "page" in data
+        assert "page_size" in data
+        assert "total_pages" in data
+        assert data["page"] == 1
+        assert data["page_size"] == 5
+
+        if data["total"] > 0:
+            assert len(data["items"]) <= 5
+            first = data["items"][0]
+            assert "id" in first
+            assert "issue_key" in first
+            assert "title" in first
+            assert "project_id" in first
+            assert "project_name" in first
+            assert "project_key" in first
+            assert "severity" in first
+            assert "status" in first
+            assert "risk_score" in first
+            assert "risk_level" in first
+            assert first["risk_level"] in ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
+            assert 0.0 <= first["risk_score"] <= 100.0
+
+    def test_risk_issues_filtering_by_severity(self):
+        r = _CLIENT.get(
+            "/analytics/backlog-risk/issues?severity=CRITICAL",
+            headers=auth_header(admin_token()),
+        )
+        assert r.status_code == 200
+        data = r.json()
+        for item in data["items"]:
+            assert item["severity"] == "CRITICAL"
+
+    def test_risk_issues_filtering_by_assignment(self):
+        r_unassigned = _CLIENT.get(
+            "/analytics/backlog-risk/issues?is_assigned=false",
+            headers=auth_header(admin_token()),
+        )
+        assert r_unassigned.status_code == 200
+        for item in r_unassigned.json()["items"]:
+            assert item["assignee_id"] is None
+
+        r_assigned = _CLIENT.get(
+            "/analytics/backlog-risk/issues?is_assigned=true",
+            headers=auth_header(admin_token()),
+        )
+        assert r_assigned.status_code == 200
+        for item in r_assigned.json()["items"]:
+            assert item["assignee_id"] is not None
+
+    def test_risk_issues_filtering_by_age_bucket(self):
+        for bucket in ["under_24h", "days_1_to_3", "days_3_to_7", "over_7d"]:
+            r = _CLIENT.get(
+                f"/analytics/backlog-risk/issues?age_bucket={bucket}",
+                headers=auth_header(admin_token()),
+            )
+            assert r.status_code == 200
+            data = r.json()
+            for item in data["items"]:
+                assert item["age_bucket"] == bucket
+
+    def test_risk_issues_sorting(self):
+        # Sort by risk_score desc
+        r_score_desc = _CLIENT.get(
+            "/analytics/backlog-risk/issues?sort_by=risk_score&sort_dir=desc&page_size=10",
+            headers=auth_header(admin_token()),
+        )
+        assert r_score_desc.status_code == 200
+        scores = [item["risk_score"] for item in r_score_desc.json()["items"]]
+        assert scores == sorted(scores, reverse=True)
+
+        # Sort by age desc (oldest first)
+        r_age_desc = _CLIENT.get(
+            "/analytics/backlog-risk/issues?sort_by=age&sort_dir=desc&page_size=10",
+            headers=auth_header(admin_token()),
+        )
+        assert r_age_desc.status_code == 200
+        ages = [item["age_days"] for item in r_age_desc.json()["items"]]
+        assert ages == sorted(ages, reverse=True)
+
 

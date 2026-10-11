@@ -173,11 +173,11 @@ async def list_issues(
     summary="Get issue details",
 )
 async def get_issue(
-    issue_id: int,
+    issue_id: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> IssueDetailResponse:
-    """Get full issue detail with role-based access control."""
+    """Get full issue detail by ID or issue key (e.g. CORE-0001) with role-based access control."""
     detail = await issue_service.get_issue_detail(issue_id, db, current_user=current_user)
     return detail
 

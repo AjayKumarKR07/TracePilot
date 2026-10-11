@@ -10,6 +10,8 @@ Endpoints:
   GET /analytics/reports/issues/export        → Authenticated (RBAC scoped, CSV)
   GET /analytics/developers                   → ADMIN only
   GET /analytics/projects/{project_id}        → Authenticated (RBAC scoped)
+  GET /analytics/backlog-aging                → Authenticated (RBAC scoped)
+  GET /analytics/backlog-risk/issues          → Authenticated (RBAC scoped)
 
 Static routes are declared before dynamic routes to prevent route collisions.
 """
@@ -35,6 +37,8 @@ from app.schemas.analytics import (
     AnalyticsReportDataResponse,
     QualityMetricsResponse,
     DefectTrendsHistoryResponse,
+    BacklogAgingDistributionResponse,
+    BacklogRiskIssuesResponse,
 )
 from app.services import analytics_service
 
@@ -108,6 +112,7 @@ async def issue_severity_distribution(
     project_id: int | None = Query(None, description="Filter by project ID"),
     start_date: datetime | None = Query(None, description="Filter by start date (ISO-8601)"),
     end_date: datetime | None = Query(None, description="Filter by end date (ISO-8601)"),
+    include_test: bool = Query(False, description="Include test-fixture projects"),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> SeverityDistributionResponse:
@@ -118,6 +123,7 @@ async def issue_severity_distribution(
         project_id=project_id,
         start_date=start_date,
         end_date=end_date,
+        include_test=include_test,
     )
 
 
@@ -185,6 +191,9 @@ async def issue_trends(
     summary="All projects analytics",
 )
 async def all_projects_analytics(
+    start_date: datetime | None = Query(None, description="Filter by start date (ISO-8601)"),
+    end_date: datetime | None = Query(None, description="Filter by end date (ISO-8601)"),
+    include_test: bool = Query(False, description="Include test-fixture projects"),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> ProjectAnalyticsListResponse:
@@ -192,6 +201,9 @@ async def all_projects_analytics(
     return await analytics_service.get_all_projects_analytics(
         db=db,
         current_user=current_user,
+        start_date=start_date,
+        end_date=end_date,
+        include_test=include_test,
     )
 
 
@@ -248,8 +260,10 @@ async def export_issues_report(
     },
 )
 async def developer_performance(
+    preset: str | None = Query(None, description="Date range preset: 7d, 30d, 90d"),
     start_date: datetime | None = Query(None, description="Filter by start date (ISO-8601)"),
     end_date: datetime | None = Query(None, description="Filter by end date (ISO-8601)"),
+    project_id: int | None = Query(None, description="Optional project ID filter"),
     include_test: bool = Query(False, description="Include automated test fixture accounts and projects"),
     current_user: User = _ADMIN,
     db: AsyncSession = Depends(get_db),
@@ -259,7 +273,12 @@ async def developer_performance(
     **ADMIN only.**
     """
     return await analytics_service.get_developer_performance(
-        db, start_date=start_date, end_date=end_date, include_test=include_test
+        db,
+        preset=preset,
+        start_date=start_date,
+        end_date=end_date,
+        project_id=project_id,
+        include_test=include_test,
     )
 
 
@@ -501,4 +520,76 @@ async def plotly_charts_data(
             if not k.startswith("_")
         },
     }
+
+
+# --------------------------------------------------------------------------- #
+# 13. Feature 03: Backlog Aging & Risk Analysis                               #
+# --------------------------------------------------------------------------- #
+
+@router.get(
+    "/backlog-aging",
+    response_model=BacklogAgingDistributionResponse,
+    summary="Backlog aging distribution and risk summary",
+    description=(
+        "Returns distribution of unresolved backlog defects across 4 non-overlapping age buckets:\n"
+        "- Under 24 hours (< 24h)\n"
+        "- 1–3 days (24h–72h)\n"
+        "- 3–7 days (72h–7d)\n"
+        "- More than 7 days (168h+)\n"
+        "Also provides risk summary metrics (unresolved counts, oldest defect, etc.)."
+    ),
+)
+async def backlog_aging_distribution(
+    project_id: int | None = Query(None, description="Filter by project ID"),
+    include_test: bool = Query(False, description="Include test fixture projects"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> BacklogAgingDistributionResponse:
+    """Return backlog aging distribution and high-level risk summary."""
+    return await analytics_service.get_backlog_aging_distribution(
+        db=db,
+        current_user=current_user,
+        project_id=project_id,
+        include_test=include_test,
+    )
+
+
+@router.get(
+    "/backlog-risk/issues",
+    response_model=BacklogRiskIssuesResponse,
+    summary="Ranked backlog risk issues",
+    description=(
+        "Returns paginated, ranked unresolved issues scored by transparent risk formula:\n"
+        "Risk Score = Severity (0–40) + Age (0–40) + Assignment Factor (0–20).\n"
+        "Prioritization aid, not an SLA breach or guaranteed prediction."
+    ),
+)
+async def backlog_risk_issues(
+    project_id: int | None = Query(None, description="Filter by project ID"),
+    severity: Severity | None = Query(None, description="Filter by severity level"),
+    is_assigned: bool | None = Query(None, description="Filter by assignment status (true/false)"),
+    age_bucket: str | None = Query(None, description="Filter by age bucket (under_24h, days_1_to_3, days_3_to_7, over_7d)"),
+    sort_by: str = Query("risk_score", description="Sort by: risk_score, age, severity"),
+    sort_dir: str = Query("desc", description="Sort direction: asc or desc"),
+    page: int = Query(1, ge=1, description="Page number (1-based)"),
+    page_size: int = Query(10, ge=1, le=100, description="Items per page (max 100)"),
+    include_test: bool = Query(False, description="Include test fixture projects"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> BacklogRiskIssuesResponse:
+    """Return ranked backlog risk issues with filters and pagination."""
+    return await analytics_service.get_backlog_risk_issues(
+        db=db,
+        current_user=current_user,
+        project_id=project_id,
+        severity=severity,
+        is_assigned=is_assigned,
+        age_bucket=age_bucket,
+        sort_by=sort_by,
+        sort_dir=sort_dir,
+        page=page,
+        page_size=page_size,
+        include_test=include_test,
+    )
+
 

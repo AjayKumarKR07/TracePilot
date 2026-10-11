@@ -1,3 +1,5 @@
+import type { Severity, IssueStatus } from './issue';
+
 export interface SystemAnalyticsResponse {
   total_users: number;
   active_users: number;
@@ -32,6 +34,9 @@ export interface SeverityDistributionResponse {
   MAJOR: number;
   CRITICAL: number;
   BLOCKER: number;
+  total?: number;
+  critical_blocker_total?: number;
+  critical_blocker_pct?: number;
 }
 
 export interface PriorityDistributionResponse {
@@ -65,6 +70,11 @@ export interface ProjectAnalyticsResponse {
   closed_issues: number;
   critical_issues: number;
   resolution_rate: number;
+  critical_blocker_open_issues?: number;
+  resolved_closed_issues?: number;
+  fix_rate?: number;
+  avg_resolution_time_hours?: number | null;
+  unassigned_issues?: number;
 }
 
 export interface ProjectAnalyticsListResponse {
@@ -82,6 +92,11 @@ export interface DeveloperAnalyticsItem {
   assigned_issues: number;
   resolved_issues: number;
   open_issues: number;
+  critical_open_issues?: number;
+  closed_issues?: number;
+  reopened_issues?: number;
+  total_completed_period?: number;
+  workload_share_pct?: number;
   resolution_rate: number;
   average_resolution_time_hours: number | null;
 }
@@ -89,6 +104,15 @@ export interface DeveloperAnalyticsItem {
 export interface DeveloperAnalyticsResponse {
   items: DeveloperAnalyticsItem[];
   total: number;
+  total_assigned_open?: number;
+  total_critical_open?: number;
+  total_unassigned_open?: number;
+  total_unassigned_critical?: number;
+  total_resolved_period?: number;
+  total_closed_period?: number;
+  team_avg_resolution_time_hours?: number | null;
+  preset?: string | null;
+  project_id?: number | null;
 }
 
 export interface AnalyticsReportDataResponse {
@@ -242,4 +266,87 @@ export interface DefectTrendsHistoryResponse {
   timeline: DefectTrendPoint[];
   status_trend: DefectStatusTrend;
 }
+
+// -------------------------------------------------------------------------- //
+// Backlog Aging & Risk Analysis — Feature 03
+// -------------------------------------------------------------------------- //
+
+export interface OldestUnresolvedBacklogIssue {
+  id: number;
+  issue_key: string;
+  title: string;
+  project_id: number;
+  project_name: string;
+  project_key: string;
+  severity: Severity;
+  status: IssueStatus;
+  created_at: string;
+  age_days: number;
+  assignee_name?: string | null;
+}
+
+export interface BacklogAgingBucketItem {
+  bucket_key: 'under_24h' | 'days_1_to_3' | 'days_3_to_7' | 'over_7d';
+  label: string;
+  boundary_desc: string;
+  total_issues: number;
+  critical_blocker_count: number;
+  unassigned_count: number;
+  percentage: number;
+}
+
+export interface BacklogRiskSummary {
+  total_unresolved: number;
+  critical_blocker_unresolved: number;
+  unassigned_unresolved: number;
+  issues_older_than_7d: number;
+  critical_blocker_older_than_24h: number;
+  oldest_unresolved?: OldestUnresolvedBacklogIssue | null;
+}
+
+export interface BacklogAgingDistributionResponse {
+  summary: BacklogRiskSummary;
+  buckets: BacklogAgingBucketItem[];
+}
+
+export interface BacklogRiskIssueItem {
+  id: number;
+  issue_key: string;
+  title: string;
+  project_id: number;
+  project_name: string;
+  project_key: string;
+  severity: Severity;
+  priority: string;
+  status: IssueStatus;
+  assignee_id?: number | null;
+  assignee_name?: string | null;
+  created_at: string;
+  age_hours: number;
+  age_days: number;
+  age_bucket: 'under_24h' | 'days_1_to_3' | 'days_3_to_7' | 'over_7d';
+  risk_score: number;
+  risk_level: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+}
+
+export interface BacklogRiskIssuesResponse {
+  items: BacklogRiskIssueItem[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export interface BacklogRiskFilters {
+  projectId?: number | null;
+  severity?: Severity | null;
+  isAssigned?: boolean | null;
+  ageBucket?: 'under_24h' | 'days_1_to_3' | 'days_3_to_7' | 'over_7d' | null;
+  sortBy?: 'risk_score' | 'age' | 'severity';
+  sortDir?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+  includeTest?: boolean;
+}
+
 

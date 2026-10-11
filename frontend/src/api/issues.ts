@@ -41,7 +41,7 @@ export const issuesApi = {
     return response.data;
   },
 
-  getById: async (id: number): Promise<IssueDetail> => {
+  getById: async (id: number | string): Promise<IssueDetail> => {
     const response = await apiClient.get<IssueDetail>(`/issues/${id}`);
     return response.data;
   },

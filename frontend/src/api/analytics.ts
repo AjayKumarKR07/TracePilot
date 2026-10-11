@@ -15,14 +15,38 @@ import type {
   SystemAnalyticsResponse,
   AnalyticsReportDataResponse,
   DefectTrendsHistoryResponse,
+  BacklogAgingDistributionResponse,
+  BacklogRiskIssuesResponse,
 } from '../types/analytics';
 import type { IssueStatus, Severity } from '../types/issue';
+
+export interface BacklogAgingParams {
+  project_id?: number;
+  include_test?: boolean;
+}
+
+export interface BacklogRiskIssuesParams {
+  project_id?: number;
+  severity?: Severity;
+  is_assigned?: boolean;
+  age_bucket?: 'under_24h' | 'days_1_to_3' | 'days_3_to_7' | 'over_7d';
+  sort_by?: 'risk_score' | 'age' | 'severity';
+  sort_dir?: 'asc' | 'desc';
+  page?: number;
+  page_size?: number;
+  include_test?: boolean;
+}
 
 export interface AnalyticsFilterParams {
   project_id?: number;
   start_date?: string;
   end_date?: string;
   include_test?: boolean;
+  preset?: string;
+}
+
+export interface DeveloperPerformanceParams extends AnalyticsFilterParams {
+  preset?: '7d' | '30d' | '90d' | 'all' | string;
 }
 
 export interface DefectTrendsHistoryParams {
@@ -92,9 +116,12 @@ export const analyticsApi = {
     return response.data;
   },
 
-  getAllProjectsAnalytics: async (): Promise<ProjectAnalyticsListResponse> => {
+  getAllProjectsAnalytics: async (
+    params?: AnalyticsFilterParams
+  ): Promise<ProjectAnalyticsListResponse> => {
     const response = await apiClient.get<ProjectAnalyticsListResponse>(
-      '/analytics/projects'
+      '/analytics/projects',
+      { params }
     );
     return response.data;
   },
@@ -110,7 +137,7 @@ export const analyticsApi = {
     return response.data;
   },
 
-  getDeveloperPerformance: async (params?: AnalyticsFilterParams): Promise<DeveloperAnalyticsResponse> => {
+  getDeveloperPerformance: async (params?: DeveloperPerformanceParams): Promise<DeveloperAnalyticsResponse> => {
     const response = await apiClient.get<DeveloperAnalyticsResponse>(
       '/analytics/developers',
       { params }
@@ -184,6 +211,26 @@ export const analyticsApi = {
     const response = await apiClient.post('/webhooks/git', {
       commits: [{ id: commitId, message: commitMessage }],
     });
+    return response.data;
+  },
+
+  getBacklogAgingDistribution: async (
+    params?: BacklogAgingParams
+  ): Promise<BacklogAgingDistributionResponse> => {
+    const response = await apiClient.get<BacklogAgingDistributionResponse>(
+      '/analytics/backlog-aging',
+      { params }
+    );
+    return response.data;
+  },
+
+  getBacklogRiskIssues: async (
+    params?: BacklogRiskIssuesParams
+  ): Promise<BacklogRiskIssuesResponse> => {
+    const response = await apiClient.get<BacklogRiskIssuesResponse>(
+      '/analytics/backlog-risk/issues',
+      { params }
+    );
     return response.data;
   },
 };

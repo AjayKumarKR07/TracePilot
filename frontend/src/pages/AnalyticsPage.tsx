@@ -22,6 +22,10 @@ import { ErrorMessage } from '../components/common/ErrorMessage';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { PlotlyDashboard } from '../components/common/PlotlyDashboard';
 import { DefectTrendsSection } from '../components/analytics/DefectTrendsSection';
+import { SeverityDistributionSection } from '../components/analytics/SeverityDistributionSection';
+import { ProjectQualityComparisonSection } from '../components/analytics/ProjectQualityComparisonSection';
+import { BacklogAgingRiskSection } from '../components/analytics/BacklogAgingRiskSection';
+import { DeveloperPerformanceSection } from '../components/analytics/DeveloperPerformanceSection';
 import { useAuth } from '../hooks/useAuth';
 import type {
   DeveloperAnalyticsItem,
@@ -285,7 +289,6 @@ export const AnalyticsPage: React.FC = () => {
   if (error) return <ErrorMessage message={error} onRetry={fetchAnalytics} />;
 
   const totalStatusCount = statusDist ? Object.values(statusDist).reduce((a, b) => a + b, 0) : 0;
-  const totalSeverityCount = severityDist ? Object.values(severityDist).reduce((a, b) => a + b, 0) : 0;
 
   const priorityColour: Record<string, string> = {
     URGENT: '#dc2626', HIGH: '#f97316', MEDIUM: '#fbbf24', LOW: '#94a3b8',
@@ -396,71 +399,49 @@ export const AnalyticsPage: React.FC = () => {
             </div>
           )}
 
-          {/* Status + Severity distribution */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.5rem', marginBottom: '1.75rem' }}>
-            {/* Status Distribution */}
-            <div className="card">
-              <div className="card-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <BarChart3 size={18} color="#818cf8" />
-                  <h3 className="card-title">Defect Status Breakdown</h3>
-                </div>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Total: {totalStatusCount}</span>
+          {/* Defect Status Distribution */}
+          <div className="card" style={{ marginBottom: '1.75rem' }}>
+            <div className="card-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <BarChart3 size={18} color="#818cf8" />
+                <h3 className="card-title">Defect Status Breakdown</h3>
               </div>
-              <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                {statusDist && Object.entries(statusDist).map(([key, count]) => {
-                  const pct = totalStatusCount > 0 ? ((count / totalStatusCount) * 100).toFixed(1) : '0';
-                  return (
-                    <div key={key}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.25rem' }}>
-                        <span style={{ fontWeight: '500' }}>{key.replace(/_/g, ' ')}</span>
-                        <span style={{ color: 'var(--text-secondary)' }}>{count} ({pct}%)</span>
-                      </div>
-                      <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--bg-input)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
-                        <div style={{
-                          width: `${pct}%`, height: '100%',
-                          backgroundColor: key === 'RESOLVED' || key === 'CLOSED' ? 'var(--success)'
-                            : key === 'REOPENED' ? 'var(--danger)'
-                            : key === 'IN_DEVELOPMENT' || key === 'IN_REVIEW' ? 'var(--warning)'
-                            : 'var(--primary)',
-                          borderRadius: 'var(--radius-full)',
-                          transition: 'width 0.6s ease',
-                        }} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Total: {totalStatusCount}</span>
             </div>
-
-            {/* Severity Distribution */}
-            <div className="card">
-              <div className="card-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <PieChart size={18} color="#f87171" />
-                  <h3 className="card-title">Severity Breakdown</h3>
-                </div>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Total: {totalSeverityCount}</span>
-              </div>
-              <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                {severityDist && Object.entries(severityDist).map(([key, count]) => {
-                  const pct = totalSeverityCount > 0 ? ((count / totalSeverityCount) * 100).toFixed(1) : '0';
-                  const color = key === 'BLOCKER' ? '#dc2626' : key === 'CRITICAL' ? '#f87171' : key === 'MAJOR' ? '#fbbf24' : '#94a3b8';
-                  return (
-                    <div key={key}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.25rem' }}>
-                        <span style={{ fontWeight: '600', color }}>{key}</span>
-                        <span style={{ color: 'var(--text-secondary)' }}>{count} ({pct}%)</span>
-                      </div>
-                      <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--bg-input)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
-                        <div style={{ width: `${pct}%`, height: '100%', backgroundColor: color, borderRadius: 'var(--radius-full)', transition: 'width 0.6s ease' }} />
-                      </div>
+            <div className="card-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+              {statusDist && Object.entries(statusDist).map(([key, count]) => {
+                const pct = totalStatusCount > 0 ? ((count / totalStatusCount) * 100).toFixed(1) : '0';
+                return (
+                  <div key={key}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.25rem' }}>
+                      <span style={{ fontWeight: '500' }}>{key.replace(/_/g, ' ')}</span>
+                      <span style={{ color: 'var(--text-secondary)' }}>{count} ({pct}%)</span>
                     </div>
-                  );
-                })}
-              </div>
+                    <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--bg-input)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
+                      <div style={{
+                        width: `${pct}%`, height: '100%',
+                        backgroundColor: key === 'RESOLVED' || key === 'CLOSED' ? 'var(--success)'
+                          : key === 'REOPENED' ? 'var(--danger)'
+                          : key === 'IN_DEVELOPMENT' || key === 'IN_REVIEW' ? 'var(--warning)'
+                          : 'var(--primary)',
+                        borderRadius: 'var(--radius-full)',
+                        transition: 'width 0.6s ease',
+                      }} />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
+
+          {/* Severity Distribution — Feature 02 */}
+          <SeverityDistributionSection
+            projects={projectAnalytics.map((p) => ({
+              id: p.project_id,
+              name: p.project_name,
+              key: p.project_key,
+            }))}
+          />
 
           {/* Defect Trends & Quality History — Feature 01 */}
           <DefectTrendsSection
@@ -471,94 +452,27 @@ export const AnalyticsPage: React.FC = () => {
             }))}
           />
 
-          {/* Project Analytics Table */}
-          <div className="card" style={{ marginBottom: '1.75rem' }}>
-            <div className="card-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <FolderGit2 size={18} color="#818cf8" />
-                <h3 className="card-title">Project Performance &amp; Resolution Rates</h3>
-              </div>
-            </div>
-            <div className="card-body" style={{ padding: 0 }}>
-              <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Project</th><th>Total Defects</th><th>Open / In Progress</th>
-                      <th>Resolved</th><th>Closed</th><th>Critical</th><th>Resolution Rate</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {projectAnalytics.map(pa => (
-                      <tr key={pa.project_id}>
-                        <td>
-                          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: '700', color: 'var(--primary)', marginRight: '0.5rem' }}>{pa.project_key}</span>
-                          <span style={{ fontWeight: '500' }}>{pa.project_name}</span>
-                        </td>
-                        <td>{pa.total_issues}</td>
-                        <td>{pa.open_issues + pa.in_progress_issues}</td>
-                        <td>{pa.resolved_issues}</td>
-                        <td>{pa.closed_issues}</td>
-                        <td><span style={{ color: pa.critical_issues > 0 ? '#f87171' : 'inherit', fontWeight: pa.critical_issues > 0 ? '700' : 'normal' }}>{pa.critical_issues}</span></td>
-                        <td>
-                          <span className="badge" style={{
-                            backgroundColor: pa.resolution_rate >= 80 ? 'var(--success-subtle)' : 'var(--warning-subtle)',
-                            color: pa.resolution_rate >= 80 ? '#34d399' : '#fbbf24',
-                          }}>
-                            {pa.resolution_rate.toFixed(1)}%
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+          {/* Project Quality Comparison — Feature 02 */}
+          <ProjectQualityComparisonSection />
 
-          {/* Developer Workload & Performance */}
-          {isAdmin && devAnalytics.length > 0 && (
-            <div className="card">
-              <div className="card-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Users size={18} color="#c084fc" />
-                  <h3 className="card-title">Developer Workload &amp; Performance Analytics</h3>
-                </div>
-              </div>
-              <div className="card-body" style={{ padding: 0 }}>
-                <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
-                  <table className="data-table">
-                    <thead>
-                      <tr><th>Developer</th><th>Assigned Defects</th><th>Resolved</th><th>Pending Open</th><th>Resolution Rate</th><th>Avg Resolution Speed</th></tr>
-                    </thead>
-                    <tbody>
-                      {devAnalytics.map(dev => (
-                        <tr key={dev.developer_id}>
-                          <td>
-                            <div style={{ fontWeight: '600' }}>{dev.developer_name}</div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{dev.developer_email}</div>
-                          </td>
-                          <td>{dev.assigned_issues}</td>
-                          <td><span style={{ color: '#34d399', fontWeight: '600' }}>{dev.resolved_issues}</span></td>
-                          <td>{dev.open_issues}</td>
-                          <td>
-                            <span className="badge" style={{
-                              backgroundColor: dev.resolution_rate >= 75 ? 'var(--success-subtle)' : 'var(--warning-subtle)',
-                              color: dev.resolution_rate >= 75 ? '#34d399' : '#fbbf24',
-                            }}>
-                              {dev.resolution_rate.toFixed(1)}%
-                            </span>
-                          </td>
-                          <td style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                            {dev.average_resolution_time_hours != null ? `${dev.average_resolution_time_hours.toFixed(1)} hrs` : '—'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+          {/* Backlog Aging & Risk Analysis — Feature 03 */}
+          <BacklogAgingRiskSection
+            projects={projectAnalytics.map((p) => ({
+              id: p.project_id,
+              name: p.project_name,
+              key: p.project_key,
+            }))}
+          />
+
+          {/* Developer Workload & Performance Analytics — Feature 04 */}
+          {isAdmin && (
+            <DeveloperPerformanceSection
+              projects={projectAnalytics.map((p) => ({
+                id: p.project_id,
+                name: p.project_name,
+                key: p.project_key,
+              }))}
+            />
           )}
         </>
       )}
