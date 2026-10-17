@@ -20,7 +20,7 @@
 [![Vite](https://img.shields.io/badge/Vite-5.4.19-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-Modern_UI-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 
-[![JWT Authentication](https://img.shields.io/badge/JWT-Auth%20%26%20OTP-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)](https://jwt.io/)
+[![JWT Authentication](https://img.shields.io/badge/JWT-Authentication-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)](https://jwt.io/)
 [![WebSocket](https://img.shields.io/badge/WebSocket-Real--Time-4B32C3?style=for-the-badge&logo=websocket&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)
 [![Pytest](https://img.shields.io/badge/Pytest-9.1.1-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](https://docs.pytest.org/)
 [![AI Assistant](https://img.shields.io/badge/AI_Assistant-Gemini%20%7C%20Groq-8E75C2?style=for-the-badge&logo=googlegemini&logoColor=white)](https://ai.google.dev/)
@@ -51,10 +51,10 @@
 | **UI & Styling**            | Modern Design Tokens + Tailwind CSS UI                       |
 | **Database**                | PostgreSQL `18.6`                                            |
 | **ORM & Migrations**        | SQLAlchemy `2.0.52` + Alembic `1.19.1`                       |
-| **Authentication**          | JWT (`PyJWT 2.13.0`) + Secure Email OTP                      |
+| **Authentication**          | JWT (`PyJWT 2.13.0`) + Bcrypt Password Hashing                |
 | **Real-Time Communication** | WebSocket (`websockets 17.0.1`)                              |
 | **Testing Framework**       | Pytest `9.1.1`                                               |
-| **AI Advisory Engine**      | Google Gemini (`gemini-2.0-flash`) & Groq (`llama-3.3-70b`) |
+| **AI Advisory Engine**      | Groq (`openai/gpt-oss-120b`) & Google Gemini (`gemini-2.0-flash`) |
 | **License**                 | MIT License                                                  |
 
 ---
@@ -337,9 +337,8 @@ TracePilot provides secure authentication and authorization mechanisms.
 ### Features
 
 * JWT-based authentication
-* Secure password hashing
-* Email OTP verification
-* Role-Based Access Control
+* Secure bcrypt password hashing
+* Role-Based Access Control (RBAC)
 * Protected API routes
 * Dependency-based authorization
 * Role-specific resource access
@@ -1018,7 +1017,7 @@ TracePilot/
 │   ├── app/
 │   │   ├── core/          # Application configuration, security, JWT
 │   │   ├── database/      # SQLAlchemy connection, async session
-│   │   ├── models/        # User, Project, Issue, Sprint, AuditLog, EmailOTP
+│   │   ├── models/        # User, Project, Issue, Sprint, AuditLog, Notification
 │   │   ├── schemas/       # Pydantic request/response schemas
 │   │   ├── routes/        # FastAPI REST and WebSocket endpoints
 │   │   ├── services/      # Business logic: Auth, Issue, Sprint, Analytics, AI, PDF
@@ -1363,8 +1362,7 @@ Page Numbers
 * [x] Project foundation
 * [x] PostgreSQL integration
 * [x] Alembic migrations
-* [x] JWT authentication
-* [x] Email OTP
+* [x] JWT authentication & bcrypt password hashing
 * [x] Role-Based Access Control
 * [x] Project management
 * [x] Issue tracking
@@ -1427,6 +1425,20 @@ Page Numbers
 * Enhanced RBAC Validation
 * GitHub/Webhook Integration
 * Advanced Analytics
+
+---
+
+## 🚀 Future Scope
+
+The following items are **planned enhancements** under active architectural design and roadmap planning. They represent future platform extensions and are **not** currently completed features:
+
+1. **Email OTP Verification** — Introduce email-based OTP verification after reliable email delivery and configuration are available.
+2. **Advanced AI Assistance** — Improve AI-powered root-cause analysis, defect prioritization, and resolution recommendations.
+3. **Automated Notifications** — Add reliable notifications for issue assignments, status changes, and sprint deadlines.
+4. **Enhanced Analytics** — Introduce more quality metrics, historical comparisons, and customizable reports.
+5. **CI/CD Integration** — Integrate with GitHub Actions and other development pipelines for automated defect workflow updates.
+6. **Third-Party Integrations** — Explore integrations with GitHub Issues, Jira, and collaboration platforms.
+7. **Improved Testing** — Expand automated unit, integration, and end-to-end test coverage.
 
 ---
 
