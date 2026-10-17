@@ -1,26 +1,61 @@
-# 🐞 TracePilot — Backend
+<div align="center">
 
+# 🐞 TracePilot
 ### Intelligent Software Defect Tracking & Agile Project Management System
 
-TracePilot is a production-oriented **FastAPI backend** for software defect tracking, project management, Agile sprint planning, backlog management, analytics, notifications, audit logging, and reporting.
+<p align="center">
+  <strong>Track. Resolve. Deliver.</strong>
+</p>
 
-The backend manages the complete defect lifecycle from **issue creation and assignment through testing, resolution, sprint execution, analytics, and reporting**.
+<hr width="80%" />
+
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.141.1-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18.6-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0.52-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white)](https://www.sqlalchemy.org/)
+[![Alembic](https://img.shields.io/badge/Alembic-1.19.1-6BA814?style=for-the-badge&logo=alembic&logoColor=white)](https://alembic.sqlalchemy.org/)
+
+[![React](https://img.shields.io/badge/React-19.2.8-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.2-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-5.4.19-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-Modern_UI-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+
+[![JWT Authentication](https://img.shields.io/badge/JWT-Auth%20%26%20OTP-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)](https://jwt.io/)
+[![WebSocket](https://img.shields.io/badge/WebSocket-Real--Time-4B32C3?style=for-the-badge&logo=websocket&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)
+[![Pytest](https://img.shields.io/badge/Pytest-9.1.1-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](https://docs.pytest.org/)
+[![AI Assistant](https://img.shields.io/badge/AI_Assistant-Gemini%20%7C%20Groq-8E75C2?style=for-the-badge&logo=googlegemini&logoColor=white)](https://ai.google.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+
+<br/>
+
+**Repository:** [https://github.com/AjayKumarKR07/TracePilot](https://github.com/AjayKumarKR07/TracePilot)  
+**Author:** Ajay Kumar K R  
+**Architecture:** Full-Stack Enterprise Single-Page Application (FastAPI + React 19 + PostgreSQL 18)
+
+<p align="center">
+  <em>TracePilot is an enterprise-grade automated defect tracking, Agile sprint execution, and software quality assurance system engineered to streamline defect lifecycles, developer workload allocation, real-time collaboration, and advisory AI root-cause diagnostics.</em>
+</p>
+
+</div>
 
 ---
 
-## 🚀 Version
+## 🚀 Version & Tech Stack Summary
 
-| Property                    | Details               |
-| --------------------------- | --------------------- |
-| **Current Version**         | `v1.0.0`              |
-| **Status**                  | 🟢 Active Development |
-| **Backend Framework**       | FastAPI               |
-| **Database**                | PostgreSQL            |
-| **ORM**                     | SQLAlchemy            |
-| **Migrations**              | Alembic               |
-| **Authentication**          | JWT + Email OTP       |
-| **Real-Time Communication** | WebSocket             |
-| **Testing**                 | Pytest                |
+| Property                    | Details                                                      |
+| --------------------------- | ------------------------------------------------------------ |
+| **Current Version**         | `v1.0.0`                                                     |
+| **Status**                  | 🟢 Active Development                                        |
+| **Backend Framework**       | FastAPI `0.141.1` (Python `3.10+` / `3.14`)                  |
+| **Frontend Framework**      | React `19.2.8` + TypeScript `5.7.2` + Vite `5.4.19`          |
+| **UI & Styling**            | Modern Design Tokens + Tailwind CSS UI                       |
+| **Database**                | PostgreSQL `18.6`                                            |
+| **ORM & Migrations**        | SQLAlchemy `2.0.52` + Alembic `1.19.1`                       |
+| **Authentication**          | JWT (`PyJWT 2.13.0`) + Secure Email OTP                      |
+| **Real-Time Communication** | WebSocket (`websockets 17.0.1`)                              |
+| **Testing Framework**       | Pytest `9.1.1`                                               |
+| **AI Advisory Engine**      | Google Gemini (`gemini-2.0-flash`) & Groq (`llama-3.3-70b`) |
+| **License**                 | MIT License                                                  |
 
 ---
 
@@ -48,50 +83,54 @@ The backend provides APIs for:
 * 📑 PDF sprint reports
 * 🔄 Issue rollover and sprint management
 * 🔗 GitHub/Webhook integration
-* 🤖 **AI Testing Assistant** (Gemini-powered chatbot inside Tester Dashboard)
+* 🤖 **AI Assistant** (Dual-provider Gemini & Groq advisory assistant integrated in Developer & Admin workflows)
 
 ---
 
-# 🤖 AI Testing Assistant
+# 🤖 AI Assistant
 
-The Tester Dashboard includes a built-in AI Testing Assistant powered by **Google Gemini**.
+TracePilot includes a built-in advisory AI Assistant supporting **Google Gemini** (via `google-genai`) and **Groq** (via LLaMA 3.3).
 
 ## What it does
 
 | Feature | Description |
 |---|---|
-| **General Chat** | Ask any QA/testing question; AI answers with markdown |
-| **Defect Analysis** | Full structured analysis: root causes, test scenarios, edge cases |
-| **Test Case Generation** | Positive, negative, boundary, regression cases |
-| **Reproduction Steps** | Detailed, step-by-step reproduction guides |
-| **Root Cause Analysis** | Advisory investigation with layered analysis |
-| **Sprint Summary** | AI analysis of sprint health, risks, and focus areas |
-| **Explain Metrics** | Plain-language explanation of TracePilot analytics |
-| **Quick Actions** | One-click prompt templates with issue/sprint context |
+| **General Chat** | Technical advisory answering defect, architecture, and testing queries in markdown |
+| **Defect Analysis** | Full structured analysis: probable root causes, test scenarios, and edge cases |
+| **Test Case Generation** | Positive, negative, boundary, and regression test cases |
+| **Reproduction Steps** | Detailed, step-by-step reproduction and isolation guides |
+| **Root Cause Analysis** | Advisory investigation with layered architectural hypotheses |
+| **Sprint Summary** | AI analysis of sprint velocity, bottleneck risks, and resolution focus areas |
+| **Explain Metrics** | Plain-language explanation of TracePilot sprint & defect analytics |
+| **Quick Actions** | One-click prompt templates contextualized with current issue or sprint data |
 
 > **Advisory only** — The AI never modifies any data. All suggestions must be acted on through the TracePilot UI by the appropriate team member.
 
 ## Setup
 
-**Step 1**: Get a free Gemini API key at [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey).
-
-**Step 2**: Edit `backend/.env`:
+**Step 1**: Configure your API key(s) in `backend/.env`. TracePilot supports both Google Gemini and Groq:
 
 ```env
 AI_ENABLED=true
-GEMINI_API_KEY=your-key-here
-AI_MODEL=gemini-2.5-flash
+
+# Google Gemini Configuration
+GEMINI_API_KEY=your-gemini-key-here
+GEMINI_MODEL=gemini-2.0-flash
+
+# Optional: Groq Configuration (LLaMA 3.3 fallback/alternative)
+GROQ_API_KEY=your-groq-key-here
+GROQ_MODEL=llama-3.3-70b-versatile
 ```
 
-**Step 3**: Restart the backend server. The AI chatbot will appear live in the Tester Dashboard.
+**Step 2**: Restart the backend server. The AI assistant interface will appear live in the Developer and Admin workspaces.
 
-> ⚠️ **Security**: Never commit your `GEMINI_API_KEY` to version control. It is already in `.gitignore` via `.env`.
+> ⚠️ **Security**: Never commit API keys to version control. Keys are protected via `.env` in `.gitignore`.
 
 ## API Endpoints
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/ai/health` | Service availability check |
+| `GET` | `/ai/health` | Service availability check & provider status |
 | `POST` | `/ai/chat` | General chat with optional issue/sprint context |
 | `POST` | `/ai/analyze-issue` | Structured defect analysis |
 | `POST` | `/ai/generate-test-cases` | Structured test cases |
@@ -100,21 +139,21 @@ AI_MODEL=gemini-2.5-flash
 | `POST` | `/ai/sprint-summary` | Sprint health analysis |
 | `POST` | `/ai/explain-metrics` | Metrics explanation |
 
-All AI endpoints require **TESTER** or **ADMIN** role.
+All AI endpoints require **DEVELOPER** or **ADMIN** role.
 
 ---
 
 # 👥 Supported Roles
 
-TracePilot currently uses three application roles:
+TracePilot operates on three canonical application roles:
 
-| Role     | Access                                                                                         |
-| -------- | ---------------------------------------------------------------------------------------------- |
-| `ADMIN`  | System administration, project management, sprint management, analytics and approval workflows |
-| `TESTER` | Testing workflow, assigned sprint work, issue verification and defect-related activities       |
-| `USER`   | Standard authenticated application access                                                      |
+| Role        | Access & Responsibilities                                                                      |
+| ----------- | ---------------------------------------------------------------------------------------------- |
+| `ADMIN`     | System administration, project governance, sprint approvals, issue triaging, and workload assignment |
+| `DEVELOPER` | Defect investigation, root-cause resolution, code fix implementation, sprint execution, and verification |
+| `USER`      | Standard authenticated access, issue reporting, reproduction clarification, and closure verification   |
 
-> **Note:** The application workflow no longer uses a `DEVELOPER` role. A legacy PostgreSQL enum value may remain for database compatibility, but it is not an active application role.
+> **Database & Legacy Compatibility Note:** Former tester accounts have been fully migrated to canonical `DEVELOPER` accounts. For database backward-compatibility, legacy columns (`assigned_tester_id`) and enum values (`TESTER`, `SPRINT_TESTER_ASSIGNED`) remain supported in PostgreSQL and are automatically synchronized bidirectionally via database trigger (`trg_sync_sprint_developer_assignee`) with the canonical `assigned_developer_id` column.
 
 ---
 
@@ -155,7 +194,7 @@ Protected API
 Role Authorization
  │
  ├── ADMIN
- ├── TESTER
+ ├── DEVELOPER
  └── USER
 ```
 
@@ -175,7 +214,7 @@ TracePilot supports the complete software defect management lifecycle.
 * Set severity
 * Add descriptions
 * Track reporters
-* Track testers
+* Track developer assignees
 * Estimate effort
 * Search issues
 * Filter issues
@@ -276,7 +315,7 @@ COMPLETED
 * Create sprint
 * Update sprint
 * Start sprint
-* Assign tester
+* Assign developer (with bidirectional database synchronization)
 * Begin sprint work
 * Submit sprint for approval
 * Approve sprint
@@ -444,12 +483,12 @@ TracePilot calculates workload distribution across team members.
 
 Example:
 
-| Team Member | Assigned Issues |
-| ----------- | --------------: |
-| Tester A    |               8 |
-| Tester B    |               6 |
-| Tester C    |               5 |
-| Unassigned  |               2 |
+| Team Member  | Assigned Issues |
+| ------------ | --------------: |
+| Developer A  |               8 |
+| Developer B  |               6 |
+| Developer C  |               5 |
+| Unassigned   |               2 |
 
 This helps administrators understand workload distribution during sprint planning.
 
@@ -567,7 +606,8 @@ SPRINT_CHANGES_REQUESTED
 SPRINT_COMPLETED
 SPRINT_ARCHIVED
 SPRINT_DELETED
-SPRINT_TESTER_ASSIGNED
+SPRINT_DEVELOPER_ASSIGNED
+SPRINT_TESTER_ASSIGNED (legacy compatibility)
 ```
 
 ### Other Auditable Activities
@@ -740,15 +780,14 @@ Webhook endpoints are protected and validated according to the backend integrati
 ✓ Audit access
 ```
 
-## TESTER
+## DEVELOPER
 
 ```text
-✓ Assigned testing workflow
-✓ Issue testing
-✓ Defect reporting
-✓ Sprint work
-✓ Sprint submission
-✓ Relevant project access
+✓ Assigned developer workflow
+✓ Defect investigation & root-cause analysis
+✓ Code fix implementation & testing
+✓ Sprint execution & completion submission
+✓ Project defect & sprint backlog access
 ✗ System administration
 ✗ User administration
 ✗ Sprint approval
@@ -766,76 +805,70 @@ Webhook endpoints are protected and validated according to the backend integrati
 
 # 🏗️ Technology Stack
 
-| Technology     | Purpose                      |
-| -------------- | ---------------------------- |
-| **Python**     | Backend programming language |
-| **FastAPI**    | REST API framework           |
-| **PostgreSQL** | Primary relational database  |
-| **SQLAlchemy** | ORM and database operations  |
-| **Alembic**    | Database migrations          |
-| **Pydantic**   | Validation and serialization |
-| **JWT**        | Authentication               |
-| **WebSocket**  | Real-time communication      |
-| **ReportLab**  | PDF generation               |
-| **Pytest**     | Automated testing            |
+### Backend Architecture
+| Technology | Version | Purpose |
+| :--- | :--- | :--- |
+| **Python** | `3.10+` / `3.14` | High-performance core backend runtime |
+| **FastAPI** | `0.141.1` | Asynchronous RESTful API framework |
+| **PostgreSQL** | `18.6` | Relational database engine with ACID transactions |
+| **SQLAlchemy** | `2.0.52` | Modern async Object-Relational Mapping (ORM) |
+| **Alembic** | `1.19.1` | Database migration & schema version control |
+| **Pydantic** | `2.13.4` | Strict data validation and schema serialization |
+| **PyJWT** | `2.13.0` | Stateless HMAC-SHA256 authentication tokens |
+| **WebSockets** | `17.0.1` | Full-duplex real-time events and team broadcast |
+| **Google GenAI** | `>=2.0.0` | Google Gemini AI defect advisory engine |
+| **Groq SDK** | LLaMA 3.3 | Alternative high-throughput AI advisory engine |
+| **Pytest** | `9.1.1` | Test runner for unit, integration, and e2e suites |
+| **ReportLab** | `4.1.0` | High-fidelity programmatic PDF report generation |
+
+### Frontend Architecture
+| Technology | Version | Purpose |
+| :--- | :--- | :--- |
+| **React** | `19.2.8` | Declarative UI component tree and state model |
+| **TypeScript** | `5.7.2` | Compile-time type safety across API and components |
+| **Vite** | `5.4.19` | Fast HMR dev server and production asset bundler |
+| **Tailwind CSS / Tokens** | Modern | Curated dark/light theme tokens and layout system |
+| **Lucide React** | `1.35.0` | Modern, consistent SVG interface iconography |
+| **Plotly.js & Recharts** | `4.0` / `3.10` | Interactive defect distribution and burndown charts |
 
 ---
 
 # 📂 Project Structure
 
 ```text
-backend/
+TracePilot/
+├── backend/
+│   ├── alembic/
+│   │   ├── env.py
+│   │   └── versions/
+│   │       └── e5f6a7b8c9d0_canonical_developer_dataset_migration.py
+│   ├── app/
+│   │   ├── core/          # Application configuration, security, JWT
+│   │   ├── database/      # SQLAlchemy connection, async session
+│   │   ├── models/        # User, Project, Issue, Sprint, AuditLog, EmailOTP
+│   │   ├── schemas/       # Pydantic request/response schemas
+│   │   ├── routes/        # FastAPI REST and WebSocket endpoints
+│   │   ├── services/      # Business logic: Auth, Issue, Sprint, Analytics, AI, PDF
+│   │   └── utils/         # Helpers, security decorators, dependencies
+│   ├── tests/             # Pytest automated test suites (500+ tests)
+│   ├── requirements.txt   # Backend dependency specifications
+│   └── alembic.ini        # Migration engine configuration
 │
-├── alembic/
-│   ├── env.py
-│   └── versions/
-│       └── Database migration files
+├── frontend/
+│   ├── src/
+│   │   ├── components/    # Reusable UI components: Admin, Dashboard, Sprints
+│   │   ├── pages/         # Full-page views: Dashboard, Issues, Sprints, Admin
+│   │   ├── services/      # Frontend API integration clients
+│   │   ├── types/         # TypeScript interfaces and domain schemas
+│   │   ├── App.tsx        # Application router and layout tree
+│   │   └── index.css      # Core design tokens and global styles
+│   ├── package.json       # Frontend dependencies and build scripts
+│   ├── tsconfig.json      # TypeScript compiler configuration
+│   └── vite.config.ts     # Vite build and proxy configuration
 │
-├── app/
-│   │
-│   ├── database/
-│   │   ├── base.py
-│   │   └── session.py
-│   │
-│   ├── models/
-│   │   ├── user.py
-│   │   ├── project.py
-│   │   ├── issue.py
-│   │   ├── sprint.py
-│   │   └── audit_log.py
-│   │
-│   ├── schemas/
-│   │   ├── user.py
-│   │   ├── project.py
-│   │   ├── issue.py
-│   │   └── sprint.py
-│   │
-│   ├── routes/
-│   │   ├── auth.py
-│   │   ├── users.py
-│   │   ├── projects.py
-│   │   ├── issues.py
-│   │   ├── sprints.py
-│   │   └── analytics.py
-│   │
-│   ├── services/
-│   │   ├── auth_service.py
-│   │   ├── issue_service.py
-│   │   ├── sprint_service.py
-│   │   ├── analytics_service.py
-│   │   └── pdf_service.py
-│   │
-│   ├── utils/
-│   │   ├── security.py
-│   │   └── dependencies.py
-│   │
-│   └── main.py
-│
-├── tests/
-│
-├── requirements.txt
-├── alembic.ini
-└── README.md
+├── scripts/               # E2E workflow and encoding validation scripts
+├── LICENSE                # MIT License
+└── README.md              # Project documentation
 ```
 
 ---
@@ -1197,7 +1230,7 @@ Page Numbers
 * Advanced Sprint Planning
 * Advanced Backlog Management
 * Sprint Lifecycle Management
-* Tester Assignment
+* Developer & Sprint Assignment (with dual-sync database compatibility)
 * Sprint Approval Workflow
 * Capacity Planning
 * Sprint Health Analytics
@@ -1264,19 +1297,15 @@ Use environment variables for sensitive configuration.
 
 # 📄 License
 
-This project is currently intended for **educational and development purposes**.
-
-A production license should be added before commercial deployment.
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
 ---
 
 # 👨‍💻 Author
 
-**TracePilot Development Team**
-
-GitHub:
-
-`https://github.com/AjayKumarKR07/TracePilot`
+**Ajay Kumar K R**  
+GitHub: [@AjayKumarKR07](https://github.com/AjayKumarKR07)  
+Repository: [https://github.com/AjayKumarKR07/TracePilot](https://github.com/AjayKumarKR07/TracePilot)
 
 ---
 
