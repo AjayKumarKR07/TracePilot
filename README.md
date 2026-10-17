@@ -87,73 +87,246 @@ The backend provides APIs for:
 
 ---
 
-# 🤖 AI Assistant
+## 🎯 Problem Statement
 
-TracePilot includes a built-in advisory AI Assistant supporting **Google Gemini** (via `google-genai`) and **Groq** (via LLaMA 3.3).
+Modern software engineering teams face critical operational bottlenecks when managing defect lifecycles, team allocation, and sprint commitments across fragmented tooling:
+
+* **Fragmented & Disconnected Tooling:** Software defects, feature requests, and regression bugs are frequently scattered across email threads, issue trackers, and spreadsheets, resulting in lost context, fragmented records, and lack of a single source of truth.
+* **Manual & Unbalanced Workload Allocation:** Without automated workload visibility, defect assignment is typically manual, leading to uneven developer workloads, developer burnout, bottlenecked reviews, and delayed issue resolution.
+* **Opaque Defect Tracking & Aging:** Engineering leads struggle to continuously monitor defect severity, business priority, backlog aging, and real-time resolution progress, causing high-severity defects to languish unaddressed.
+* **Sprint Planning & Rollover Friction:** Agile sprint execution falters when planning occurs without clear insight into team capacity, historical velocity, and unassigned backlog items. Handling unfinished work often leads to orphaned defects or dropped scope.
+* **Communication Gaps & Delayed Notifications:** In asynchronous environments, lack of real-time notification broadcasts delays immediate developer responses to urgent defect assignments, status changes, and sprint reviews.
+* **Inadequate Auditability & Compliance Gaps:** Regulated and enterprise software teams require strict traceability. Many tracking tools lack immutable audit logging of state transitions, actor accountability, and timestamped resolution events.
+* **Laborious Quality & Sprint Reporting:** Manually gathering defect metrics, burndown statistics, and stakeholder PDF reports consumes valuable engineering and project management hours.
+* **Uncontrolled AI Integration Risks:** While teams can benefit from AI assistance for defect root-cause analysis, reproduction guidance, and test-case generation, autonomous AI modifications risk corrupting production database records and compromising project state.
+
+> **The Need:** Modern software development organizations require a **centralized, secure, data-driven defect management and Agile execution platform** that integrates end-to-end defect tracking, strict role-based governance, real-time collaboration, automated analytics, and safe, advisory-only AI diagnostics.
+
+---
+
+## 💡 Our Solution — TracePilot
+
+**TracePilot** is a production-grade, full-stack software defect tracking and Agile project management platform engineered to unify defect lifecycles, developer accountability, and sprint execution into a single, cohesive software system.
+
+TracePilot resolves industry challenges through targeted, production-ready capabilities:
+
+* **Centralized Defect Lifecycle Management:** End-to-end defect creation, severity/priority triage, component tagging, reproduction step tracking, and developer assignment with complete resolution verification.
+* **Canonical Role-Based Access Control (RBAC):** Strict operational isolation between `ADMIN` (governance, triage, sprint approvals), `DEVELOPER` (defect investigation, code resolution, sprint execution), and `USER` (defect reporting, reproduction clarification, closure verification).
+* **Agile Sprint & Backlog Orchestration:** Project-isolated backlog management, capacity planning, single-active-sprint enforcement per project, and safe rollover of unfinished items upon sprint completion.
+* **Controlled Sprint Review & Approval Workflows:** Developers submit completed sprints for administrative review (`READY_FOR_APPROVAL`), allowing administrators to either approve completion or request targeted rework (`IN_PROGRESS`).
+* **Deep Quality & Workload Analytics:** Real-time metrics covering defect distribution, severity trends, backlog aging, burndown rates, capacity calculations, and team workload balance.
+* **Real-Time WebSocket Broadcasts:** Instantaneous, full-duplex WebSocket notifications alerting team members to defect assignments, status transitions, comments, and sprint lifecycle milestones.
+* **Immutable Audit Trail:** Comprehensive event logging (`audit_logs`) tracking actor IDs, action types, entity references, previous states, and timestamped changes.
+* **Automated Stakeholder Reporting:** On-demand CSV defect exports and programmatic, high-fidelity PDF sprint reports generated via ReportLab.
+* **Advisory AI Assistant (Gemini & Groq):** Deep defect analysis, root-cause investigation, reproduction guides, test-case generation, and sprint health summaries powered by Google Gemini (via `google-genai`) with automated Groq fallback.
+* **Enterprise Full-Stack Architecture:** Persistent PostgreSQL 18 database with async SQLAlchemy 2.0 ORM and Alembic migrations, asynchronous FastAPI REST APIs, and a modern, high-performance React 19 + TypeScript frontend.
+
+> 🔒 **Advisory AI Guarantee:** TracePilot AI operates **strictly as an advisory assistant**. It never executes database modifications, assigns tasks, or changes defect states autonomously. All workflow progressions require deliberate, authenticated user operations through authorized application endpoints.
+
+### Key Outcomes
+* **Improved Visibility:** Real-time visibility into project backlogs, defect velocity, and team throughput across all projects.
+* **Consistent Workflows:** Standardized defect triage, structured review gates, and formal sprint approval processes.
+* **Better Prioritization:** Data-driven severity and priority matrices ensure critical and blocker defects receive immediate attention.
+* **End-to-End Traceability:** Complete audit logs record every state transition, assignment change, and approval decision.
+* **Data-Driven Decisions:** Live burndown curves, workload distribution charts, and PDF summaries eliminate guesswork from sprint management.
+
+---
+
+# 🏛️ Architecture & System Workflows
+
+### System Architecture
+
+TracePilot is architected as an enterprise-tier single-page application (SPA) backed by asynchronous Python microservices and PostgreSQL persistence:
+
+```mermaid
+flowchart TD
+    U["Users: Admin, Developer, User"] --> FE["React 19 + TypeScript Frontend"]
+    FE --> API["FastAPI REST API Engine"]
+    FE <--> WS["WebSocket Real-Time Broadcast"]
+    API --> AUTH["JWT Authentication & RBAC"]
+    AUTH --> SVC["Application Core Services"]
+    SVC --> DB[("PostgreSQL 18 Database")]
+    SVC --> AI["AI Advisory Service"]
+    AI --> PROVIDER["Configured AI Provider<br/>(Gemini / Groq)"]
+    SVC --> REPORTS["Analytics, CSV & PDF Reports"]
+    SVC --> AUDIT["Audit Logging Engine"]
+    WS --> U
+```
+
+---
+
+## 🔄 Defect Lifecycle
+
+TracePilot enforces a rigorous, state-controlled defect lifecycle ensuring accountability at every transition from initial submission through verification and closure:
+
+```mermaid
+flowchart TD
+    A["User Reports Defect<br/>(Status: REPORTED)"] --> B["Issue Persisted in PostgreSQL<br/>(Audit Log Recorded)"]
+    B --> C["Admin Reviews & Triages Defect<br/>(Severity & Priority Set)"]
+    C --> D["Admin Assigns Active Developer<br/>(Status: ASSIGNED)"]
+    D --> E["Developer Investigates & Implements Fix<br/>(Status: IN_DEVELOPMENT)"]
+    E --> F["Code Review & Internal Testing<br/>(Status: IN_REVIEW → IN_TESTING)"]
+    F --> G["Developer Submits Resolution Details<br/>(Status: RESOLVED)"]
+    G --> H{"Verification Review<br/>(Reporter / Admin)"}
+    H -->|Verified & Validated| I["Final Closure<br/>(Status: CLOSED)"]
+    H -->|Fix Incomplete or Regression| J["Reopen Defect<br/>(Status: REOPENED)"]
+    J --> E
+```
+
+### Defect Lifecycle Roles & Permissions
+* **USER (Reporter):** Submits defect reports with environment, expected result, actual result, and reproduction steps. Conducts final acceptance testing and verification on resolved defects before closure.
+* **ADMIN:** Reviews reported defects, sets priority and severity classifications, manages backlog queues, assigns active Developers, and monitors resolution SLAs.
+* **DEVELOPER:** Investigates root causes, transitions defects through development stages (`IN_DEVELOPMENT` → `IN_REVIEW` → `IN_TESTING`), writes code fixes, and submits structured resolution summaries (`RESOLVED`).
+
+---
+
+## 🏃 Sprint Management Workflow
+
+Agile iterations in TracePilot follow a structured, multi-phase lifecycle governed by project capacity and single-active-sprint rules:
+
+```mermaid
+flowchart TD
+    A["Create Sprint<br/>(Define Dates, Goal & Capacity)"] --> B["Status: PLANNED<br/>(Assign Issues from Backlog)"]
+    B --> C["Assign Project Developer<br/>(Status: ACTIVE)"]
+    C --> D["Developer Commences Sprint Execution<br/>(Status: IN_PROGRESS)"]
+    D --> E["Developer Submits Sprint for Review<br/>(Status: READY_FOR_APPROVAL)"]
+    E --> F{"Admin Approval Review"}
+    F -->|Changes Requested| G["Admin Requests Modifications<br/>(Status: IN_PROGRESS)"]
+    G --> D
+    F -->|Approved| H["Admin Approves Sprint<br/>(Status: COMPLETED)"]
+    H --> I["Issue Rollover / Backlog Return<br/>(Unfinished Items Handled)"]
+    I --> J["Sprint PDF Summary Generated<br/>(ReportLab Engine)"]
+    J --> K["Archive Sprint<br/>(Status: ARCHIVED)"]
+```
+
+### Core Sprint Rules & Safeguards
+* **Single Active Sprint Rule:** TracePilot enforces that only **one sprint can be in execution (`ACTIVE`, `IN_PROGRESS`, or `READY_FOR_APPROVAL`) per project at any given time**, preventing team scope dilution.
+* **Dual-Sync Developer Assignment:** Sprint assignments utilize the canonical `assigned_developer_id` column with automatic PostgreSQL trigger synchronization (`trg_sync_sprint_developer_assignee`) for legacy column compatibility.
+* **Safe Issue Rollover:** When a sprint is completed, any unfinished defects are protected against data loss and can be automatically migrated to the next planned sprint or returned safely to the unassigned backlog.
+* **Capacity Planning Engine:** Calculates available team hours (`team_members × working_days × hours_per_day`) to ensure assigned issue story points do not exceed capacity.
+
+---
+
+## 🤖 AI Advisory Workflow
+
+TracePilot embeds an advisory AI assistant into Developer and Admin dashboards to accelerate defect diagnosis and sprint quality without sacrificing data integrity:
+
+```mermaid
+flowchart TD
+    A["Authorized User<br/>(DEVELOPER, ADMIN, or USER)"] --> B["AI Assistant Chat / Quick Action UI<br/>(Developer Workspace, Admin Dashboard, Issue Detail)"]
+    B --> C["Authenticated FastAPI Endpoint<br/>(/ai/chat, /ai/analyze-issue, /ai/root-cause)"]
+    C --> D["RBAC & Request Context Validation"]
+    D --> E["Assemble Context: Issue, Comments, Sprint Metrics"]
+    E --> F["Inject System Prompt & Advisory Boundary Rules"]
+    F --> G["Provider Dispatcher"]
+    G --> H{"Configured AI Provider<br/>(AI_PROVIDER)"}
+    H -->|groq (Default)| I["Groq API<br/>(Primary: openai/gpt-oss-120b)"]
+    H -->|gemini| J["Google Gemini API<br/>(gemini-2.0-flash via google-genai)"]
+    I -->|Temporary Error / 429| L["Groq Resilience Fallback<br/>(openai/gpt-oss-20b)"]
+    I --> K["Generate Structured Markdown Response"]
+    L --> K
+    J --> K
+    K --> M["Return Advisory Response to UI"]
+    M --> N["User Evaluates AI Suggestion"]
+    N --> O["Authorized User Manually Performs UI Action<br/>(Status Change, Fix Implementation, Reassign)"]
+```
+
+### Advisory Integrity & Provider Guarantees
+* **Strict Advisory Isolation:** The AI service is strictly read-only with respect to project records. It cannot modify defect statuses, reassign users, close sprints, or alter database entities. All actions must be performed manually through the TracePilot UI by authorized personnel.
+* **Dynamic Provider Routing & Resilience:** TracePilot supports **Groq** (production default with automated model fallback) and **Google Gemini** (via `google-genai` SDK). When using Groq, if the primary model (`openai/gpt-oss-120b`) encounters temporary errors (rate-limiting 429, 5xx server errors, network timeouts, or model unreachability), the engine automatically falls back to `openai/gpt-oss-20b` without interrupting user workflows.
+* **Sanitized Logs & Credential Protection:** All credentials, API keys, and sensitive environment variables are strictly filtered, masked, and excluded from application logs, error traces, and client responses.
+
+---
+
+# 🤖 AI Assistant Configuration & Endpoints
+
+TracePilot includes a built-in advisory AI Assistant supporting **Groq** (production default with automatic fallback) and **Google Gemini** (via `google-genai`).
 
 ## What it does
 
 | Feature | Description |
 |---|---|
-| **General Chat** | Technical advisory answering defect, architecture, and testing queries in markdown |
+| **General Chat** | Technical advisory answering defect, architecture, and testing queries in clean markdown |
 | **Defect Analysis** | Full structured analysis: probable root causes, test scenarios, and edge cases |
-| **Test Case Generation** | Positive, negative, boundary, and regression test cases |
-| **Reproduction Steps** | Detailed, step-by-step reproduction and isolation guides |
-| **Root Cause Analysis** | Advisory investigation with layered architectural hypotheses |
-| **Sprint Summary** | AI analysis of sprint velocity, bottleneck risks, and resolution focus areas |
+| **Test Case Generation** | Positive, negative, boundary, validation, and regression test cases |
+| **Reproduction Steps** | Detailed, step-by-step reproduction and isolation guides with preconditions and evidence collection |
+| **Root Cause Analysis** | Advisory investigation with layered architectural hypotheses (distinguishes facts from inferences) |
+| **Sprint Summary** | AI analysis of sprint velocity, completion status, bottleneck risks, and resolution focus areas |
 | **Explain Metrics** | Plain-language explanation of TracePilot sprint & defect analytics |
 | **Quick Actions** | One-click prompt templates contextualized with current issue or sprint data |
 
-> **Advisory only** — The AI never modifies any data. All suggestions must be acted on through the TracePilot UI by the appropriate team member.
+> **Advisory-Only Guarantee:** The AI assistant is strictly advisory and never modifies database records. All suggestions, fixes, and workflow transitions must be executed manually through the TracePilot UI by the appropriate team member.
 
-## Setup
+## Available Interfaces
 
-**Step 1**: Configure your API key(s) in `backend/.env`. TracePilot supports both Google Gemini and Groq:
+The AI Assistant is natively embedded across key TracePilot workspaces:
+* **Developer Workspace (`/developer-dashboard`):** Real-time interactive AI chat drawer and triage assistant for defect investigation, reproduction guidance, and root cause analysis.
+* **Admin Dashboard (`/dashboard`):** Executive AI assistance for sprint summaries, bottleneck detection, and analytics metric interpretation.
+* **Defect Detail View (`/issues/:id`):** One-click contextual AI quick actions to generate structured test cases, analyze stack traces, or generate reproduction guides directly from the active defect record.
+
+## Setup & Provider Configuration
+
+Configure your AI settings in `backend/.env`. TracePilot provides production-grade resilience with multi-model fallback:
 
 ```env
 AI_ENABLED=true
+AI_PROVIDER=groq                    # 'groq' (default production provider) or 'gemini'
+AI_MODEL=openai/gpt-oss-120b        # Default model name
+MAX_MESSAGE_LENGTH=4000             # Maximum user input character limit
 
-# Google Gemini Configuration
-GEMINI_API_KEY=your-gemini-key-here
-GEMINI_MODEL=gemini-2.0-flash
-
-# Optional: Groq Configuration (LLaMA 3.3 fallback/alternative)
+# Groq Configuration (Primary production provider with automatic model fallback)
 GROQ_API_KEY=your-groq-key-here
-GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_MODEL=openai/gpt-oss-120b
+GROQ_FALLBACK_MODEL=openai/gpt-oss-20b
+
+# Google Gemini Configuration (Alternative provider via google-genai SDK)
+GEMINI_API_KEY=your-gemini-key-here
 ```
 
-**Step 2**: Restart the backend server. The AI assistant interface will appear live in the Developer and Admin workspaces.
+Restart the backend server after updating `.env`. The AI assistant will automatically activate in the corresponding dashboards.
 
 > ⚠️ **Security**: Never commit API keys to version control. Keys are protected via `.env` in `.gitignore`.
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/ai/health` | Service availability check & provider status |
-| `POST` | `/ai/chat` | General chat with optional issue/sprint context |
-| `POST` | `/ai/analyze-issue` | Structured defect analysis |
-| `POST` | `/ai/generate-test-cases` | Structured test cases |
-| `POST` | `/ai/reproduction-steps` | Detailed reproduction guide |
-| `POST` | `/ai/root-cause` | Root cause analysis |
-| `POST` | `/ai/sprint-summary` | Sprint health analysis |
-| `POST` | `/ai/explain-metrics` | Metrics explanation |
+| Method | Endpoint | Description | Permitted Roles |
+|---|---|---|---|
+| `GET` | `/ai/health` | Service availability check & provider status | Authenticated Users |
+| `POST` | `/ai/chat` | General chat with optional issue/sprint context | `ADMIN`, `DEVELOPER`, `USER` |
+| `POST` | `/ai/analyze-issue` | Structured defect analysis | `ADMIN`, `DEVELOPER`, `USER` |
+| `POST` | `/ai/generate-test-cases` | Structured test cases | `ADMIN`, `DEVELOPER`, `USER` |
+| `POST` | `/ai/reproduction-steps` | Detailed reproduction guide | `ADMIN`, `DEVELOPER`, `USER` |
+| `POST` | `/ai/root-cause` | Root cause analysis | `ADMIN`, `DEVELOPER`, `USER` |
+| `POST` | `/ai/sprint-summary` | Sprint health analysis | `ADMIN`, `DEVELOPER`, `USER` |
+| `POST` | `/ai/explain-metrics` | Metrics explanation | `ADMIN`, `DEVELOPER`, `USER` |
 
-All AI endpoints require **DEVELOPER** or **ADMIN** role.
+> **Advisory-Only Guarantee:** All `/ai/*` endpoints are strictly advisory and read-only with respect to database state. No AI response can independently create, mutate, transition, or delete issues, projects, users, or sprint records.
 
 ---
 
 # 👥 Supported Roles
 
-TracePilot operates on three canonical application roles:
+TracePilot operates strictly on three canonical application roles:
 
 | Role        | Access & Responsibilities                                                                      |
 | ----------- | ---------------------------------------------------------------------------------------------- |
-| `ADMIN`     | System administration, project governance, sprint approvals, issue triaging, and workload assignment |
-| `DEVELOPER` | Defect investigation, root-cause resolution, code fix implementation, sprint execution, and verification |
-| `USER`      | Standard authenticated access, issue reporting, reproduction clarification, and closure verification   |
+| `ADMIN`     | System administration, user governance, project management, sprint approvals, defect triaging, developer workload distribution, and audit access |
+| `DEVELOPER` | Defect investigation, root-cause resolution, code fix implementation, test execution and verification, sprint delivery, and completion submission |
+| `USER`      | Standard authenticated portal access, defect reporting, reproduction clarification, and post-resolution acceptance verification   |
 
-> **Database & Legacy Compatibility Note:** Former tester accounts have been fully migrated to canonical `DEVELOPER` accounts. For database backward-compatibility, legacy columns (`assigned_tester_id`) and enum values (`TESTER`, `SPRINT_TESTER_ASSIGNED`) remain supported in PostgreSQL and are automatically synchronized bidirectionally via database trigger (`trg_sync_sprint_developer_assignee`) with the canonical `assigned_developer_id` column.
+---
+
+## 🗄️ Legacy Database Compatibility
+
+TracePilot maintains explicit database-level backward compatibility for existing datasets and historical migrations while strictly enforcing the canonical three-role architecture (`ADMIN`, `DEVELOPER`, `USER`) in all application logic and user interfaces.
+
+The following elements exist strictly as legacy database compatibility mechanisms and are **not** canonical application roles:
+
+* **PostgreSQL Enum Value (`TESTER`):** The underlying PostgreSQL `userrole` enum retains `'TESTER'` alongside `'ADMIN'`, `'USER'`, and `'DEVELOPER'`. The application uses SQLAlchemy's `SafeUserRoleType` decorator to transparently deserialize legacy `'TESTER'` database records as canonical `DEVELOPER` objects, ensuring zero runtime disruption while writing all new records as `DEVELOPER`.
+* **Legacy Database Column (`assigned_tester_id`):** The `sprints` table retains the historical column `assigned_tester_id` alongside the canonical `assigned_developer_id` foreign key referencing `users(id)`.
+* **Bidirectional Database Trigger (`trg_sync_sprint_developer_assignee`):** A PostgreSQL PL/pgSQL trigger function (`fn_sync_sprint_developer_assignee()`) executes `BEFORE INSERT OR UPDATE ON sprints`, keeping `assigned_developer_id` and `assigned_tester_id` fully synchronized bidirectionally.
+* **Audit Action Enum (`SPRINT_TESTER_ASSIGNED`):** Preserved in the `AuditAction` enum to retain historical audit trail fidelity for records logged prior to the canonical developer migration. Active sprint assignments log `SPRINT_DEVELOPER_ASSIGNED`.
+* **Frontend Route Backward Compatibility:** Legacy URL routes (`/tester-dashboard`, `/tester-sprints`, `/tester-issues`) are routed via HTTP redirects to their canonical developer counterparts (`/developer-dashboard`, `/developer-sprints`, `/developer-issues`).
 
 ---
 
@@ -230,25 +403,25 @@ TracePilot supports the complete software defect management lifecycle.
 ### Issue Workflow
 
 ```text
-Create Issue
+Report Issue (REPORTED)
      │
      ▼
-Issue Assignment
+Triage & Assign Developer (TRIAGED / ASSIGNED)
      │
      ▼
-Sprint Planning
+Sprint Planning & Execution (IN_PROGRESS)
      │
      ▼
-Testing / Work
+Development & Verification (IN_DEVELOPMENT → IN_REVIEW → IN_TESTING)
      │
      ▼
-Resolution
+Resolution Summary (RESOLVED)
      │
      ▼
-Verification
+Acceptance Verification (Reporter / Admin)
      │
      ▼
-Completed
+Closed (CLOSED)
 ```
 
 ---
@@ -299,7 +472,7 @@ ACTIVE
 IN PROGRESS
    │
    ▼
-AWAITING APPROVAL
+READY FOR APPROVAL
    │
    ├──────────────► Request Changes
    │                       │
@@ -1025,20 +1198,30 @@ Example health response:
 
 # 🏃 Sprint API Overview
 
-| Endpoint                                | Method   | Description                   |
-| --------------------------------------- | -------- | ----------------------------- |
-| `/sprints`                              | `POST`   | Create sprint                 |
-| `/sprints`                              | `GET`    | List sprints                  |
-| `/sprints/{id}`                         | `GET`    | Get sprint                    |
-| `/sprints/{id}`                         | `PATCH`  | Update sprint                 |
-| `/sprints/{id}/start`                   | `POST`   | Start sprint                  |
-| `/sprints/{id}/complete`                | `POST`   | Complete sprint               |
-| `/sprints/{id}/extend`                  | `POST`   | Extend sprint                 |
-| `/sprints/{id}/archive`                 | `POST`   | Archive sprint                |
-| `/sprints/{id}`                         | `DELETE` | Safely delete eligible sprint |
-| `/sprints/{id}/analytics`               | `GET`    | Sprint analytics              |
-| `/sprints/{id}/report`                  | `GET`    | Download PDF report           |
-| `/sprints/project/{project_id}/summary` | `GET`    | Project sprint summary        |
+| Endpoint | Method | Description | Permitted Roles |
+| :--- | :--- | :--- | :--- |
+| `/sprints` | `POST` | Create sprint | `ADMIN` |
+| `/sprints` | `GET` | List all sprints with project/status filters | Authenticated Users |
+| `/sprints/{id}` | `GET` | Get sprint details with complete Agile metrics | Authenticated Users |
+| `/sprints/{id}` | `PATCH` | Update sprint properties | `ADMIN` |
+| `/sprints/{id}/start` | `POST` | Start sprint (`PLANNED` → `ACTIVE`) | `ADMIN` |
+| `/sprints/{id}/assign-developer` | `POST` | Assign developer (`PLANNED` → `ACTIVE`) *(legacy alias: `/assign-tester`)* | `ADMIN` |
+| `/sprints/{id}/begin-work` | `POST` | Developer begins work (`ACTIVE` → `IN_PROGRESS`) | `DEVELOPER`, `ADMIN` |
+| `/sprints/{id}/submit-for-approval` | `POST` | Submit sprint (`IN_PROGRESS` → `READY_FOR_APPROVAL`) | `DEVELOPER`, `ADMIN` |
+| `/sprints/{id}/approve` | `POST` | Approve sprint (`READY_FOR_APPROVAL` → `COMPLETED`) | `ADMIN` |
+| `/sprints/{id}/request-changes` | `POST` | Request changes (`READY_FOR_APPROVAL` → `IN_PROGRESS`) | `ADMIN` |
+| `/sprints/{id}/complete` | `POST` | Complete sprint with optional issue rollover | `ADMIN` |
+| `/sprints/{id}/extend` | `POST` | Extend sprint end date | `ADMIN` |
+| `/sprints/{id}/archive` | `POST` | Archive completed sprint | `ADMIN` |
+| `/sprints/{id}` | `DELETE` | Safely delete eligible sprint (returns items to backlog) | `ADMIN` |
+| `/sprints/{id}/analytics` | `GET` | Real-time sprint health & burndown analytics | Authenticated Users |
+| `/sprints/{id}/report` | `GET` | Download executive PDF sprint summary | Authenticated Users |
+| `/sprints/{id}/issues/{issue_id}` | `POST` | Add issue to sprint | `ADMIN` |
+| `/sprints/{id}/issues/{issue_id}` | `DELETE` | Remove issue from sprint | `ADMIN` |
+| `/sprints/assigned` | `GET` | List sprints assigned to current developer | `DEVELOPER`, `ADMIN` |
+| `/sprints/awaiting-approval` | `GET` | List sprints awaiting administrative review | `ADMIN` |
+| `/sprints/active` | `GET` | List all active and in-progress sprints | `ADMIN` |
+| `/sprints/project/{project_id}/summary` | `GET` | High-level project sprint metrics summary | Authenticated Users |
 
 ---
 
@@ -1122,12 +1305,12 @@ PROJECT
           ▼
       IN PROGRESS
           │
-          ├── Testing
+          ├── Development & Testing
           ├── Issue Updates
           └── Resolution
           │
           ▼
-   AWAITING APPROVAL
+   READY FOR APPROVAL
           │
           ├──────────────► REQUEST CHANGES
           │                       │
