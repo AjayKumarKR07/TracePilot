@@ -46,6 +46,8 @@ export interface Issue {
   assignee_id: number | null;
   sprint_id: number | null;
   estimated_effort: number | null;
+  resolution_summary?: string | null;
+  resolved_at?: string | null;
   created_at: string;
   updated_at: string;
 }

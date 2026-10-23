@@ -142,6 +142,78 @@ const MetricCard: React.FC<MetricCardProps> = ({
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Skeleton Loading View
+// ─────────────────────────────────────────────────────────────────────────────
+const DashboardSkeleton: React.FC = () => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '2.5rem' }}>
+    {/* Header Skeleton */}
+    <div
+      className="card"
+      style={{
+        padding: '1.5rem',
+        borderRadius: 'var(--radius-lg, 12px)',
+        backgroundColor: 'var(--bg-surface)',
+        border: '1px solid var(--border-subtle)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+          <div style={{ width: '54px', height: '54px', borderRadius: '50%', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+            <div style={{ width: '130px', height: '18px', borderRadius: '4px', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+            <div style={{ width: '280px', height: '26px', borderRadius: '4px', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+            <div style={{ width: '360px', height: '14px', borderRadius: '4px', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: '0.65rem' }}>
+          <div style={{ width: '85px', height: '32px', borderRadius: '6px', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+          <div style={{ width: '100px', height: '32px', borderRadius: '6px', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+          <div style={{ width: '140px', height: '32px', borderRadius: '6px', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+        </div>
+      </div>
+    </div>
+
+    {/* Action Center Skeleton */}
+    <div
+      className="card"
+      style={{
+        padding: '1.25rem 1.5rem',
+        borderRadius: 'var(--radius-lg, 12px)',
+        backgroundColor: 'var(--bg-surface)',
+        border: '1px solid var(--border-subtle)',
+      }}
+    >
+      <div style={{ width: '180px', height: '20px', borderRadius: '4px', backgroundColor: 'var(--bg-surface-elevated)', marginBottom: '1rem' }} className="skeleton-pulse" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+        <div style={{ height: '140px', borderRadius: '8px', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+        <div style={{ height: '140px', borderRadius: '8px', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+      </div>
+    </div>
+
+    {/* 5 KPI Cards Skeleton */}
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div key={i} className="card" style={{ padding: '1.25rem', height: '110px', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
+          <div style={{ width: '120px', height: '14px', borderRadius: '4px', backgroundColor: 'var(--bg-surface-elevated)', marginBottom: '0.65rem' }} className="skeleton-pulse" />
+          <div style={{ width: '55px', height: '26px', borderRadius: '4px', backgroundColor: 'var(--bg-surface-elevated)', marginBottom: '0.45rem' }} className="skeleton-pulse" />
+          <div style={{ width: '140px', height: '12px', borderRadius: '4px', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+        </div>
+      ))}
+    </div>
+
+    {/* Table Skeleton */}
+    <div className="card" style={{ padding: '1.25rem', height: '360px', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
+      <div style={{ width: '220px', height: '22px', borderRadius: '4px', backgroundColor: 'var(--bg-surface-elevated)', marginBottom: '1.25rem' }} className="skeleton-pulse" />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} style={{ width: '100%', height: '42px', borderRadius: '4px', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Main Component
 // ─────────────────────────────────────────────────────────────────────────────
 export const DashboardPage: React.FC = () => {
@@ -164,6 +236,40 @@ export const DashboardPage: React.FC = () => {
   const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
   const [actionErrorMsg, setActionErrorMsg] = useState<string | null>(null);
   const [isActionSubmitting, setIsActionSubmitting] = useState<boolean>(false);
+  const [activeActionIssueId, setActiveActionIssueId] = useState<number | null>(null);
+
+  // ── User Initials Avatar ──
+  const userInitials = useMemo(() => {
+    if (!user?.full_name) return 'U';
+    const parts = user.full_name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+    }
+    return parts[0].slice(0, 2).toUpperCase();
+  }, [user?.full_name]);
+
+  // ── Workflow Progress Stepper Helper ──
+  const getIssueProgressStep = (status: IssueStatus) => {
+    switch (status) {
+      case 'REPORTED':
+      case 'TRIAGED':
+        return { step: 1, label: 'Submitted', color: '#fbbf24' };
+      case 'ASSIGNED':
+      case 'IN_DEVELOPMENT':
+      case 'IN_REVIEW':
+        return { step: 2, label: 'In Dev', color: '#818cf8' };
+      case 'IN_TESTING':
+        return { step: 3, label: 'Testing', color: '#38bdf8' };
+      case 'RESOLVED':
+        return { step: 4, label: 'Resolved', color: '#34d399' };
+      case 'CLOSED':
+        return { step: 5, label: 'Closed', color: '#94a3b8' };
+      case 'REOPENED':
+        return { step: 2, label: 'Reopened', color: '#f87171' };
+      default:
+        return { step: 1, label: status, color: '#818cf8' };
+    }
+  };
 
   // ── Reopen Modal State ──
   const [reopenModalIssue, setReopenModalIssue] = useState<Issue | null>(null);
@@ -352,6 +458,7 @@ export const DashboardPage: React.FC = () => {
   // Quick Actions: Confirm Resolution & Reopen
   // ─────────────────────────────────────────────────────────────────
   const handleConfirmClose = async (issueId: number) => {
+    setActiveActionIssueId(issueId);
     setIsActionSubmitting(true);
     setActionErrorMsg(null);
     try {
@@ -364,6 +471,7 @@ export const DashboardPage: React.FC = () => {
       setTimeout(() => setActionErrorMsg(null), 5000);
     } finally {
       setIsActionSubmitting(false);
+      setActiveActionIssueId(null);
     }
   };
 
@@ -374,6 +482,7 @@ export const DashboardPage: React.FC = () => {
       setActionErrorMsg('A reason is required to reopen the defect.');
       return;
     }
+    setActiveActionIssueId(reopenModalIssue.id);
     setIsActionSubmitting(true);
     setActionErrorMsg(null);
     try {
@@ -389,6 +498,7 @@ export const DashboardPage: React.FC = () => {
       setTimeout(() => setActionErrorMsg(null), 5000);
     } finally {
       setIsActionSubmitting(false);
+      setActiveActionIssueId(null);
     }
   };
 
@@ -649,11 +759,7 @@ export const DashboardPage: React.FC = () => {
   // Loading & Error States
   // ─────────────────────────────────────────────────────────────────
   if (isLoading) {
-    return (
-      <div style={{ padding: '3.5rem 0', display: 'flex', justifyContent: 'center' }}>
-        <LoadingSpinner message="Loading your personal dashboard..." />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (error) {
@@ -669,23 +775,26 @@ export const DashboardPage: React.FC = () => {
             backgroundColor: 'rgba(16, 185, 129, 0.12)',
             border: '1px solid rgba(16, 185, 129, 0.35)',
             color: '#34d399',
-            padding: '0.75rem 1.25rem',
-            borderRadius: 'var(--radius-md)',
+            padding: '0.85rem 1.25rem',
+            borderRadius: 'var(--radius-md, 8px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            fontSize: '0.9rem',
+            fontSize: '0.88rem',
+            fontWeight: 500,
+            boxShadow: '0 2px 8px rgba(16, 185, 129, 0.1)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <CheckCircle2 size={16} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <CheckCircle2 size={18} color="#34d399" />
             <span>{actionSuccessMsg}</span>
           </div>
           <button
             onClick={() => setActionSuccessMsg(null)}
             style={{ background: 'none', border: 'none', color: '#34d399', cursor: 'pointer', padding: 0 }}
+            title="Dismiss message"
           >
-            <X size={15} />
+            <X size={16} />
           </button>
         </div>
       )}
@@ -696,23 +805,26 @@ export const DashboardPage: React.FC = () => {
             backgroundColor: 'rgba(239, 68, 68, 0.12)',
             border: '1px solid rgba(239, 68, 68, 0.35)',
             color: '#f87171',
-            padding: '0.75rem 1.25rem',
-            borderRadius: 'var(--radius-md)',
+            padding: '0.85rem 1.25rem',
+            borderRadius: 'var(--radius-md, 8px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            fontSize: '0.9rem',
+            fontSize: '0.88rem',
+            fontWeight: 500,
+            boxShadow: '0 2px 8px rgba(239, 68, 68, 0.1)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <AlertCircle size={16} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <AlertCircle size={18} color="#f87171" />
             <span>{actionErrorMsg}</span>
           </div>
           <button
             onClick={() => setActionErrorMsg(null)}
             style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', padding: 0 }}
+            title="Dismiss message"
           >
-            <X size={15} />
+            <X size={16} />
           </button>
         </div>
       )}
@@ -722,9 +834,11 @@ export const DashboardPage: React.FC = () => {
         className="card"
         style={{
           background:
-            'linear-gradient(135deg, rgba(99, 102, 241, 0.14) 0%, rgba(168, 85, 247, 0.08) 100%)',
-          border: '1px solid rgba(99, 102, 241, 0.25)',
-          padding: '1.25rem 1.5rem',
+            'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.08) 50%, rgba(15, 23, 42, 0.6) 100%)',
+          border: '1px solid rgba(99, 102, 241, 0.28)',
+          boxShadow: '0 4px 20px rgba(99, 102, 241, 0.08)',
+          borderRadius: 'var(--radius-lg, 12px)',
+          padding: '1.4rem 1.6rem',
         }}
       >
         <div
@@ -733,49 +847,96 @@ export const DashboardPage: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
-            gap: '1rem',
+            gap: '1.25rem',
           }}
         >
-          <div style={{ flex: 1, minWidth: '260px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.1rem', flex: 1, minWidth: '280px' }}>
+            {/* User Initials Avatar with Active Pulse */}
             <div
               style={{
+                width: '54px',
+                height: '54px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                border: '2px solid rgba(255, 255, 255, 0.15)',
+                boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.55rem',
-                marginBottom: '0.4rem',
-                flexWrap: 'wrap',
+                justifyContent: 'center',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '1.2rem',
+                flexShrink: 0,
+                position: 'relative',
               }}
+              title={user?.full_name || 'User Profile'}
             >
+              {userInitials}
               <span
-                className="badge"
                 style={{
-                  backgroundColor: 'rgba(99, 102, 241, 0.15)',
-                  color: '#818cf8',
-                  fontWeight: '600',
-                  fontSize: '0.75rem',
+                  position: 'absolute',
+                  bottom: '1px',
+                  right: '1px',
+                  width: '12px',
+                  height: '12px',
+                  borderRadius: '50%',
+                  backgroundColor: '#10b981',
+                  border: '2px solid var(--bg-surface, #0f172a)',
                 }}
-              >
-                <Sparkles size={13} /> USER PORTAL
-              </span>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                {user?.email}
-              </span>
+                title="Active Session"
+              />
             </div>
 
-            <h1
-              style={{
-                fontSize: '1.65rem',
-                fontWeight: '700',
-                color: '#fff',
-                margin: '0 0 0.35rem 0',
-              }}
-            >
-              Welcome back, {user?.full_name}!
-            </h1>
+            <div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.55rem',
+                  marginBottom: '0.35rem',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <span
+                  className="badge"
+                  style={{
+                    backgroundColor: 'rgba(99, 102, 241, 0.18)',
+                    color: '#818cf8',
+                    border: '1px solid rgba(99, 102, 241, 0.3)',
+                    fontWeight: 700,
+                    fontSize: '0.72rem',
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.3rem',
+                  }}
+                >
+                  <Sparkles size={12} /> {user?.role || 'USER'} PORTAL
+                </span>
+                {user?.email && (
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    {user.email}
+                  </span>
+                )}
+              </div>
 
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0 }}>
-              Track your reported defects and respond to verification requests.
-            </p>
+              <h1
+                style={{
+                  fontSize: '1.65rem',
+                  fontWeight: 800,
+                  color: 'var(--text-primary, #ffffff)',
+                  margin: '0 0 0.3rem 0',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                Welcome back, {user?.full_name || 'User'}!
+              </h1>
+
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', margin: 0, lineHeight: 1.45 }}>
+                Track your reported defects, monitor resolution progress, and verify fixes in real time.
+              </p>
+            </div>
           </div>
 
           <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -784,6 +945,7 @@ export const DashboardPage: React.FC = () => {
               className="btn btn-secondary btn-sm"
               disabled={isRefreshing}
               title="Refresh Dashboard"
+              style={{ fontSize: '0.82rem', padding: '0.45rem 0.85rem' }}
             >
               <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
               <span>{isRefreshing ? 'Refreshing…' : 'Refresh'}</span>
@@ -794,12 +956,17 @@ export const DashboardPage: React.FC = () => {
               className="btn btn-secondary btn-sm"
               disabled={userIssues.length === 0}
               title="Download Personal PDF Report"
+              style={{ fontSize: '0.82rem', padding: '0.45rem 0.85rem' }}
             >
               <FileDown size={14} />
               <span>Export PDF</span>
             </button>
 
-            <Link to="/create-issue" className="btn btn-primary btn-sm">
+            <Link
+              to="/create-issue"
+              className="btn btn-primary btn-sm"
+              style={{ fontSize: '0.82rem', padding: '0.45rem 0.95rem', fontWeight: 700 }}
+            >
               <PlusCircle size={15} />
               <span>Create New Issue</span>
             </Link>
@@ -807,48 +974,33 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── 1. ACTION CENTER (replaces old Action Required) ── */}
+      {/* ── 1. ACTION CENTER ── */}
       <UserActionCenter
         userIssues={userIssues}
         notifications={activityFeed}
         isActionSubmitting={isActionSubmitting}
+        activeActionIssueId={activeActionIssueId}
+        projectMap={projectMap}
         onConfirmClose={handleConfirmClose}
         onReopenIssue={(issue) => {
           setReopenModalIssue(issue);
         }}
       />
 
-
-
-      {/* ── 2. LIVE KPI CARDS (Clean labels without numbers) ── */}
+      {/* ── 2. LIVE KPI CARDS ── */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
-          gap: '0.85rem',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+          gap: '1rem',
         }}
       >
         <MetricCard
           label="My Submitted Issues"
           value={totalIssueCount}
-          icon={<Bug size={20} />}
+          icon={<Bug size={22} />}
           iconClass="metric-icon-purple"
-          subtitle="Total defects reported by you"
-          onClick={() => {
-            const el = document.getElementById('my-recent-issues');
-            el?.scrollIntoView({ behavior: 'smooth' });
-          }}
-        />
-
-        <MetricCard
-          label="Open Issues"
-          value={openIssuesCount}
-          icon={<AlertCircle size={20} />}
-          iconClass="metric-icon-amber"
-          valueColor={openIssuesCount > 0 ? '#fbbf24' : undefined}
-          subtitle="Active under investigation"
-          badge={openIssuesCount > 0 ? 'Active' : undefined}
-          badgeColor="#f59e0b"
+          subtitle="Total defects reported by your account"
           onClick={() => {
             setStatusFilter('ALL');
             const el = document.getElementById('my-recent-issues');
@@ -857,11 +1009,29 @@ export const DashboardPage: React.FC = () => {
         />
 
         <MetricCard
+          label="Open Issues"
+          value={openIssuesCount}
+          icon={<AlertCircle size={22} />}
+          iconClass="metric-icon-amber"
+          valueColor={openIssuesCount > 0 ? '#fbbf24' : undefined}
+          subtitle="Active &amp; currently under investigation"
+          badge={openIssuesCount > 0 ? `${openIssuesCount} Active` : undefined}
+          badgeColor="#f59e0b"
+          onClick={() => {
+            setStatusFilter('REPORTED');
+            const el = document.getElementById('my-recent-issues');
+            el?.scrollIntoView({ behavior: 'smooth' });
+          }}
+        />
+
+        <MetricCard
           label="In Progress"
           value={inProgressCount}
-          icon={<Activity size={20} />}
+          icon={<Activity size={22} />}
           iconClass="metric-icon-indigo"
-          subtitle="Development &amp; QA testing"
+          subtitle="Development &amp; QA review"
+          badge={inProgressCount > 0 ? 'In Dev/QA' : undefined}
+          badgeColor="#6366f1"
           onClick={() => {
             setStatusFilter('IN_PROGRESS' as IssueStatus);
             const el = document.getElementById('my-recent-issues');
@@ -872,11 +1042,11 @@ export const DashboardPage: React.FC = () => {
         <MetricCard
           label="Resolved"
           value={resolvedCount}
-          icon={<CheckCircle2 size={20} />}
+          icon={<CheckCircle2 size={22} />}
           iconClass="metric-icon-emerald"
           valueColor={resolvedCount > 0 ? '#34d399' : undefined}
-          subtitle="Awaiting your confirmation"
-          badge={resolvedCount > 0 ? 'Needs You' : undefined}
+          subtitle="Awaiting your verification"
+          badge={resolvedCount > 0 ? `${resolvedCount} Needs You` : undefined}
           badgeColor="#10b981"
           onClick={() => {
             setStatusFilter('RESOLVED');
@@ -888,7 +1058,7 @@ export const DashboardPage: React.FC = () => {
         <MetricCard
           label="Resolution Rate"
           value={`${resolutionRate}%`}
-          icon={<CheckCheck size={20} />}
+          icon={<CheckCheck size={22} />}
           iconClass="metric-icon-cyan"
           valueColor={resolutionRate >= 75 ? '#34d399' : '#818cf8'}
           subtitle={`${resolvedCount + closedCount} of ${totalIssueCount} resolved`}
@@ -901,7 +1071,8 @@ export const DashboardPage: React.FC = () => {
         className="card"
         style={{
           border: '1px solid rgba(99, 102, 241, 0.3)',
-          padding: '1.25rem',
+          borderRadius: 'var(--radius-lg, 12px)',
+          padding: '1.35rem 1.5rem',
         }}
       >
         <div
@@ -914,34 +1085,55 @@ export const DashboardPage: React.FC = () => {
             marginBottom: '1rem',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <Bug size={18} style={{ color: '#818cf8' }} />
-            <h2
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <div
               style={{
-                fontSize: '1.05rem',
-                fontWeight: '700',
-                color: 'var(--text-primary)',
-                margin: 0,
-              }}
-            >
-              My Recent Issues
-            </h2>
-            <span
-              style={{
-                fontSize: '0.72rem',
-                fontWeight: 700,
-                background: 'rgba(99, 102, 241, 0.2)',
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 color: '#818cf8',
-                padding: '0.15rem 0.55rem',
-                borderRadius: '999px',
               }}
             >
-              {filteredIssues.length}
-            </span>
+              <Bug size={18} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <h2
+                  style={{
+                    fontSize: '1.1rem',
+                    fontWeight: '700',
+                    color: 'var(--text-primary)',
+                    margin: 0,
+                  }}
+                >
+                  My Recent Issues
+                </h2>
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    background: 'rgba(99, 102, 241, 0.18)',
+                    color: '#818cf8',
+                    border: '1px solid rgba(99, 102, 241, 0.3)',
+                    padding: '0.12rem 0.55rem',
+                    borderRadius: '999px',
+                  }}
+                >
+                  {filteredIssues.length}
+                </span>
+              </div>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0.15rem 0 0 0' }}>
+                Search, filter, and track defects you have submitted across all projects.
+              </p>
+            </div>
           </div>
 
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            <Link to="/create-issue" className="btn btn-primary btn-sm">
+            <Link to="/create-issue" className="btn btn-primary btn-sm" style={{ fontWeight: 600 }}>
               <PlusCircle size={14} />
               <span>Create New Issue</span>
             </Link>
@@ -949,9 +1141,9 @@ export const DashboardPage: React.FC = () => {
             <Link
               to="/issues"
               className="btn btn-secondary btn-sm"
-              style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: '#a5b4fc' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: 'var(--text-primary)' }}
             >
-              <span>View All My Issues</span>
+              <span>View All Issues</span>
               <ArrowRight size={13} />
             </Link>
           </div>
@@ -965,14 +1157,14 @@ export const DashboardPage: React.FC = () => {
             alignItems: 'center',
             flexWrap: 'wrap',
             marginBottom: '1rem',
-            padding: '0.65rem',
+            padding: '0.75rem',
             backgroundColor: 'var(--bg-surface-elevated)',
-            borderRadius: '8px',
+            borderRadius: 'var(--radius-md, 8px)',
             border: '1px solid var(--border-subtle)',
           }}
         >
-          {/* Search Input */}
-          <div style={{ position: 'relative', flex: '1', minWidth: '180px' }}>
+          {/* Search Input with Clear Button */}
+          <div style={{ position: 'relative', flex: '1 1 200px', minWidth: '180px' }}>
             <Search
               size={14}
               style={{
@@ -985,15 +1177,15 @@ export const DashboardPage: React.FC = () => {
             />
             <input
               type="text"
-              placeholder="Search by key or title…"
+              placeholder="Search by issue key, title, or project…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
                 width: '100%',
                 paddingLeft: '2rem',
-                paddingRight: '0.75rem',
-                paddingTop: '0.35rem',
-                paddingBottom: '0.35rem',
+                paddingRight: searchQuery ? '2rem' : '0.75rem',
+                paddingTop: '0.4rem',
+                paddingBottom: '0.4rem',
                 fontSize: '0.82rem',
                 background: 'var(--bg-input)',
                 border: '1px solid var(--border-muted)',
@@ -1001,6 +1193,27 @@ export const DashboardPage: React.FC = () => {
                 color: 'var(--text-primary)',
               }}
             />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                style={{
+                  position: 'absolute',
+                  right: '0.5rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  padding: '2px',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+                title="Clear search"
+              >
+                <X size={13} />
+              </button>
+            )}
           </div>
 
           {/* Status Filter */}
@@ -1008,7 +1221,7 @@ export const DashboardPage: React.FC = () => {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as IssueStatus | 'ALL')}
             style={{
-              padding: '0.35rem 0.65rem',
+              padding: '0.4rem 0.65rem',
               fontSize: '0.8rem',
               background: 'var(--bg-input)',
               border: '1px solid var(--border-muted)',
@@ -1035,7 +1248,7 @@ export const DashboardPage: React.FC = () => {
             value={severityFilter}
             onChange={(e) => setSeverityFilter(e.target.value as Severity | 'ALL')}
             style={{
-              padding: '0.35rem 0.65rem',
+              padding: '0.4rem 0.65rem',
               fontSize: '0.8rem',
               background: 'var(--bg-input)',
               border: '1px solid var(--border-muted)',
@@ -1057,7 +1270,7 @@ export const DashboardPage: React.FC = () => {
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value as Priority | 'ALL')}
             style={{
-              padding: '0.35rem 0.65rem',
+              padding: '0.4rem 0.65rem',
               fontSize: '0.8rem',
               background: 'var(--bg-input)',
               border: '1px solid var(--border-muted)',
@@ -1079,7 +1292,7 @@ export const DashboardPage: React.FC = () => {
             value={projectFilter}
             onChange={(e) => setProjectFilter(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
             style={{
-              padding: '0.35rem 0.65rem',
+              padding: '0.4rem 0.65rem',
               fontSize: '0.8rem',
               background: 'var(--bg-input)',
               border: '1px solid var(--border-muted)',
@@ -1100,7 +1313,7 @@ export const DashboardPage: React.FC = () => {
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value as typeof dateFilter)}
             style={{
-              padding: '0.35rem 0.65rem',
+              padding: '0.4rem 0.65rem',
               fontSize: '0.8rem',
               background: 'var(--bg-input)',
               border: '1px solid var(--border-muted)',
@@ -1121,7 +1334,7 @@ export const DashboardPage: React.FC = () => {
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
             style={{
-              padding: '0.35rem 0.65rem',
+              padding: '0.4rem 0.65rem',
               fontSize: '0.8rem',
               background: 'var(--bg-input)',
               border: '1px solid var(--border-muted)',
@@ -1150,54 +1363,92 @@ export const DashboardPage: React.FC = () => {
                 setSortBy('newest');
               }}
               className="btn btn-ghost btn-sm"
-              style={{ fontSize: '0.75rem', padding: '0.3rem 0.55rem', whiteSpace: 'nowrap' }}
+              style={{
+                fontSize: '0.75rem',
+                padding: '0.35rem 0.65rem',
+                whiteSpace: 'nowrap',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+                color: '#f87171',
+              }}
+              title="Reset all search filters"
             >
               <X size={12} /> Clear Filters
             </button>
           )}
         </div>
 
-        {/* Result count */}
-        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.6rem' }}>
-          Showing {Math.min(filteredIssues.length, 8)} of {filteredIssues.length} issue{filteredIssues.length !== 1 ? 's' : ''}
-          {filteredIssues.length < userIssues.length && ` (${userIssues.length} total)`}
+        {/* Result count & active status */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.76rem', color: 'var(--text-muted)', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div>
+            Showing <strong>{Math.min(filteredIssues.length, 10)}</strong> of <strong>{filteredIssues.length}</strong> defect{filteredIssues.length !== 1 ? 's' : ''}
+            {filteredIssues.length < userIssues.length && ` (${userIssues.length} total submitted)`}
+          </div>
+          {hasActiveFilters && (
+            <span style={{ color: '#818cf8', fontWeight: 600 }}>
+              Filters active
+            </span>
+          )}
         </div>
 
-        {/* High-density Recent Issues Table */}
+        {/* Recent Issues Table with Enhanced Layout & Lifecycle Stepper */}
         {recentIssuesList.length === 0 ? (
           <div
             style={{
-              padding: '2.5rem 1rem',
+              padding: '3rem 1.5rem',
               textAlign: 'center',
               backgroundColor: 'var(--bg-surface-elevated)',
               borderRadius: '8px',
               border: '1px dashed var(--border-subtle)',
             }}
           >
-            <Bug size={32} style={{ opacity: 0.35, marginBottom: '0.5rem', color: '#818cf8' }} />
-            <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-              {searchQuery || statusFilter !== 'ALL' || severityFilter !== 'ALL' || priorityFilter !== 'ALL'
+            <Bug size={36} style={{ opacity: 0.35, marginBottom: '0.65rem', color: '#818cf8' }} />
+            <p style={{ margin: '0 0 1rem 0', fontSize: '0.92rem', color: 'var(--text-primary)', fontWeight: 600 }}>
+              {hasActiveFilters
                 ? 'No defects match your active search and filter criteria.'
                 : 'You have not submitted any defects yet.'}
             </p>
+            {hasActiveFilters ? (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setStatusFilter('ALL');
+                  setSeverityFilter('ALL');
+                  setPriorityFilter('ALL');
+                  setProjectFilter('ALL');
+                  setDateFilter('ALL');
+                  setSortBy('newest');
+                }}
+                className="btn btn-secondary btn-sm"
+              >
+                Clear All Filters
+              </button>
+            ) : (
+              <Link to="/create-issue" className="btn btn-primary btn-sm">
+                <PlusCircle size={14} />
+                <span>Submit Your First Defect</span>
+              </Link>
+            )}
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem' }}>
               <thead>
                 <tr>
-                  {['Issue Key', 'Title', 'Project', 'Severity', 'Priority', 'Status', 'Last Updated', 'Action'].map(
+                  {['Issue Key', 'Title', 'Project', 'Severity', 'Priority', 'Status', 'Lifecycle Progress', 'Last Updated', 'Actions'].map(
                     (col) => (
                       <th
                         key={col}
                         style={{
                           textAlign: 'left',
-                          padding: '0.5rem 0.75rem',
+                          padding: '0.6rem 0.75rem',
                           color: 'var(--text-muted)',
-                          fontWeight: '600',
+                          fontWeight: '700',
                           fontSize: '0.74rem',
                           borderBottom: '1px solid var(--border-subtle)',
                           whiteSpace: 'nowrap',
+                          letterSpacing: '0.02em',
                         }}
                       >
                         {col}
@@ -1207,16 +1458,18 @@ export const DashboardPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {recentIssuesList.slice(0, 8).map((issue) => {
+                {recentIssuesList.slice(0, 10).map((issue) => {
                   const isResolved = issue.status === 'RESOLVED';
+                  const isActing = isActionSubmitting && activeActionIssueId === issue.id;
                   const project = projectMap.get(issue.project_id);
+                  const progress = getIssueProgressStep(issue.status);
 
                   return (
                     <tr
                       key={issue.id}
                       style={{
                         borderBottom: '1px solid var(--border-subtle)',
-                        backgroundColor: isResolved ? 'rgba(16, 185, 129, 0.03)' : 'transparent',
+                        backgroundColor: isResolved ? 'rgba(16, 185, 129, 0.035)' : 'transparent',
                         transition: 'background 0.15s ease',
                       }}
                       onMouseEnter={(e) =>
@@ -1225,11 +1478,11 @@ export const DashboardPage: React.FC = () => {
                       }
                       onMouseLeave={(e) =>
                         ((e.currentTarget as HTMLTableRowElement).style.backgroundColor =
-                          isResolved ? 'rgba(16, 185, 129, 0.03)' : 'transparent')
+                          isResolved ? 'rgba(16, 185, 129, 0.035)' : 'transparent')
                       }
                     >
                       {/* Issue Key */}
-                      <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '0.65rem 0.75rem', whiteSpace: 'nowrap' }}>
                         <Link
                           to={`/issues/${issue.id}`}
                           style={{
@@ -1247,8 +1500,8 @@ export const DashboardPage: React.FC = () => {
                       {/* Title */}
                       <td
                         style={{
-                          padding: '0.6rem 0.75rem',
-                          maxWidth: '260px',
+                          padding: '0.65rem 0.75rem',
+                          maxWidth: '280px',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
@@ -1270,7 +1523,7 @@ export const DashboardPage: React.FC = () => {
                       {/* Project */}
                       <td
                         style={{
-                          padding: '0.6rem 0.75rem',
+                          padding: '0.65rem 0.75rem',
                           whiteSpace: 'nowrap',
                           color: 'var(--text-secondary)',
                           fontSize: '0.78rem',
@@ -1280,24 +1533,49 @@ export const DashboardPage: React.FC = () => {
                       </td>
 
                       {/* Severity */}
-                      <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '0.65rem 0.75rem', whiteSpace: 'nowrap' }}>
                         <SeverityBadge severity={issue.severity} />
                       </td>
 
                       {/* Priority */}
-                      <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '0.65rem 0.75rem', whiteSpace: 'nowrap' }}>
                         <PriorityBadge priority={issue.priority} />
                       </td>
 
                       {/* Status */}
-                      <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '0.65rem 0.75rem', whiteSpace: 'nowrap' }}>
                         <StatusBadge status={issue.status} />
+                      </td>
+
+                      {/* Lifecycle Progress Stepper */}
+                      <td style={{ padding: '0.65rem 0.75rem', whiteSpace: 'nowrap' }}>
+                        <div
+                          style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', minWidth: '95px' }}
+                          title={`Stage ${progress.step} of 5: ${progress.label}`}
+                        >
+                          <div style={{ display: 'flex', gap: '3px' }}>
+                            {[1, 2, 3, 4, 5].map((s) => (
+                              <div
+                                key={s}
+                                style={{
+                                  height: '4px',
+                                  flex: 1,
+                                  borderRadius: '2px',
+                                  backgroundColor: s <= progress.step ? progress.color : 'var(--border-subtle)',
+                                }}
+                              />
+                            ))}
+                          </div>
+                          <span style={{ fontSize: '0.68rem', color: progress.color, fontWeight: 700 }}>
+                            {progress.label}
+                          </span>
+                        </div>
                       </td>
 
                       {/* Last Updated */}
                       <td
                         style={{
-                          padding: '0.6rem 0.75rem',
+                          padding: '0.65rem 0.75rem',
                           color: 'var(--text-muted)',
                           fontSize: '0.76rem',
                           whiteSpace: 'nowrap',
@@ -1307,8 +1585,8 @@ export const DashboardPage: React.FC = () => {
                         {formatRelativeTime(issue.updated_at || issue.created_at)}
                       </td>
 
-                      {/* Action */}
-                      <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
+                      {/* Actions */}
+                      <td style={{ padding: '0.65rem 0.75rem', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
                           {isResolved && (
                             <>
@@ -1320,20 +1598,21 @@ export const DashboardPage: React.FC = () => {
                                   backgroundColor: '#10b981',
                                   borderColor: '#10b981',
                                   fontSize: '0.72rem',
-                                  padding: '0.2rem 0.5rem',
+                                  padding: '0.22rem 0.55rem',
+                                  fontWeight: 600,
                                 }}
-                                title="Confirm resolution"
+                                title="Confirm resolution and close"
                               >
-                                <CheckCircle2 size={11} />
-                                <span>Confirm</span>
+                                <CheckCircle2 size={11} className={isActing ? 'animate-spin' : ''} />
+                                <span>{isActing ? 'Confirming…' : 'Confirm'}</span>
                               </button>
 
                               <button
                                 onClick={() => setReopenModalIssue(issue)}
                                 disabled={isActionSubmitting}
                                 className="btn btn-outline-danger btn-sm"
-                                style={{ fontSize: '0.72rem', padding: '0.2rem 0.5rem' }}
-                                title="Reopen issue"
+                                style={{ fontSize: '0.72rem', padding: '0.22rem 0.55rem', fontWeight: 600 }}
+                                title="Reopen issue with feedback"
                               >
                                 <RotateCcw size={11} />
                                 <span>Reopen</span>
@@ -1344,11 +1623,11 @@ export const DashboardPage: React.FC = () => {
                           <Link
                             to={`/issues/${issue.id}`}
                             className="btn btn-secondary btn-sm"
-                            style={{ fontSize: '0.72rem', padding: '0.2rem 0.55rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
-                            title="View full issue details"
+                            style={{ fontSize: '0.72rem', padding: '0.22rem 0.55rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                            title="View full defect details"
                           >
                             <Eye size={12} />
-                            <span>View Issue</span>
+                            <span>View Details</span>
                           </Link>
                         </div>
                       </td>
@@ -1358,10 +1637,10 @@ export const DashboardPage: React.FC = () => {
               </tbody>
             </table>
 
-            {recentIssuesList.length > 8 && (
+            {recentIssuesList.length > 10 && (
               <div
                 style={{
-                  padding: '0.75rem',
+                  padding: '0.85rem',
                   textAlign: 'center',
                   borderTop: '1px solid var(--border-subtle)',
                 }}
@@ -1369,12 +1648,12 @@ export const DashboardPage: React.FC = () => {
                 <Link
                   to="/issues"
                   style={{
-                    fontSize: '0.8rem',
+                    fontSize: '0.82rem',
                     color: 'var(--primary)',
-                    fontWeight: '600',
+                    fontWeight: '700',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '0.3rem',
+                    gap: '0.35rem',
                   }}
                 >
                   <span>View all {recentIssuesList.length} issues in My Issues</span>

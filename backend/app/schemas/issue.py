@@ -145,6 +145,8 @@ class IssueResponse(BaseModel):
     raw_status: str | None = None
     raw_resolution: str | None = None
     raw_priority: str | None = None
+    resolution_summary: str | None = None
+    resolved_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
