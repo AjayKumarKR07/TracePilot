@@ -18,20 +18,21 @@ import {
   Layers,
   Play,
   RefreshCw,
+  RotateCcw,
   Search,
+  Sparkles,
   ThumbsUp,
   X,
 } from 'lucide-react';
-import { analyticsApi } from '../api/analytics';
 import { getApiErrorMessage } from '../api/client';
 import { issuesApi } from '../api/issues';
 import { projectsApi } from '../api/projects';
 import { SprintService } from '../services/SprintService';
 import { ErrorMessage } from '../components/common/ErrorMessage';
-import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { PriorityBadge } from '../components/common/PriorityBadge';
 import { SeverityBadge } from '../components/common/SeverityBadge';
 import { StatusBadge } from '../components/common/StatusBadge';
+import { DefectVerificationModal } from '../components/dashboard/DefectVerificationModal';
 import { DeveloperActionCenter } from '../components/dashboard/DeveloperActionCenter';
 import { DeveloperWorkHealth } from '../components/dashboard/DeveloperWorkHealth';
 import { DeveloperSprintHealth } from '../components/dashboard/DeveloperSprintHealth';
@@ -45,7 +46,6 @@ import { UserSlaTracker } from '../components/dashboard/UserSlaTracker';
 import { useAuth } from '../hooks/useAuth';
 import { useNotifications } from '../hooks/useNotifications';
 import { useNotificationNavigate } from '../hooks/useNotificationNavigate';
-import type { IssueStatusDistributionResponse } from '../types/analytics';
 import type { Issue, IssueStatus, Priority, Severity } from '../types/issue';
 import type { Project } from '../types/project';
 import type { Sprint } from '../types/Sprint';
@@ -158,11 +158,109 @@ const MetricCard: React.FC<MetricCardProps> = ({
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Skeleton Loading View
+// ─────────────────────────────────────────────────────────────────────────────
+
+const TesterDashboardSkeleton: React.FC = () => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '2.5rem' }}>
+    {/* Header Skeleton */}
+    <div
+      className="card"
+      style={{
+        padding: '1.4rem 1.6rem',
+        borderRadius: 'var(--radius-lg, 12px)',
+        backgroundColor: 'var(--bg-surface)',
+        border: '1px solid var(--border-subtle)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.1rem', flex: 1, minWidth: '280px' }}>
+          <div style={{ width: '54px', height: '54px', borderRadius: '50%', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', flex: 1 }}>
+            <div style={{ width: '150px', height: '18px', borderRadius: '4px', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+            <div style={{ width: '280px', height: '26px', borderRadius: '4px', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+            <div style={{ width: '380px', height: '14px', borderRadius: '4px', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: '0.65rem' }}>
+          <div style={{ width: '85px', height: '32px', borderRadius: '6px', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+          <div style={{ width: '110px', height: '32px', borderRadius: '6px', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+          <div style={{ width: '130px', height: '32px', borderRadius: '6px', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+        </div>
+      </div>
+    </div>
+
+    {/* 6 KPI Cards Skeleton */}
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.85rem' }}>
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div key={i} className="card" style={{ padding: '1.25rem', height: '110px', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
+          <div style={{ width: '120px', height: '14px', borderRadius: '4px', backgroundColor: 'var(--bg-surface-elevated)', marginBottom: '0.65rem' }} className="skeleton-pulse" />
+          <div style={{ width: '55px', height: '26px', borderRadius: '4px', backgroundColor: 'var(--bg-surface-elevated)', marginBottom: '0.45rem' }} className="skeleton-pulse" />
+          <div style={{ width: '140px', height: '12px', borderRadius: '4px', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+        </div>
+      ))}
+    </div>
+
+    {/* Action Center Skeleton */}
+    <div className="card" style={{ padding: '1.25rem 1.5rem', borderRadius: 'var(--radius-lg, 12px)', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
+      <div style={{ width: '190px', height: '20px', borderRadius: '4px', backgroundColor: 'var(--bg-surface-elevated)', marginBottom: '1rem' }} className="skeleton-pulse" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+        <div style={{ height: '90px', borderRadius: '8px', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+        <div style={{ height: '90px', borderRadius: '8px', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+      </div>
+    </div>
+
+    {/* Table Skeleton */}
+    <div className="card" style={{ padding: '1.25rem', height: '360px', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
+      <div style={{ width: '220px', height: '22px', borderRadius: '4px', backgroundColor: 'var(--bg-surface-elevated)', marginBottom: '1.25rem' }} className="skeleton-pulse" />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} style={{ width: '100%', height: '42px', borderRadius: '4px', backgroundColor: 'var(--bg-surface-elevated)' }} className="skeleton-pulse" />
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Workflow Progress Stepper Helper
+// ─────────────────────────────────────────────────────────────────────────────
+
+const getIssueProgressStep = (status: IssueStatus) => {
+  switch (status) {
+    case 'REPORTED':
+    case 'TRIAGED':
+    case 'ASSIGNED':
+      return { step: 1, label: 'Submitted', color: '#fbbf24' };
+    case 'IN_DEVELOPMENT':
+      return { step: 2, label: 'In Dev', color: '#818cf8' };
+    case 'IN_REVIEW':
+      return { step: 3, label: 'In Review', color: '#a78bfa' };
+    case 'IN_TESTING':
+      return { step: 4, label: 'Testing', color: '#38bdf8' };
+    case 'RESOLVED':
+    case 'CLOSED':
+      return { step: 5, label: 'Verified', color: '#34d399' };
+    case 'REOPENED':
+      return { step: 2, label: 'Reopened', color: '#f87171' };
+    default:
+      return { step: 1, label: status, color: '#818cf8' };
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Filter types
 // ─────────────────────────────────────────────────────────────────────────────
 
 type SprintFilterTab = 'ALL' | 'IN_PROGRESS' | 'READY_FOR_APPROVAL' | 'ACTIVE' | 'COMPLETED';
-type IssueFilterTab = 'ALL' | 'REQUIRES_TESTING' | 'IN_PROGRESS' | 'RESOLVED';
+type IssueFilterTab =
+  | 'ALL'
+  | 'AWAITING_TESTING'
+  | 'REQUIRES_TESTING'
+  | 'UNDER_REVIEW'
+  | 'IN_PROGRESS'
+  | 'FAILED_VERIFICATION'
+  | 'RESOLVED';
 type DateRange = '7' | '30' | '90' | 'all';
 type SortOption = 'newest' | 'oldest' | 'updated' | 'priority' | 'severity';
 
@@ -181,7 +279,6 @@ export const DeveloperDashboardPage: React.FC = () => {
   // ── Data state ──
   const [issues, setIssues] = useState<Issue[]>([]);
   const [totalIssuesCount, setTotalIssuesCount] = useState(0);
-  const [statusDist, setStatusDist] = useState<IssueStatusDistributionResponse | null>(null);
   const [assignedSprints, setAssignedSprints] = useState<Sprint[]>([]);
   const [projectsMap, setProjectsMap] = useState<Record<number, Project>>({});
 
@@ -193,6 +290,18 @@ export const DeveloperDashboardPage: React.FC = () => {
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [transitioning, setTransitioning] = useState<number | null>(null);
   const [sprintSubmitting, setSprintSubmitting] = useState<number | null>(null);
+  // ── Verification Modal State (Defect Verification Workflow) ──
+  const [verificationModalIssue, setVerificationModalIssue] = useState<Issue | null>(null);
+
+  // ── User Initials Avatar ──
+  const userInitials = useMemo(() => {
+    if (!user?.full_name) return 'TP';
+    const parts = user.full_name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+    }
+    return parts[0].slice(0, 2).toUpperCase();
+  }, [user?.full_name]);
 
   // ── Sprints section filters ──
   const [sprintTab, setSprintTab] = useState<SprintFilterTab>('ALL');
@@ -218,16 +327,14 @@ export const DeveloperDashboardPage: React.FC = () => {
     setError(null);
 
     try {
-      const [issuesRes, statusRes, sprintsRes, projectsRes] = await Promise.all([
+      const [issuesRes, sprintsRes, projectsRes] = await Promise.all([
         issuesApi.list({ page_size: 100 }),
-        analyticsApi.getStatusDistribution().catch(() => null),
         SprintService.getAssignedSprints().catch(() => []),
         projectsApi.list({ page_size: 100 }).catch(() => ({ items: [], total: 0 })),
       ]);
 
       setIssues(issuesRes.items || []);
       setTotalIssuesCount(issuesRes.total || 0);
-      setStatusDist(statusRes);
       setAssignedSprints(sprintsRes || []);
 
       const pMap: Record<number, Project> = {};
@@ -272,22 +379,22 @@ export const DeveloperDashboardPage: React.FC = () => {
   // KPI Metrics (Calculated from real backend data)
   // ─────────────────────────────────────────────────────────────────────────────
 
-  const myAssignedSprintsCount = assignedSprints.length;
+  const myAssignedIssuesCount = totalIssuesCount || issues.length;
+  const awaitingTestingCount = issues.filter((i) => i.status === 'IN_TESTING').length;
+  const underReviewAndDevCount = issues.filter(
+    (i) => i.status === 'IN_REVIEW' || i.status === 'IN_DEVELOPMENT' || i.status === 'ASSIGNED'
+  ).length;
+  const failedVerificationCount = issues.filter((i) => i.status === 'REOPENED').length;
+  const verifiedResolvedCount = issues.filter(
+    (i) => i.status === 'RESOLVED' || i.status === 'CLOSED'
+  ).length;
+
   const sprintsInProgressCount = assignedSprints.filter((s) => s.status === 'IN_PROGRESS').length;
   const awaitingApprovalCount = assignedSprints.filter((s) => s.status === 'READY_FOR_APPROVAL').length;
   const activeSprintsCount = assignedSprints.filter((s) => s.status === 'ACTIVE').length;
   const completedSprintsCount = assignedSprints.filter((s) => s.status === 'COMPLETED').length;
 
-  const myAssignedIssuesCount = totalIssuesCount || issues.length;
-  const issuesRequiringTestingCount = statusDist
-    ? (statusDist.IN_TESTING || 0) + (statusDist.IN_REVIEW || 0)
-    : issues.filter((i) => i.status === 'IN_TESTING' || i.status === 'IN_REVIEW').length;
-  const inProgressIssuesCount = statusDist
-    ? statusDist.IN_DEVELOPMENT || 0
-    : issues.filter((i) => i.status === 'IN_DEVELOPMENT').length;
-  const resolvedIssuesCount = statusDist
-    ? (statusDist.RESOLVED || 0) + (statusDist.CLOSED || 0)
-    : issues.filter((i) => i.status === 'RESOLVED' || i.status === 'CLOSED').length;
+  const inProgressIssuesCount = issues.filter((i) => i.status === 'IN_DEVELOPMENT').length;
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Filtered Sprints List
@@ -324,10 +431,16 @@ export const DeveloperDashboardPage: React.FC = () => {
     let list = [...issues];
 
     // Tab filter
-    if (issueTab === 'REQUIRES_TESTING') {
+    if (issueTab === 'AWAITING_TESTING') {
+      list = list.filter((i) => i.status === 'IN_TESTING');
+    } else if (issueTab === 'REQUIRES_TESTING') {
       list = list.filter((i) => i.status === 'IN_TESTING' || i.status === 'IN_REVIEW');
+    } else if (issueTab === 'UNDER_REVIEW') {
+      list = list.filter((i) => i.status === 'IN_REVIEW');
     } else if (issueTab === 'IN_PROGRESS') {
-      list = list.filter((i) => i.status === 'IN_DEVELOPMENT');
+      list = list.filter((i) => i.status === 'IN_DEVELOPMENT' || i.status === 'ASSIGNED');
+    } else if (issueTab === 'FAILED_VERIFICATION') {
+      list = list.filter((i) => i.status === 'REOPENED');
     } else if (issueTab === 'RESOLVED') {
       list = list.filter((i) => i.status === 'RESOLVED' || i.status === 'CLOSED');
     }
@@ -493,11 +606,7 @@ export const DeveloperDashboardPage: React.FC = () => {
   // ─────────────────────────────────────────────────────────────────────────────
 
   if (isLoading) {
-    return (
-      <div style={{ padding: '3.5rem 0', display: 'flex', justifyContent: 'center' }}>
-        <LoadingSpinner message="Loading your Developer Workspace..." />
-      </div>
-    );
+    return <TesterDashboardSkeleton />;
   }
 
   if (error) {
@@ -513,16 +622,27 @@ export const DeveloperDashboardPage: React.FC = () => {
             backgroundColor: 'rgba(16, 185, 129, 0.12)',
             border: '1px solid rgba(16, 185, 129, 0.35)',
             color: '#34d399',
-            padding: '0.75rem 1.25rem',
-            borderRadius: 'var(--radius-md)',
+            padding: '0.85rem 1.25rem',
+            borderRadius: 'var(--radius-md, 8px)',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem',
-            fontSize: '0.9rem',
+            justifyContent: 'space-between',
+            fontSize: '0.88rem',
+            fontWeight: 500,
+            boxShadow: '0 2px 8px rgba(16, 185, 129, 0.1)',
           }}
         >
-          <CheckCircle2 size={16} />
-          {actionSuccess}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <CheckCircle2 size={18} color="#34d399" />
+            <span>{actionSuccess}</span>
+          </div>
+          <button
+            onClick={() => setActionSuccess(null)}
+            style={{ background: 'none', border: 'none', color: '#34d399', cursor: 'pointer', padding: 0 }}
+            title="Dismiss message"
+          >
+            <X size={16} />
+          </button>
         </div>
       )}
       {actionError && (
@@ -531,26 +651,40 @@ export const DeveloperDashboardPage: React.FC = () => {
             backgroundColor: 'rgba(239, 68, 68, 0.12)',
             border: '1px solid rgba(239, 68, 68, 0.35)',
             color: '#f87171',
-            padding: '0.75rem 1.25rem',
-            borderRadius: 'var(--radius-md)',
+            padding: '0.85rem 1.25rem',
+            borderRadius: 'var(--radius-md, 8px)',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem',
-            fontSize: '0.9rem',
+            justifyContent: 'space-between',
+            fontSize: '0.88rem',
+            fontWeight: 500,
+            boxShadow: '0 2px 8px rgba(239, 68, 68, 0.1)',
           }}
         >
-          <AlertCircle size={16} />
-          {actionError}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <AlertCircle size={18} color="#f87171" />
+            <span>{actionError}</span>
+          </div>
+          <button
+            onClick={() => setActionError(null)}
+            style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', padding: 0 }}
+            title="Dismiss message"
+          >
+            <X size={16} />
+          </button>
         </div>
       )}
 
-      {/* ── Hero Greeting Card ── */}
+      {/* ── TOP HEADER / WELCOME AREA (Matching User Dashboard) ── */}
       <div
         className="card"
         style={{
-          background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(99, 102, 241, 0.10) 100%)',
-          border: '1px solid rgba(16, 185, 129, 0.25)',
-          padding: '1.25rem 1.5rem',
+          background:
+            'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.08) 50%, rgba(15, 23, 42, 0.6) 100%)',
+          border: '1px solid rgba(99, 102, 241, 0.28)',
+          boxShadow: '0 4px 20px rgba(99, 102, 241, 0.08)',
+          borderRadius: 'var(--radius-lg, 12px)',
+          padding: '1.4rem 1.6rem',
         }}
       >
         <div
@@ -559,55 +693,96 @@ export const DeveloperDashboardPage: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
-            gap: '1rem',
+            gap: '1.25rem',
           }}
         >
-          <div style={{ flex: 1, minWidth: '260px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.1rem', flex: 1, minWidth: '280px' }}>
+            {/* User Initials Avatar with Active Pulse */}
             <div
               style={{
+                width: '54px',
+                height: '54px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                border: '2px solid rgba(255, 255, 255, 0.15)',
+                boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.55rem',
-                marginBottom: '0.4rem',
-                flexWrap: 'wrap',
+                justifyContent: 'center',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '1.2rem',
+                flexShrink: 0,
+                position: 'relative',
               }}
+              title={user?.full_name || 'Tester Profile'}
             >
+              {userInitials}
               <span
-                className="badge"
                 style={{
-                  backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                  color: '#34d399',
-                  fontWeight: '600',
-                  fontSize: '0.75rem',
+                  position: 'absolute',
+                  bottom: '1px',
+                  right: '1px',
+                  width: '12px',
+                  height: '12px',
+                  borderRadius: '50%',
+                  backgroundColor: '#10b981',
+                  border: '2px solid var(--bg-surface, #0f172a)',
                 }}
-              >
-                <Code2 size={13} /> DEVELOPER WORKSPACE
-              </span>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                {user?.email}
-              </span>
+                title="Active Session"
+              />
             </div>
 
-            <h1
-              style={{
-                fontSize: '1.65rem',
-                fontWeight: '700',
-                color: '#fff',
-                margin: '0 0 0.35rem 0',
-              }}
-            >
-              Welcome back, {user?.full_name}!
-            </h1>
+            <div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.55rem',
+                  marginBottom: '0.35rem',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <span
+                  className="badge"
+                  style={{
+                    backgroundColor: 'rgba(99, 102, 241, 0.18)',
+                    color: '#818cf8',
+                    border: '1px solid rgba(99, 102, 241, 0.3)',
+                    fontWeight: 700,
+                    fontSize: '0.72rem',
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.3rem',
+                  }}
+                >
+                  <Sparkles size={12} /> TESTER &amp; QA WORKSPACE
+                </span>
+                {user?.email && (
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    {user.email}
+                  </span>
+                )}
+              </div>
 
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', margin: 0 }}>
-              {sprintsInProgressCount > 0
-                ? `You have ${sprintsInProgressCount} sprint${sprintsInProgressCount > 1 ? 's' : ''} in progress and ${issuesRequiringTestingCount} issue${issuesRequiringTestingCount === 1 ? '' : 's'} requiring your attention.`
-                : awaitingApprovalCount > 0
-                ? `You have ${awaitingApprovalCount} sprint${awaitingApprovalCount > 1 ? 's' : ''} submitted and awaiting Admin approval.`
-                : activeSprintsCount > 0
-                ? `You have ${activeSprintsCount} assigned sprint${activeSprintsCount > 1 ? 's' : ''} ready to begin.`
-                : `You have ${myAssignedIssuesCount} assigned issue${myAssignedIssuesCount === 1 ? '' : 's'} across active projects.`}
-            </p>
+              <h1
+                style={{
+                  fontSize: '1.65rem',
+                  fontWeight: 800,
+                  color: 'var(--text-primary, #ffffff)',
+                  margin: '0 0 0.3rem 0',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                Welcome back, {user?.full_name || 'Tester'}!
+              </h1>
+
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', margin: 0, lineHeight: 1.45 }}>
+                Execute defect verification workflows, validate bug fixes, inspect defect details, and manage assigned resolution cycles in real time.
+              </p>
+            </div>
           </div>
 
           <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -616,25 +791,47 @@ export const DeveloperDashboardPage: React.FC = () => {
               className="btn btn-secondary btn-sm"
               disabled={isRefreshing}
               title="Refresh Dashboard"
+              style={{ fontSize: '0.82rem', padding: '0.45rem 0.85rem' }}
             >
               <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
-              <span>{isRefreshing ? 'Refreshing\u2026' : 'Refresh'}</span>
+              <span>{isRefreshing ? 'Refreshing…' : 'Refresh'}</span>
             </button>
 
-            <Link to="/developer-sprints" className="btn btn-secondary btn-sm">
+            <button
+              onClick={() => {
+                document.getElementById('testing-queue-section')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="btn btn-secondary btn-sm"
+              style={{ fontSize: '0.82rem', padding: '0.45rem 0.85rem' }}
+            >
+              <ClipboardCheck size={14} color="#34d399" />
+              <span>Testing Queue</span>
+            </button>
+
+            <button
+              onClick={() => {
+                document.getElementById('my-sprints-section')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="btn btn-secondary btn-sm"
+              style={{ fontSize: '0.82rem', padding: '0.45rem 0.85rem' }}
+            >
               <Layers size={14} />
               <span>My Sprints</span>
-            </Link>
+            </button>
 
-            <Link to="/developer-issues" className="btn btn-primary btn-sm">
+            <Link
+              to="/developer-issues"
+              className="btn btn-primary btn-sm"
+              style={{ fontSize: '0.82rem', padding: '0.45rem 0.85rem' }}
+            >
               <Bug size={14} />
-              <span>My Assigned Issues</span>
+              <span>Assigned Issues</span>
             </Link>
           </div>
         </div>
       </div>
 
-      {/* ── KPI Cards ── */}
+      {/* ── KPI Cards (Section 4 Tester Statistics) ── */}
       <div
         style={{
           display: 'grid',
@@ -643,23 +840,75 @@ export const DeveloperDashboardPage: React.FC = () => {
         }}
       >
         <MetricCard
-          label="My Assigned Sprints"
-          value={myAssignedSprintsCount}
-          icon={<Layers size={20} />}
+          label="Assigned to Me"
+          value={myAssignedIssuesCount}
+          icon={<Bug size={20} />}
           iconClass="metric-icon-indigo"
-          subtitle="Total assigned sprints"
+          subtitle="Total assigned defects"
           onClick={() => {
-            setSprintTab('ALL');
-            document.getElementById('my-sprints-section')?.scrollIntoView({ behavior: 'smooth' });
+            setIssueTab('ALL');
+            document.getElementById('my-issues-section')?.scrollIntoView({ behavior: 'smooth' });
           }}
         />
         <MetricCard
-          label="Sprints In Progress"
+          label="Awaiting Testing"
+          value={awaitingTestingCount}
+          icon={<ClipboardCheck size={20} />}
+          iconClass="metric-icon-emerald"
+          valueColor={awaitingTestingCount > 0 ? '#34d399' : undefined}
+          subtitle="Ready for verification"
+          badge={awaitingTestingCount > 0 ? `${awaitingTestingCount} Ready` : undefined}
+          badgeColor="#10b981"
+          onClick={() => {
+            setIssueTab('AWAITING_TESTING');
+            document.getElementById('my-issues-section')?.scrollIntoView({ behavior: 'smooth' });
+          }}
+        />
+        <MetricCard
+          label="Under Review & Dev"
+          value={underReviewAndDevCount}
+          icon={<Code2 size={20} />}
+          iconClass="metric-icon-purple"
+          valueColor={underReviewAndDevCount > 0 ? '#a78bfa' : undefined}
+          subtitle="In progress / code review"
+          onClick={() => {
+            setIssueTab('IN_PROGRESS');
+            document.getElementById('my-issues-section')?.scrollIntoView({ behavior: 'smooth' });
+          }}
+        />
+        <MetricCard
+          label="Failed / Retest"
+          value={failedVerificationCount}
+          icon={<RotateCcw size={20} />}
+          iconClass="metric-icon-amber"
+          valueColor={failedVerificationCount > 0 ? '#f87171' : undefined}
+          subtitle="Require re-testing or rework"
+          badge={failedVerificationCount > 0 ? 'Retest Needed' : undefined}
+          badgeColor="#ef4444"
+          onClick={() => {
+            setIssueTab('FAILED_VERIFICATION');
+            document.getElementById('my-issues-section')?.scrollIntoView({ behavior: 'smooth' });
+          }}
+        />
+        <MetricCard
+          label="Verified & Resolved"
+          value={verifiedResolvedCount}
+          icon={<CheckCircle2 size={20} />}
+          iconClass="metric-icon-emerald"
+          valueColor={verifiedResolvedCount > 0 ? '#34d399' : undefined}
+          subtitle="Passed defect verification"
+          onClick={() => {
+            setIssueTab('RESOLVED');
+            document.getElementById('my-issues-section')?.scrollIntoView({ behavior: 'smooth' });
+          }}
+        />
+        <MetricCard
+          label="Active Sprints"
           value={sprintsInProgressCount}
-          icon={<Play size={20} />}
+          icon={<Layers size={20} />}
           iconClass="metric-icon-amber"
           valueColor={sprintsInProgressCount > 0 ? '#fbbf24' : undefined}
-          subtitle="Actively in development"
+          subtitle="Test sprint cycles in progress"
           badge={sprintsInProgressCount > 0 ? 'Active' : undefined}
           badgeColor="#f59e0b"
           onClick={() => {
@@ -667,75 +916,13 @@ export const DeveloperDashboardPage: React.FC = () => {
             document.getElementById('my-sprints-section')?.scrollIntoView({ behavior: 'smooth' });
           }}
         />
-        <MetricCard
-          label="Awaiting Approval"
-          value={awaitingApprovalCount}
-          icon={<ClipboardCheck size={20} />}
-          iconClass="metric-icon-cyan"
-          valueColor={awaitingApprovalCount > 0 ? '#22d3ee' : undefined}
-          subtitle="Submitted for Admin review"
-          badge={awaitingApprovalCount > 0 ? 'Needs Admin' : undefined}
-          badgeColor="#06b6d4"
-          onClick={() => {
-            setSprintTab('READY_FOR_APPROVAL');
-            document.getElementById('my-sprints-section')?.scrollIntoView({ behavior: 'smooth' });
-          }}
-        />
-        <MetricCard
-          label="My Assigned Issues"
-          value={myAssignedIssuesCount}
-          icon={<Bug size={20} />}
-          iconClass="metric-icon-purple"
-          subtitle="Total assigned issues"
-          onClick={() => {
-            setIssueTab('ALL');
-            document.getElementById('my-issues-section')?.scrollIntoView({ behavior: 'smooth' });
-          }}
-        />
-        <MetricCard
-          label="In Development"
-          value={inProgressIssuesCount}
-          icon={<Code2 size={20} />}
-          iconClass="metric-icon-indigo"
-          valueColor={inProgressIssuesCount > 0 ? '#818cf8' : undefined}
-          subtitle="Currently in development"
-          onClick={() => {
-            setIssueTab('IN_PROGRESS');
-            document.getElementById('my-issues-section')?.scrollIntoView({ behavior: 'smooth' });
-          }}
-        />
-        <MetricCard
-          label="Testing / Review"
-          value={issuesRequiringTestingCount}
-          icon={<Eye size={20} />}
-          iconClass="metric-icon-emerald"
-          valueColor={issuesRequiringTestingCount > 0 ? '#34d399' : undefined}
-          subtitle="IN_TESTING & IN_REVIEW"
-          badge={issuesRequiringTestingCount > 0 ? 'Action Required' : undefined}
-          badgeColor="#10b981"
-          onClick={() => {
-            setIssueTab('REQUIRES_TESTING');
-            document.getElementById('my-issues-section')?.scrollIntoView({ behavior: 'smooth' });
-          }}
-        />
-        <MetricCard
-          label="Resolved / Closed"
-          value={resolvedIssuesCount}
-          icon={<CheckCircle2 size={20} />}
-          iconClass="metric-icon-emerald"
-          valueColor={resolvedIssuesCount > 0 ? '#34d399' : undefined}
-          subtitle="Completed issues"
-          onClick={() => {
-            setIssueTab('RESOLVED');
-            document.getElementById('my-issues-section')?.scrollIntoView({ behavior: 'smooth' });
-          }}
-        />
       </div>
 
-      {/* ── Developer Action Center ── */}
+      {/* ── Developer & Tester Action Center ── */}
       <DeveloperActionCenter
         assignedIssues={issues}
         assignedSprints={assignedSprints}
+        onVerify={(issue) => setVerificationModalIssue(issue)}
       />
 
       {/* ── Row: Work Health + Sprint Health ── */}
@@ -778,7 +965,14 @@ export const DeveloperDashboardPage: React.FC = () => {
       </div>
 
       {/* ── Testing & Review Queue ── */}
-      <DeveloperTestingQueue assignedIssues={issues} />
+      <div id="testing-queue-section">
+        <DeveloperTestingQueue
+          assignedIssues={issues}
+          onVerify={(issue) => setVerificationModalIssue(issue)}
+          onAdvance={handleAdvanceStatus}
+          transitioning={transitioning}
+        />
+      </div>
 
       {/* ── SECTION A: MY SPRINTS ── */}
       <section
@@ -1275,13 +1469,16 @@ export const DeveloperDashboardPage: React.FC = () => {
                 padding: '0.2rem',
                 borderRadius: '8px',
                 border: '1px solid var(--border-subtle)',
+                flexWrap: 'wrap',
               }}
             >
               {[
                 { id: 'ALL', label: 'All', count: issues.length },
-                { id: 'REQUIRES_TESTING', label: 'Testing / Review', count: issuesRequiringTestingCount },
-                { id: 'IN_PROGRESS', label: 'In Development', count: inProgressIssuesCount },
-                { id: 'RESOLVED', label: 'Resolved', count: resolvedIssuesCount },
+                { id: 'AWAITING_TESTING', label: 'Awaiting Testing', count: awaitingTestingCount },
+                { id: 'UNDER_REVIEW', label: 'Under Review', count: issues.filter((i) => i.status === 'IN_REVIEW').length },
+                { id: 'IN_PROGRESS', label: 'In Dev', count: inProgressIssuesCount },
+                { id: 'FAILED_VERIFICATION', label: 'Retest Needed', count: failedVerificationCount },
+                { id: 'RESOLVED', label: 'Verified', count: verifiedResolvedCount },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -1294,8 +1491,10 @@ export const DeveloperDashboardPage: React.FC = () => {
                     border: 'none',
                     background:
                       issueTab === tab.id
-                        ? tab.id === 'REQUIRES_TESTING'
+                        ? tab.id === 'AWAITING_TESTING'
                           ? '#10b981'
+                          : tab.id === 'FAILED_VERIFICATION'
+                          ? '#ef4444'
                           : 'var(--primary)'
                         : 'transparent',
                     color: issueTab === tab.id ? '#fff' : 'var(--text-secondary)',
@@ -1581,7 +1780,7 @@ export const DeveloperDashboardPage: React.FC = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead>
                 <tr>
-                  {['Issue Key', 'Title', 'Project', 'Severity', 'Priority', 'Status', 'Age', 'Action'].map(
+                  {['Issue Key', 'Title', 'Project', 'Severity', 'Priority', 'Status', 'Workflow', 'Age', 'Action'].map(
                     (col) => (
                       <th
                         key={col}
@@ -1611,6 +1810,7 @@ export const DeveloperDashboardPage: React.FC = () => {
                   const ageDays = Math.floor(
                     (Date.now() - new Date(issue.created_at).getTime()) / (1000 * 60 * 60 * 24)
                   );
+                  const progressInfo = getIssueProgressStep(issue.status);
 
                   return (
                     <tr
@@ -1709,6 +1909,29 @@ export const DeveloperDashboardPage: React.FC = () => {
                         <StatusBadge status={issue.status} />
                       </td>
 
+                      {/* Workflow Progress */}
+                      <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <div style={{ display: 'flex', gap: '3px' }}>
+                            {[1, 2, 3, 4, 5].map((s) => (
+                              <span
+                                key={s}
+                                style={{
+                                  width: '6px',
+                                  height: '6px',
+                                  borderRadius: '50%',
+                                  backgroundColor: s <= progressInfo.step ? progressInfo.color : 'rgba(255,255,255,0.18)',
+                                }}
+                                title={`Stage ${progressInfo.step} of 5: ${progressInfo.label}`}
+                              />
+                            ))}
+                          </div>
+                          <span style={{ fontSize: '0.72rem', color: progressInfo.color, fontWeight: 600 }}>
+                            {progressInfo.label}
+                          </span>
+                        </div>
+                      </td>
+
                       {/* Age */}
                       <td
                         style={{
@@ -1726,7 +1949,28 @@ export const DeveloperDashboardPage: React.FC = () => {
                       {/* Action */}
                       <td style={{ padding: '0.6rem 0.75rem', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
-                          {canAdvance && (
+                          {issue.status === 'IN_TESTING' ? (
+                            <button
+                              onClick={() => setVerificationModalIssue(issue)}
+                              className="btn btn-sm"
+                              style={{
+                                fontSize: '0.72rem',
+                                padding: '0.2rem 0.55rem',
+                                backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                                color: '#34d399',
+                                border: '1px solid rgba(16, 185, 129, 0.4)',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.25rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                              }}
+                              title="Open Defect Verification & Testing Modal"
+                            >
+                              <ClipboardCheck size={11} />
+                              <span>Verify</span>
+                            </button>
+                          ) : canAdvance ? (
                             <button
                               onClick={() => handleAdvanceStatus(issue)}
                               disabled={isTransitioning}
@@ -1735,9 +1979,9 @@ export const DeveloperDashboardPage: React.FC = () => {
                               title={getWorkflowLabel(issue.status)}
                             >
                               <Play size={10} />
-                              <span>{isTransitioning ? '\u2026' : getWorkflowLabel(issue.status)}</span>
+                              <span>{isTransitioning ? '…' : getWorkflowLabel(issue.status)}</span>
                             </button>
-                          )}
+                          ) : null}
 
                           <Link
                             to={`/issues/${issue.id}`}
@@ -1897,6 +2141,17 @@ export const DeveloperDashboardPage: React.FC = () => {
           </div>
         </section>
       )}
+
+      {/* ── Defect Verification & Testing Workflow Modal ── */}
+      <DefectVerificationModal
+        issue={verificationModalIssue}
+        isOpen={!!verificationModalIssue}
+        onClose={() => setVerificationModalIssue(null)}
+        onSuccess={(msg) => {
+          setActionSuccess(msg);
+          loadData(true);
+        }}
+      />
 
       {/* ── AI DEVELOPER ASSISTANT ── */}
       <AIChatbot

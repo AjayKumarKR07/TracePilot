@@ -24,6 +24,7 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
+  ClipboardCheck,
   Clock,
   Code2,
   ExternalLink,
@@ -113,6 +114,7 @@ function daysUntil(dateStr: string): number {
 interface Props {
   assignedIssues: Issue[];
   assignedSprints: Sprint[];
+  onVerify?: (issue: Issue) => void;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -122,6 +124,7 @@ interface Props {
 export const DeveloperActionCenter: React.FC<Props> = ({
   assignedIssues,
   assignedSprints,
+  onVerify,
 }) => {
   const [expanded, setExpanded] = useState(true);
 
@@ -398,14 +401,41 @@ export const DeveloperActionCenter: React.FC<Props> = ({
                   </span>
 
                   {item.issueId && (
-                    <Link
-                      to={`/issues/${item.issueId}`}
-                      className="btn btn-secondary btn-sm"
-                      style={{ fontSize: '0.74rem', padding: '0.22rem 0.6rem' }}
-                    >
-                      <ExternalLink size={11} />
-                      <span>View Issue</span>
-                    </Link>
+                    <>
+                      {onVerify && assignedIssues.find((i) => i.id === item.issueId)?.status === 'IN_TESTING' && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const target = assignedIssues.find((i) => i.id === item.issueId);
+                            if (target) onVerify(target);
+                          }}
+                          className="btn btn-sm"
+                          style={{
+                            fontSize: '0.74rem',
+                            padding: '0.22rem 0.6rem',
+                            backgroundColor: 'rgba(16, 185, 129, 0.18)',
+                            color: '#34d399',
+                            border: '1px solid rgba(16, 185, 129, 0.35)',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.25rem',
+                            cursor: 'pointer',
+                          }}
+                          title="Open Defect Verification Modal"
+                        >
+                          <ClipboardCheck size={11} />
+                          <span>Verify</span>
+                        </button>
+                      )}
+                      <Link
+                        to={`/issues/${item.issueId}`}
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontSize: '0.74rem', padding: '0.22rem 0.6rem' }}
+                      >
+                        <ExternalLink size={11} />
+                        <span>View Issue</span>
+                      </Link>
+                    </>
                   )}
 
                   {item.sprintId && (

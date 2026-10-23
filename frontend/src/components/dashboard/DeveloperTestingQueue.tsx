@@ -16,6 +16,7 @@ import {
   Code2,
   ExternalLink,
   Eye,
+  Play,
   RotateCcw,
 } from 'lucide-react';
 import type { Issue, IssueStatus } from '../../types/issue';
@@ -64,9 +65,17 @@ const GROUPS: QueueGroup[] = [
 
 interface Props {
   assignedIssues: Issue[];
+  onVerify?: (issue: Issue) => void;
+  onAdvance?: (issue: Issue) => void;
+  transitioning?: number | null;
 }
 
-export const DeveloperTestingQueue: React.FC<Props> = ({ assignedIssues }) => {
+export const DeveloperTestingQueue: React.FC<Props> = ({
+  assignedIssues,
+  onVerify,
+  onAdvance,
+  transitioning,
+}) => {
   const grouped = useMemo(() => {
     const map: Record<string, Issue[]> = {
       IN_TESTING: [],
@@ -311,6 +320,57 @@ export const DeveloperTestingQueue: React.FC<Props> = ({ assignedIssues }) => {
                             >
                               {ageDays}d old
                             </span>
+
+                            {/* Testing / Advance Workflow Action */}
+                            {issue.status === 'IN_TESTING' && onVerify && (
+                              <button
+                                type="button"
+                                onClick={() => onVerify(issue)}
+                                className="btn btn-sm"
+                                style={{
+                                  fontSize: '0.72rem',
+                                  padding: '0.2rem 0.55rem',
+                                  backgroundColor: 'rgba(16, 185, 129, 0.18)',
+                                  color: '#34d399',
+                                  border: '1px solid rgba(16, 185, 129, 0.35)',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.25rem',
+                                  cursor: 'pointer',
+                                }}
+                                title="Open Defect Verification Modal"
+                              >
+                                <ClipboardCheck size={11} />
+                                <span>Verify</span>
+                              </button>
+                            )}
+
+                            {issue.status !== 'IN_TESTING' && onAdvance && (
+                              <button
+                                type="button"
+                                onClick={() => onAdvance(issue)}
+                                disabled={transitioning === issue.id}
+                                className="btn btn-primary btn-sm"
+                                style={{
+                                  fontSize: '0.72rem',
+                                  padding: '0.2rem 0.55rem',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.25rem',
+                                }}
+                                title={issue.status === 'IN_REVIEW' ? 'Begin In-Testing' : 'Resume Investigation'}
+                              >
+                                <Play size={10} />
+                                <span>
+                                  {transitioning === issue.id
+                                    ? '…'
+                                    : issue.status === 'IN_REVIEW'
+                                    ? 'Begin Testing'
+                                    : 'Resume Dev'}
+                                </span>
+                              </button>
+                            )}
+
                             <Link
                               to={`/issues/${issue.id}`}
                               className="btn btn-secondary btn-sm"

@@ -68,8 +68,8 @@ export const AppRoutes: React.FC = () => {
               <Route path="/developer-dashboard" element={<DeveloperDashboardPage />} />
               <Route path="/developer-sprints" element={<DeveloperSprintsPage />} />
               <Route path="/developer-issues" element={<DeveloperIssuesPage />} />
-              {/* Legacy redirects -- keep old /tester-* links working */}
-              <Route path="/tester-dashboard" element={<Navigate to="/developer-dashboard" replace />} />
+              {/* Tester & Developer Dashboard Routes */}
+              <Route path="/tester-dashboard" element={<DeveloperDashboardPage />} />
               <Route path="/tester-sprints" element={<Navigate to="/developer-sprints" replace />} />
               <Route path="/tester-issues" element={<Navigate to="/developer-issues" replace />} />
             </Route>
