@@ -220,9 +220,9 @@ flowchart TD
     E --> F["Inject System Prompt & Advisory Boundary Rules"]
     F --> G["Provider Dispatcher"]
     G --> H{"Configured AI Provider<br/>(AI_PROVIDER)"}
-    H -->|groq (Default)| I["Groq API<br/>(Primary: openai/gpt-oss-120b)"]
+    H -->|groq - Default Provider| I["Groq API<br/>(Primary: openai/gpt-oss-120b)"]
     H -->|gemini| J["Google Gemini API<br/>(gemini-2.0-flash via google-genai)"]
-    I -->|Temporary Error / 429| L["Groq Resilience Fallback<br/>(openai/gpt-oss-20b)"]
+    I -->|Temporary Error or Rate Limit 429| L["Groq Resilience Fallback<br/>(openai/gpt-oss-20b)"]
     I --> K["Generate Structured Markdown Response"]
     L --> K
     J --> K
