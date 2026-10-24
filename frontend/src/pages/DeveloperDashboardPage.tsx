@@ -161,7 +161,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
 // Skeleton Loading View
 // ─────────────────────────────────────────────────────────────────────────────
 
-const TesterDashboardSkeleton: React.FC = () => (
+const DeveloperDashboardSkeleton: React.FC = () => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '2.5rem' }}>
     {/* Header Skeleton */}
     <div
@@ -606,7 +606,7 @@ export const DeveloperDashboardPage: React.FC = () => {
   // ─────────────────────────────────────────────────────────────────────────────
 
   if (isLoading) {
-    return <TesterDashboardSkeleton />;
+    return <DeveloperDashboardSkeleton />;
   }
 
   if (error) {
@@ -715,7 +715,7 @@ export const DeveloperDashboardPage: React.FC = () => {
                 flexShrink: 0,
                 position: 'relative',
               }}
-              title={user?.full_name || 'Tester Profile'}
+              title={user?.full_name || 'Developer Profile'}
             >
               {userInitials}
               <span
@@ -758,7 +758,7 @@ export const DeveloperDashboardPage: React.FC = () => {
                     gap: '0.3rem',
                   }}
                 >
-                  <Sparkles size={12} /> TESTER &amp; QA WORKSPACE
+                  <Sparkles size={12} /> DEVELOPER WORKSPACE
                 </span>
                 {user?.email && (
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
@@ -776,11 +776,11 @@ export const DeveloperDashboardPage: React.FC = () => {
                   letterSpacing: '-0.02em',
                 }}
               >
-                Welcome back, {user?.full_name || 'Tester'}!
+                Welcome back, {user?.full_name || 'Developer'}!
               </h1>
 
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', margin: 0, lineHeight: 1.45 }}>
-                Execute defect verification workflows, validate bug fixes, inspect defect details, and manage assigned resolution cycles in real time.
+                Manage assigned defects, advance development lifecycle, implement bug fixes, and submit resolutions for verification in real time.
               </p>
             </div>
           </div>
@@ -805,7 +805,7 @@ export const DeveloperDashboardPage: React.FC = () => {
               style={{ fontSize: '0.82rem', padding: '0.45rem 0.85rem' }}
             >
               <ClipboardCheck size={14} color="#34d399" />
-              <span>Testing Queue</span>
+              <span>Validation Queue</span>
             </button>
 
             <button
@@ -831,7 +831,7 @@ export const DeveloperDashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── KPI Cards (Section 4 Tester Statistics) ── */}
+      {/* ── KPI Cards (Developer Defect & Sprint Statistics) ── */}
       <div
         style={{
           display: 'grid',
@@ -856,7 +856,7 @@ export const DeveloperDashboardPage: React.FC = () => {
           icon={<ClipboardCheck size={20} />}
           iconClass="metric-icon-emerald"
           valueColor={awaitingTestingCount > 0 ? '#34d399' : undefined}
-          subtitle="Ready for verification"
+          subtitle="Ready for validation"
           badge={awaitingTestingCount > 0 ? `${awaitingTestingCount} Ready` : undefined}
           badgeColor="#10b981"
           onClick={() => {
@@ -882,7 +882,7 @@ export const DeveloperDashboardPage: React.FC = () => {
           icon={<RotateCcw size={20} />}
           iconClass="metric-icon-amber"
           valueColor={failedVerificationCount > 0 ? '#f87171' : undefined}
-          subtitle="Require re-testing or rework"
+          subtitle="Reopened for rework"
           badge={failedVerificationCount > 0 ? 'Retest Needed' : undefined}
           badgeColor="#ef4444"
           onClick={() => {
@@ -896,7 +896,7 @@ export const DeveloperDashboardPage: React.FC = () => {
           icon={<CheckCircle2 size={20} />}
           iconClass="metric-icon-emerald"
           valueColor={verifiedResolvedCount > 0 ? '#34d399' : undefined}
-          subtitle="Passed defect verification"
+          subtitle="Resolved & submitted"
           onClick={() => {
             setIssueTab('RESOLVED');
             document.getElementById('my-issues-section')?.scrollIntoView({ behavior: 'smooth' });
@@ -908,7 +908,7 @@ export const DeveloperDashboardPage: React.FC = () => {
           icon={<Layers size={20} />}
           iconClass="metric-icon-amber"
           valueColor={sprintsInProgressCount > 0 ? '#fbbf24' : undefined}
-          subtitle="Test sprint cycles in progress"
+          subtitle="Sprint cycles in progress"
           badge={sprintsInProgressCount > 0 ? 'Active' : undefined}
           badgeColor="#f59e0b"
           onClick={() => {
@@ -918,7 +918,7 @@ export const DeveloperDashboardPage: React.FC = () => {
         />
       </div>
 
-      {/* ── Developer & Tester Action Center ── */}
+      {/* ── Developer Action Center ── */}
       <DeveloperActionCenter
         assignedIssues={issues}
         assignedSprints={assignedSprints}
@@ -1965,10 +1965,10 @@ export const DeveloperDashboardPage: React.FC = () => {
                                 fontWeight: 600,
                                 cursor: 'pointer',
                               }}
-                              title="Open Defect Verification & Testing Modal"
+                              title="Submit Defect Resolution & Verification Notes"
                             >
                               <ClipboardCheck size={11} />
-                              <span>Verify</span>
+                              <span>Submit Resolution</span>
                             </button>
                           ) : canAdvance ? (
                             <button

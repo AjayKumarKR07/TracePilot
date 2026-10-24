@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { CheckCircle, Mail, ShieldCheck, ArrowRight, RotateCw, ArrowLeft } from 'lucide-react';
 import { getApiErrorMessage } from '../../api/client';
@@ -10,7 +10,8 @@ function getRoleRedirect(role: UserRole, requestedFrom: string): string {
   if (requestedFrom && requestedFrom !== '/' && requestedFrom !== '/login' && requestedFrom !== '/register') {
     return requestedFrom;
   }
-  if (role === 'ADMIN') return '/admin';
+  if (role === 'ADMIN') return '/admin-dashboard';
+  if (role === 'DEVELOPER') return '/developer-dashboard';
   return '/dashboard';
 }
 

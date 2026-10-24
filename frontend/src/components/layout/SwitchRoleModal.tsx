@@ -53,7 +53,7 @@ export const SWITCH_ROLES: SwitchRoleOption[] = [
     badge: 'DEVELOPER',
     dashboardName: 'Developer Dashboard',
     dashboardPath: '/developer-dashboard',
-    description: 'QA defect verification, issue lifecycle progression, and sprint execution.',
+    description: 'Defect investigation, fix implementation, lifecycle progression, and verification.',
     color: 'var(--primary)',
   },
   {

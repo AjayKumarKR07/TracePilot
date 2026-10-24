@@ -133,7 +133,7 @@ export const DefectVerificationModal: React.FC<DefectVerificationModalProps> = (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Defect Verification: ${issue.issue_key}`}
+      title={`Submit Defect Resolution: ${issue.issue_key}`}
       maxWidth="780px"
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -353,7 +353,7 @@ export const DefectVerificationModal: React.FC<DefectVerificationModalProps> = (
               }}
             >
               <CheckCircle2 size={15} />
-              <span>Mark as Verified (Pass)</span>
+              <span>Submit Resolution (Pass)</span>
             </button>
 
             <button
@@ -377,7 +377,7 @@ export const DefectVerificationModal: React.FC<DefectVerificationModalProps> = (
               }}
             >
               <RotateCcw size={15} />
-              <span>Fail Verification &amp; Reopen</span>
+              <span>Return to Rework (Fail)</span>
             </button>
 
             <button
@@ -401,7 +401,7 @@ export const DefectVerificationModal: React.FC<DefectVerificationModalProps> = (
               }}
             >
               <History size={15} />
-              <span>Testing History ({activity.length})</span>
+              <span>Issue History ({activity.length})</span>
             </button>
           </div>
 
@@ -423,13 +423,13 @@ export const DefectVerificationModal: React.FC<DefectVerificationModalProps> = (
               >
                 <CheckCircle2 size={16} color="#34d399" />
                 <span>
-                  Confirming verification will record testing observations and transition the issue to <strong>RESOLVED</strong>.
+                  Submitting resolution will record testing observations and transition the issue to <strong>RESOLVED</strong> for user verification.
                 </span>
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
-                  Verification Summary <span style={{ color: '#f87171' }}>*</span>
+                  Resolution Summary <span style={{ color: '#f87171' }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -496,7 +496,7 @@ export const DefectVerificationModal: React.FC<DefectVerificationModalProps> = (
                   }}
                 >
                   <ClipboardCheck size={15} />
-                  <span>{isSubmitting ? 'Verifying Defect…' : 'Confirm Fix Verified & Resolve'}</span>
+                  <span>{isSubmitting ? 'Submitting Resolution…' : 'Submit Resolution & Mark RESOLVED'}</span>
                 </button>
               </div>
             </form>
@@ -520,7 +520,7 @@ export const DefectVerificationModal: React.FC<DefectVerificationModalProps> = (
               >
                 <AlertTriangle size={16} color="#f87171" />
                 <span>
-                  Failing verification transitions this issue to <strong>REOPENED</strong> and notifies the assigned developer with your test feedback.
+                  Marking test as failed transitions this issue to <strong>REOPENED</strong> for developer rework.
                 </span>
               </div>
 
@@ -571,7 +571,7 @@ export const DefectVerificationModal: React.FC<DefectVerificationModalProps> = (
                   }}
                 >
                   <RotateCcw size={15} />
-                  <span>{isSubmitting ? 'Reopening Issue…' : 'Fail Verification & Reopen Defect'}</span>
+                  <span>{isSubmitting ? 'Reopening Issue…' : 'Return to Rework & Reopen Defect'}</span>
                 </button>
               </div>
             </form>

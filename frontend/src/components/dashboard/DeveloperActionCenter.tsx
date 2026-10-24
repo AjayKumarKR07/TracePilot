@@ -421,10 +421,10 @@ export const DeveloperActionCenter: React.FC<Props> = ({
                             gap: '0.25rem',
                             cursor: 'pointer',
                           }}
-                          title="Open Defect Verification Modal"
+                          title="Submit Defect Resolution & Notes"
                         >
                           <ClipboardCheck size={11} />
-                          <span>Verify</span>
+                          <span>Submit Resolution</span>
                         </button>
                       )}
                       <Link

@@ -133,7 +133,7 @@ export const DeveloperTestingQueue: React.FC<Props> = ({
               color: 'var(--text-primary)',
             }}
           >
-            Testing &amp; Review Queue
+            Testing &amp; Validation Queue
           </h2>
           {totalCount > 0 && (
             <span
@@ -338,10 +338,10 @@ export const DeveloperTestingQueue: React.FC<Props> = ({
                                   gap: '0.25rem',
                                   cursor: 'pointer',
                                 }}
-                                title="Open Defect Verification Modal"
+                                title="Submit Defect Resolution & Notes"
                               >
                                 <ClipboardCheck size={11} />
-                                <span>Verify</span>
+                                <span>Submit Resolution</span>
                               </button>
                             )}
 
