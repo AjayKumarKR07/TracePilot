@@ -155,6 +155,64 @@ flowchart TD
 
 ---
 
+# 🖼️ Application Interfaces & Visual Showcase
+
+TracePilot provides unified, modern, dark glassmorphic workspaces tailored for each canonical role:
+
+### 1. 🛡️ Admin Command Center & Governance (`/admin-dashboard`)
+Comprehensive system management including user account activation/deactivation, role modifications, project creation, defect assignment triage matrix, sprint approvals, and live health telemetry.
+
+<p align="center">
+  <img src="IMAGES/admin_dashboard_modern.png" alt="TracePilot Admin Dashboard" width="95%" />
+</p>
+
+---
+
+### 2. 👨‍💻 Developer Workspace & Testing Queue (`/developer-dashboard`)
+Dedicated engineering hub for assigned defects, active sprint execution, testing validation queue (`IN_TESTING` → `RESOLVED`), and developer work health metrics.
+
+<p align="center">
+  <img src="IMAGES/developer_dashboard_modern.png" alt="TracePilot Developer Workspace" width="95%" />
+</p>
+
+---
+
+### 3. 👤 User Defect Tracking & Verification Portal (`/user-dashboard`)
+Reporter portal enabling defect creation with repro steps, real-time status tracking, resolution verification, and one-click defect closure or reopening.
+
+<p align="center">
+  <img src="IMAGES/user_dashboard_modern.png" alt="TracePilot User Dashboard" width="95%" />
+</p>
+
+---
+
+### 4. 🏃 Agile Sprints & Backlog Planning (`/sprints`)
+Structured sprint iteration authoring, capacity allocation, active sprint lifecycle management, and backlog prioritization.
+
+<p align="center">
+  <img src="IMAGES/sprints_planning_modern.png" alt="TracePilot Sprint Planning" width="95%" />
+</p>
+
+---
+
+### 5. 📈 Quality Intelligence & Analytics Dashboard (`/analytics`)
+Live analytical insights powered by Plotly.js covering defect severity distributions, velocity trends, team workload balance, and PDF report downloads.
+
+<p align="center">
+  <img src="IMAGES/analytics_dashboard_modern.png" alt="TracePilot Quality Analytics" width="95%" />
+</p>
+
+---
+
+### 6. 🔐 Secure Authentication & Onboarding (`/login`)
+JWT-secured entry point featuring bcrypt credential validation, OTP email verification flow, and automatic role-based redirecting.
+
+<p align="center">
+  <img src="IMAGES/login_page_modern.png" alt="TracePilot Authentication" width="80%" />
+</p>
+
+---
+
 ## 🔄 Defect Lifecycle
 
 TracePilot enforces a rigorous, state-controlled defect lifecycle ensuring accountability at every transition from initial submission through verification and closure:
@@ -1045,116 +1103,119 @@ TracePilot/
 
 ---
 
-# ⚙️ Installation
+# ⚙️ Installation & Quickstart
 
-## 1️⃣ Clone Repository
+For detailed component-level guides, refer to:
+- 📖 [Backend Setup & Architecture Guide](backend/README.md)
+- 💻 [Frontend Setup & Workspace Guide](frontend/README.md)
+- 📚 [Documentation Index](docs/README.md)
 
-```powershell
+---
+
+## 1️⃣ Clone the Repository
+
+```bash
 git clone https://github.com/AjayKumarKR07/TracePilot.git
-cd TracePilot/backend
+cd TracePilot
 ```
 
 ---
 
-## 2️⃣ Create Virtual Environment
+## 2️⃣ Backend Setup (FastAPI + PostgreSQL)
 
-### Windows PowerShell
+### Python Virtual Environment Setup
 
+**Windows PowerShell:**
 ```powershell
+cd backend
 python -m venv .venv
-```
-
-Activate:
-
-```powershell
 .\.venv\Scripts\Activate.ps1
-```
-
----
-
-## 3️⃣ Install Dependencies
-
-```powershell
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
----
-
-# 🔧 Environment Configuration
-
-Create your environment file:
-
-```powershell
-Copy-Item .env.example .env
+**macOS / Linux:**
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
-Configure the required values.
+### Environment Configuration
+Copy `backend/.env.example` to `backend/.env` and update your PostgreSQL credentials:
+```bash
+cp .env.example .env
+```
 
-Example:
+Key supported environment variables:
+```ini
+APP_NAME=TracePilot
+APP_ENV=development
+DEBUG=true
 
-```env
-DATABASE_URL=postgresql+asyncpg://username:password@localhost/bugtracker_db
+# Database Settings (PostgreSQL 14+ / 18)
+DB_DRIVER=postgresql+psycopg
+DB_USER=postgres
+DB_PASSWORD=YOUR_PASSWORD
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_NAME=bugtracker_db
 
-SECRET_KEY=your_secret_key
-
-ALGORITHM=HS256
-
+# Security & Authentication
+JWT_SECRET_KEY=generate_with_python_secrets_token_hex
+JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=60
+
+# AI Provider Configuration (Optional)
+AI_ENABLED=true
+AI_PROVIDER=groq
+GROQ_API_KEY=your_groq_api_key
+GROQ_MODEL=openai/gpt-oss-120b
 ```
 
-> Never commit `.env` files, database credentials, JWT secrets, email credentials, or other sensitive configuration to Git.
+> 🔒 **Security Notice:** Never commit `.env` files, database passwords, JWT secrets, or API keys into version control.
 
----
-
-# 🗄️ Database Setup
-
-Ensure PostgreSQL is running.
-
-Create the required database:
-
-```text
-bugtracker_db
-```
-
-Configure the database connection in `.env`.
-
----
-
-# 🔄 Database Migrations
-
-Apply migrations:
-
+### Database Setup & Schema Migrations
+Ensure PostgreSQL is running and the database (e.g. `bugtracker_db`) exists, then run Alembic migrations:
 ```powershell
 alembic upgrade head
 ```
 
-Check the current migration:
-
+Verify current revision:
 ```powershell
 alembic current
 ```
 
-View migration history:
-
+### Launch Backend Server
 ```powershell
-alembic history
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
+Backend API will be accessible at: `http://127.0.0.1:8000`  
+Health check endpoint: `http://127.0.0.1:8000/health`
 
 ---
 
-# ▶️ Run Development Server
+## 3️⃣ Frontend Setup (React 19 + TypeScript + Vite)
 
-From the `backend` directory:
-
-```powershell
-uvicorn app.main:app --reload --port 8000
+Open a new terminal window:
+```bash
+cd frontend
+npm install
 ```
 
-Backend:
-
-```text
-http://127.0.0.1:8000
+Configure `frontend/.env` (refer to `frontend/.env.example`):
+```ini
+VITE_API_BASE_URL=http://127.0.0.1:8000
+VITE_WS_BASE_URL=ws://127.0.0.1:8000
 ```
+
+Start the Vite development server:
+```bash
+npm run dev
+```
+Frontend web application will be accessible at: `http://localhost:5173`
 
 ---
 
@@ -1233,35 +1294,53 @@ Example health response:
 
 ---
 
-# 🧪 Testing
+# 🧪 Automated Testing & Verification
 
+TracePilot features an automated test harness validating role-based authorization, state-machine transitions, concurrency, and real-time collaboration:
+
+### 1. Backend Test Suites (Pytest)
 Run the complete backend test suite:
-
 ```powershell
-pytest
+cd backend
+pytest tests -q
+```
+*Current Verified Test Results:* **509 passed, 10 skipped, 0 failures** in ~85s.
+
+Run specific functional test modules:
+```powershell
+# Role-based route protection & regression
+pytest tests/test_tester_migration_regression.py tests/test_switch_role.py -v
+
+# End-to-end issue lifecycle
+pytest tests/test_e2e_workflow.py -v
+
+# Admin governance and user management
+pytest tests/test_admin_dashboard.py tests/test_users.py -v
+
+# Sprints, Backlog, and Analytics
+pytest tests/test_sprints.py tests/test_analytics.py -v
 ```
 
-Verbose output:
-
+### 2. End-to-End Workflow Verification Script
+Execute the 14-module lifecycle test harness across all database models, APIs, and AI fallbacks:
 ```powershell
-pytest -v
+python scripts/verify_e2e_workflow.py
 ```
+*Verification Coverage:*
+- `USER_CREATE` $\rightarrow$ `ADMIN_TRIAGE` $\rightarrow$ `ADMIN_ASSIGN` $\rightarrow$ `DEV_INVESTIGATE` $\rightarrow$ `DEV_RESOLUTION` $\rightarrow$ `FINAL_CLOSURE`
+- Threaded comments & magic-byte attachment validation
+- WebSocket push notification dispatching
+- Immutable audit log records with actor attribution
+- AI advisory triage with automatic Groq/Gemini rate-limit fallback
+- RBAC security isolation across all role endpoints
 
----
-
-# 🔍 Code Quality
-
-Recommended checks:
-
-```powershell
-flake8
+### 3. Frontend Production Build & Type Safety
+Validate TypeScript compilation and Rollup asset bundling:
+```bash
+cd frontend
+npm run build
 ```
-
-Type checking:
-
-```powershell
-mypy app
-```
+*Status:* **Clean build (0 errors)** generating optimized assets in `dist/`.
 
 ---
 

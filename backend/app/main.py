@@ -52,7 +52,7 @@ app = FastAPI(
         "TracePilot – Automated Defect Tracking and Resolution Assistance System. "
         "Built for the Infosys Batch 3 internship project."
     ),
-    version="0.9.0",
+    version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
     debug=settings.DEBUG,
