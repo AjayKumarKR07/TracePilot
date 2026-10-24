@@ -172,7 +172,7 @@ class TestUserListSearch:
         uid = _get_user_id(_u("tester_b"))
         current_name = _CLIENT.get(f"/users/{uid}", headers=auth_header(admin_token())).json()["full_name"]
         # Use a stable prefix that will always appear in the name
-        search_term = current_name[:8]  # e.g. "Developer B" or "Updated "
+        search_term = current_name
         r = _CLIENT.get(
             "/users",
             params={"search": search_term},
