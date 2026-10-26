@@ -9,11 +9,13 @@ Phase 5: Audit logging integrated into all mutating operations.
          transaction as the mutating operation.
 """
 
+import asyncio
 import math
 from datetime import UTC, datetime
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -109,7 +111,7 @@ async def _get_project_active_or_error(project_id: int, db: AsyncSession) -> Pro
     return project
 
 
-async def _generate_issue_key(project_key: str, db: AsyncSession) -> str:
+async def _generate_issue_key(project_key: str, db: AsyncSession, attempted_keys: set[str] | None = None) -> str:
     """Generate the next sequential issue key for a project.
 
     Format: <PROJECT_KEY>-<zero-padded-number>  e.g. DM-0001, DM-0042
@@ -125,6 +127,9 @@ async def _generate_issue_key(project_key: str, db: AsyncSession) -> str:
     num = count + 1
     while True:
         candidate = f"{project_key}-{num:04d}"
+        if attempted_keys and candidate in attempted_keys:
+            num += 1
+            continue
         key_exists = await db.execute(select(Issue.id).where(Issue.issue_key == candidate))
         if key_exists.scalar_one_or_none() is None:
             return candidate
@@ -135,6 +140,19 @@ async def _generate_issue_key(project_key: str, db: AsyncSession) -> str:
 # CRUD                                                                         #
 # --------------------------------------------------------------------------- #
 
+def _is_issue_key_conflict(exc: IntegrityError) -> bool:
+    """Check if an IntegrityError was caused by a duplicate issue_key constraint violation."""
+    err_str = str(exc).lower()
+    if "ix_issues_issue_key" in err_str or "key (issue_key)=" in err_str:
+        return True
+    orig = getattr(exc, "orig", None)
+    if orig is not None:
+        orig_str = str(orig).lower()
+        if "ix_issues_issue_key" in orig_str or "issue_key" in orig_str:
+            return True
+    return False
+
+
 async def create_issue(body: IssueCreate, reporter: User, db: AsyncSession) -> tuple[IssueDetailResponse, list]:
     """Create a new defect. Reporter is always the authenticated user (USER/ADMIN).
 
@@ -142,27 +160,53 @@ async def create_issue(body: IssueCreate, reporter: User, db: AsyncSession) -> t
     can schedule WebSocket delivery to ADMINs as a BackgroundTask.
     """
     project = await _get_project_active_or_error(body.project_id, db)
-    issue_key = await _generate_issue_key(project.project_key, db)
+    project_key = project.project_key
+    project_id = project.id
 
-    issue = Issue(
-        issue_key=issue_key,
-        title=body.title,
-        description=body.description,
-        issue_type=body.issue_type,
-        severity=body.severity,
-        priority=body.priority,
-        status=IssueStatus.REPORTED,
-        environment=body.environment,
-        steps_to_reproduce=body.steps_to_reproduce,
-        expected_result=body.expected_result,
-        actual_result=body.actual_result,
-        project_id=body.project_id,
-        reporter_id=reporter.id,
-        assignee_id=None,
-        estimated_effort=body.estimated_effort,
-    )
-    db.add(issue)
-    await db.flush()
+    MAX_RETRIES = 10
+    issue = None
+    attempted_keys: set[str] = set()
+    for attempt in range(MAX_RETRIES):
+        issue_key = await _generate_issue_key(project_key, db, attempted_keys=attempted_keys)
+        try:
+            async with db.begin_nested():
+                candidate = Issue(
+                    issue_key=issue_key,
+                    title=body.title,
+                    description=body.description,
+                    issue_type=body.issue_type,
+                    severity=body.severity,
+                    priority=body.priority,
+                    status=IssueStatus.REPORTED,
+                    environment=body.environment,
+                    steps_to_reproduce=body.steps_to_reproduce,
+                    expected_result=body.expected_result,
+                    actual_result=body.actual_result,
+                    project_id=project_id,
+                    reporter_id=reporter.id,
+                    assignee_id=None,
+                    estimated_effort=body.estimated_effort,
+                )
+                db.add(candidate)
+                await db.flush()
+                issue = candidate
+                break
+        except IntegrityError as exc:
+            if not _is_issue_key_conflict(exc):
+                raise
+            attempted_keys.add(issue_key)
+            if attempt == MAX_RETRIES - 1:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"Unable to allocate a unique issue key for project '{project_key}' due to high concurrency. Please retry."
+                ) from exc
+            await asyncio.sleep(0.01 * (attempt + 1))
+
+    if issue is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Unable to allocate a unique issue key for project '{project_key}'. Please retry."
+        )
 
     await create_audit_log(
         db=db,
@@ -170,19 +214,19 @@ async def create_issue(body: IssueCreate, reporter: User, db: AsyncSession) -> t
         action=AuditAction.ISSUE_CREATED,
         entity_type="ISSUE",
         entity_id=issue.id,
-        entity_key=issue_key,
+        entity_key=issue.issue_key,
         description=(
-            f"{reporter.role.value.capitalize()} {reporter.full_name!r} reported issue {issue_key} "
-            f"in project {project.project_key}"
+            f"{reporter.role.value.capitalize()} {reporter.full_name!r} reported issue {issue.issue_key} "
+            f"in project {project_key}"
         ),
         new_values={
-            "issue_key": issue_key,
+            "issue_key": issue.issue_key,
             "title": body.title,
             "issue_type": body.issue_type,
             "severity": body.severity,
             "priority": body.priority,
             "status": IssueStatus.REPORTED,
-            "project_key": project.project_key,
+            "project_key": project_key,
             "reporter": reporter.full_name,
         },
     )
@@ -202,11 +246,11 @@ async def create_issue(body: IssueCreate, reporter: User, db: AsyncSession) -> t
         user_ids=admin_ids,
         notification_type=NotificationType.ISSUE_REPORTED,
         title="New issue reported",
-        message=f"New issue reported by {reporter.full_name}: {issue_key} - {body.title}",
+        message=f"New issue reported by {reporter.full_name}: {issue.issue_key} - {body.title}",
         actor_id=reporter.id,
         entity_type="ISSUE",
         entity_id=issue.id,
-        entity_key=issue_key,
+        entity_key=issue.issue_key,
     )
 
     # Re-fetch with relationships
@@ -320,7 +364,10 @@ async def list_issues(
     if sprint_id is not None:
         query = query.where(Issue.sprint_id == sprint_id)
     if backlog is True:
-        query = query.where(Issue.sprint_id.is_(None))
+        query = query.where(
+            Issue.sprint_id.is_(None),
+            Issue.status.notin_([IssueStatus.RESOLVED, IssueStatus.CLOSED]),
+        )
 
     # Reporter / assignee filters are ADMIN-only (to prevent enumeration)
     if current_user.role == UserRole.ADMIN:

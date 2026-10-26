@@ -31,6 +31,8 @@ Covers:
   - Protected fields not in IssueUpdate schema
 """
 
+import concurrent.futures
+import threading
 import uuid
 
 import pytest
@@ -676,4 +678,171 @@ class TestIssueUpdate:
         protected = {"reporter_id", "issue_key", "project_id", "created_at", "assignee_id", "status"}
         for field in protected:
             assert field not in IssueUpdate.model_fields, f"Protected field '{field}' must not be in IssueUpdate"
+
+
+# =========================================================================== #
+# 10. Backlog eligibility and concurrency                                      #
+# =========================================================================== #
+
+class TestBacklogEligibility:
+    """Verify backlog filtering: only unassigned, unresolved issues in target project."""
+
+    def test_backlog_filtering_and_project_isolation(self) -> None:
+        adm = auth_header(_admin_tok())
+        pid_a = _get_or_create_project(_fresh_key("BKGA"), "Backlog Project A")
+        pid_b = _get_or_create_project(_fresh_key("BKGB"), "Backlog Project B")
+
+        # 1. Project A: Open / unresolved issue (eligible)
+        iss_open = _create_issue(pid_a, title="Open backlog defect eligible")
+        # 2. Project A: In progress issue (eligible)
+        iss_prog = _create_issue(pid_a, title="In development backlog defect eligible")
+        client.patch(
+            f"/issues/{iss_prog['id']}/status",
+            json={"status": "IN_DEVELOPMENT"},
+            headers=adm,
+        )
+        # 3. Project A: Resolved issue (ineligible for backlog)
+        iss_res = _create_issue(pid_a, title="Resolved defect must be excluded")
+        client.patch(
+            f"/issues/{iss_res['id']}/status",
+            json={"status": "RESOLVED"},
+            headers=adm,
+        )
+        # 4. Project A: Closed issue (ineligible for backlog)
+        iss_closed = _create_issue(pid_a, title="Closed defect must be excluded")
+        client.patch(
+            f"/issues/{iss_closed['id']}/status",
+            json={"status": "CLOSED"},
+            headers=adm,
+        )
+        # 5. Project A: Sprint-assigned issue (ineligible for backlog)
+        iss_sprint = _create_issue(pid_a, title="Sprint assigned defect must be excluded")
+        sprint_res = client.post(
+            "/sprints",
+            json={
+                "name": f"Backlog Sprint {_fresh_key('S')}",
+                "project_id": pid_a,
+                "start_date": "2026-11-01T00:00:00Z",
+                "end_date": "2026-11-15T00:00:00Z",
+            },
+            headers=adm,
+        )
+        assert sprint_res.status_code == 201
+        sprint_id = sprint_res.json()["id"]
+        assign_sprint = client.post(
+            f"/sprints/{sprint_id}/issues/{iss_sprint['id']}",
+            headers=adm,
+        )
+        assert assign_sprint.status_code == 200
+
+        # 6. Project B: Open issue in different project (ineligible for Project A backlog)
+        iss_b = _create_issue(pid_b, title="Project B defect must be isolated")
+
+        # Query backlog for Project A
+        bkg_res = client.get(f"/issues?project_id={pid_a}&backlog=true&page_size=100", headers=adm)
+        assert bkg_res.status_code == 200
+        bkg_ids = {item["id"] for item in bkg_res.json()["items"]}
+
+        # Asserts
+        assert iss_open["id"] in bkg_ids, "Unresolved defect should be in backlog"
+        assert iss_prog["id"] in bkg_ids, "In-progress defect should be in backlog"
+        assert iss_res["id"] not in bkg_ids, "Resolved defect must NOT be in backlog"
+        assert iss_closed["id"] not in bkg_ids, "Closed defect must NOT be in backlog"
+        assert iss_sprint["id"] not in bkg_ids, "Sprint-assigned defect must NOT be in backlog"
+        assert iss_b["id"] not in bkg_ids, "Defect from another project must NOT be in Project A backlog"
+
+    def test_ordinary_issue_listing_unaffected_when_backlog_omitted(self) -> None:
+        adm = auth_header(_admin_tok())
+        pid = _get_or_create_project(_fresh_key("ORDI"), "Ordinary Listing Project")
+
+        iss_1 = _create_issue(pid, title="First issue in ordinary listing")
+        iss_2 = _create_issue(pid, title="Second issue in ordinary listing to resolve")
+        client.patch(f"/issues/{iss_2['id']}/status", json={"status": "RESOLVED"}, headers=adm)
+
+        # Standard list without backlog parameter returns all issues (including resolved)
+        list_res = client.get(f"/issues?project_id={pid}&page_size=100", headers=adm)
+        assert list_res.status_code == 200
+        list_ids = {item["id"] for item in list_res.json()["items"]}
+        assert iss_1["id"] in list_ids
+        assert iss_2["id"] in list_ids
+
+        # Backlog list returns only unresolved
+        bkg_res = client.get(f"/issues?project_id={pid}&backlog=true&page_size=100", headers=adm)
+        assert bkg_res.status_code == 200
+        bkg_ids = {item["id"] for item in bkg_res.json()["items"]}
+        assert iss_1["id"] in bkg_ids
+        assert iss_2["id"] not in bkg_ids
+
+
+class TestConcurrentIssueCreation:
+    """Verify concurrent issue key generation resolves collisions gracefully."""
+
+    def test_simultaneous_issue_creation_concurrency(self) -> None:
+        adm = auth_header(_admin_tok())
+        pid = _get_or_create_project(_fresh_key("CONC"), "Concurrent Project")
+
+        num_threads = 10
+        barrier = threading.Barrier(num_threads)
+
+        def _create_single(idx: int):
+            c = TestClient(app)
+            barrier.wait()  # Synchronize release for true simultaneous concurrency
+            r = c.post(
+                "/issues",
+                json={
+                    "project_id": pid,
+                    "title": f"Simultaneous Defect Batch {idx:02d}",
+                    "description": "Simultaneous creation concurrency test description",
+                    "severity": "MAJOR",
+                    "priority": "HIGH",
+                },
+                headers=adm,
+            )
+            return r.status_code, r.json()
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
+            futures = [executor.submit(_create_single, i) for i in range(num_threads)]
+            results = [f.result() for f in futures]
+
+        statuses = [status for status, _ in results]
+        assert all(status == 201 for status in statuses), f"Failed creations: {results}"
+
+        keys = [data["issue_key"] for _, data in results]
+        ids = [data["id"] for _, data in results]
+        assert len(set(keys)) == num_threads, f"Duplicate keys generated: {keys}"
+        assert len(set(ids)) == num_threads, f"Duplicate issue IDs generated: {ids}"
+
+        # Verify all 10 issues are persisted in the database
+        list_res = client.get(f"/issues?project_id={pid}&page_size=100", headers=adm)
+        assert list_res.status_code == 200
+        persisted_ids = {item["id"] for item in list_res.json()["items"]}
+        assert set(ids).issubset(persisted_ids), "All concurrent issues must be persisted"
+
+    def test_retry_exhaustion_returns_409_conflict(self, monkeypatch) -> None:
+        adm = auth_header(_admin_tok())
+        pid = _get_or_create_project(_fresh_key("EXHST"), "Exhaustion Project")
+        first_issue = _create_issue(pid, title="Initial existing issue")
+
+        from app.services import issue_service
+
+        # Mock _generate_issue_key to always return the existing key regardless of attempt
+        async def _mock_colliding_key(project_key: str, db, attempted_keys=None) -> str:
+            return first_issue["issue_key"]
+
+        monkeypatch.setattr(issue_service, "_generate_issue_key", _mock_colliding_key)
+
+        r = client.post(
+            "/issues",
+            json={
+                "project_id": pid,
+                "title": "Colliding issue that exhausts retries",
+                "description": "Should fail with controlled 409 Conflict instead of 500",
+                "severity": "MAJOR",
+                "priority": "HIGH",
+            },
+            headers=adm,
+        )
+        assert r.status_code == 409
+        assert "Unable to allocate a unique issue key" in r.json()["detail"]
+
 
