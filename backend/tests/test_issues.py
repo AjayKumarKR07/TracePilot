@@ -845,4 +845,113 @@ class TestConcurrentIssueCreation:
         assert r.status_code == 409
         assert "Unable to allocate a unique issue key" in r.json()["detail"]
 
+    def test_is_issue_key_conflict_diagnostic_precision(self) -> None:
+        from app.services.issue_service import _is_issue_key_conflict
+        from sqlalchemy.exc import IntegrityError
+
+        class MockDiag:
+            def __init__(self, constraint_name=None, sqlstate="23505", message_detail=""):
+                self.constraint_name = constraint_name
+                self.sqlstate = sqlstate
+                self.message_detail = message_detail
+
+        class MockOrig:
+            def __init__(self, sqlstate="23505", diag=None, constraint_name=None):
+                self.sqlstate = sqlstate
+                self.diag = diag
+                self.constraint_name = constraint_name
+
+        # 1. Genuine issue_key unique conflict with 23505 -> True
+        diag_ok = MockDiag(constraint_name="ix_issues_issue_key", sqlstate="23505")
+        orig_ok = MockOrig(sqlstate="23505", diag=diag_ok)
+        exc_ok = IntegrityError("INSERT INTO issues...", {}, orig_ok)
+        assert _is_issue_key_conflict(exc_ok) is True
+
+        # 2. Foreign key violation mentioning issue_key in statement -> False
+        diag_fk = MockDiag(constraint_name="fk_issues_project_id", sqlstate="23503")
+        orig_fk = MockOrig(sqlstate="23503", diag=diag_fk)
+        exc_fk = IntegrityError("INSERT INTO issues (issue_key) ... fk_issues_project_id", {}, orig_fk)
+        assert _is_issue_key_conflict(exc_fk) is False
+
+        # 3. Check constraint violation -> False
+        diag_ck = MockDiag(constraint_name="ck_issues_status", sqlstate="23514")
+        orig_ck = MockOrig(sqlstate="23514", diag=diag_ck)
+        exc_ck = IntegrityError("INSERT INTO issues ... ck_issues_status", {}, orig_ck)
+        assert _is_issue_key_conflict(exc_ck) is False
+
+        # 4. Fallback string check with genuine constraint name -> True
+        exc_fallback = IntegrityError("duplicate key value violates unique constraint \"ix_issues_issue_key\"", {}, None)
+        assert _is_issue_key_conflict(exc_fallback) is True
+
+        # 5. Generic error containing word 'issue_key' without unique constraint -> False
+        exc_generic = IntegrityError("null value in column \"issue_key\" violates not-null constraint", {}, None)
+        assert _is_issue_key_conflict(exc_generic) is False
+
+    @pytest.mark.anyio
+    async def test_unrelated_integrity_error_is_immediately_reraised(self, monkeypatch) -> None:
+        from app.services import issue_service
+        from app.models.user import User, UserRole
+        from app.schemas.issue import IssueCreate
+        from sqlalchemy.exc import IntegrityError
+
+        flush_count = 0
+        real_generate = issue_service._generate_issue_key
+
+        async def _count_key_gen(*args, **kwargs):
+            nonlocal flush_count
+            flush_count += 1
+            return await real_generate(*args, **kwargs)
+
+        monkeypatch.setattr(issue_service, "_generate_issue_key", _count_key_gen)
+
+        class MockFkDiag:
+            constraint_name = "fk_issues_reporter_id"
+            sqlstate = "23503"
+            message_detail = "Key (reporter_id)=(999999) is not present in table users."
+
+        class MockFkOrig:
+            sqlstate = "23503"
+            diag = MockFkDiag()
+            constraint_name = "fk_issues_reporter_id"
+
+        class MockSession:
+            def begin_nested(self):
+                class _Ctx:
+                    async def __aenter__(self): pass
+                    async def __aexit__(self, *args): pass
+                return _Ctx()
+            def add(self, obj): pass
+            async def flush(self):
+                raise IntegrityError("fk error", {}, MockFkOrig())
+            async def execute(self, *args, **kwargs):
+                class _ScalarResult:
+                    def scalar_one(self): return 0
+                    def scalar_one_or_none(self): return None
+                return _ScalarResult()
+
+        user = User(id=1, email="test@test.com", role=UserRole.ADMIN, full_name="Admin")
+        body = IssueCreate(
+            project_id=1,
+            title="Unrelated FK Test",
+            description="Testing unrelated error reraise",
+            severity="MAJOR",
+            priority="HIGH"
+        )
+
+        # Mock _get_project_active_or_error so it doesn't query DB
+        from app.models.project import Project
+        dummy_project = Project(id=1, project_key="UNREL", name="Unrelated Project")
+
+        async def _mock_get_project(pid, db):
+            return dummy_project
+
+        monkeypatch.setattr(issue_service, "_get_project_active_or_error", _mock_get_project)
+
+        with pytest.raises(IntegrityError):
+            await issue_service.create_issue(body, user, MockSession())
+
+        # Assert flush_count == 1: proved that unrelated error was immediately re-raised without retry
+        assert flush_count == 1, f"Expected 1 attempt, but got {flush_count} (unrelated error was retried!)"
+
+
 

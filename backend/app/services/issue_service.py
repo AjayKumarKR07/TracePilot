@@ -141,15 +141,45 @@ async def _generate_issue_key(project_key: str, db: AsyncSession, attempted_keys
 # --------------------------------------------------------------------------- #
 
 def _is_issue_key_conflict(exc: IntegrityError) -> bool:
-    """Check if an IntegrityError was caused by a duplicate issue_key constraint violation."""
-    err_str = str(exc).lower()
-    if "ix_issues_issue_key" in err_str or "key (issue_key)=" in err_str:
-        return True
+    """Check if an IntegrityError was specifically caused by an issue_key uniqueness conflict.
+
+    Prefers structured PostgreSQL diagnostic information (SQLSTATE 23505 and constraint
+    name 'ix_issues_issue_key'). Never classifies generic or unrelated integrity errors
+    (foreign keys, check constraints, not-null constraints) as issue-key collisions.
+    """
     orig = getattr(exc, "orig", None)
     if orig is not None:
-        orig_str = str(orig).lower()
-        if "ix_issues_issue_key" in orig_str or "issue_key" in orig_str:
-            return True
+        # 1. Inspect SQLSTATE (23505 = unique_violation)
+        sqlstate = (
+            getattr(orig, "sqlstate", None)
+            or getattr(orig, "pgcode", None)
+            or getattr(getattr(orig, "diag", None), "sqlstate", None)
+        )
+
+        # 2. Inspect structured constraint name from driver diag or direct attribute
+        diag = getattr(orig, "diag", None)
+        constraint_name = (
+            getattr(diag, "constraint_name", None)
+            or getattr(orig, "constraint_name", None)
+        )
+        if constraint_name:
+            # If constraint name is explicitly available, only match ix_issues_issue_key
+            return constraint_name == "ix_issues_issue_key"
+
+        # If SQLSTATE is confirmed 23505 but constraint_name was omitted on diag
+        if sqlstate == "23505":
+            diag_detail = getattr(diag, "message_detail", None) or ""
+            if "ix_issues_issue_key" in str(orig).lower() or "key (issue_key)=" in diag_detail.lower():
+                return True
+            return False
+
+    # 3. Strict fallback parsing for drivers without structured diag
+    err_str = str(exc).lower()
+    if "ix_issues_issue_key" in err_str:
+        return True
+    if "key (issue_key)=" in err_str and ("unique" in err_str or "duplicate" in err_str):
+        return True
+
     return False
 
 
