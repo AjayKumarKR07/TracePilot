@@ -603,6 +603,17 @@ export const AdminSprintsPage: React.FC = () => {
                 const isTargeted = targetSprintId ? sprint.id === parseInt(targetSprintId, 10) : false;
                 const isCompleted = sprint.status === 'COMPLETED';
 
+                const stageIndexMap: Record<string, number> = {
+                  PLANNED: 1,
+                  ACTIVE: 2,
+                  IN_PROGRESS: 3,
+                  READY_FOR_APPROVAL: 4,
+                  COMPLETED: 5,
+                  ARCHIVED: 5,
+                };
+                const currentStageNum = stageIndexMap[sprint.status] || 1;
+                const workflowPct = currentStageNum * 20;
+
                 return (
                   <div
                     key={sprint.id}
@@ -623,8 +634,13 @@ export const AdminSprintsPage: React.FC = () => {
                   >
                     {/* 1. Lifecycle Indicator at the top */}
                     <div>
-                      <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.35rem' }}>
-                        Sprint Lifecycle Stage
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                        <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          Sprint Lifecycle Stage
+                        </div>
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#38bdf8' }}>
+                          Workflow Stage {currentStageNum} of 5 ({workflowPct}%)
+                        </div>
                       </div>
                       <SprintLifecycleIndicator
                         status={sprint.status}
@@ -775,7 +791,7 @@ export const AdminSprintsPage: React.FC = () => {
                           <div style={{ fontSize: '1.25rem', fontWeight: 800, color: remainingIssues > 0 ? '#f59e0b' : '#94a3b8' }}>{remainingIssues}</div>
                         </div>
                         <div style={{ background: 'var(--bg-surface-elevated)', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Sprint Progress</div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Issue Resolution</div>
                           <div style={{ fontSize: '1.25rem', fontWeight: 800, color: pct >= 100 ? '#10b981' : '#6366f1' }}>{pct}%</div>
                         </div>
                         <div style={{ background: 'var(--bg-surface-elevated)', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>

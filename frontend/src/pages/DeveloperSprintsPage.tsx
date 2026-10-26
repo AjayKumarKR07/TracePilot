@@ -1011,7 +1011,7 @@ export const DeveloperSprintsPage: React.FC = () => {
                         </div>
 
                         <div style={{ background: 'var(--bg-surface)', padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Progress %</div>
+                          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Issue Resolution %</div>
                           <div style={{ fontSize: '1.25rem', fontWeight: 800, color: pct >= 100 ? '#10b981' : '#818cf8' }}>{pct}%</div>
                         </div>
 
