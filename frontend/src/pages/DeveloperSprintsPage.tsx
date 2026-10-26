@@ -394,7 +394,7 @@ export const DeveloperSprintsPage: React.FC = () => {
               style={{
                 fontSize: '1.75rem',
                 fontWeight: '800',
-                color: '#fff',
+                color: 'var(--text-primary)',
                 margin: '0 0 0.35rem 0',
                 letterSpacing: '-0.02em',
               }}
@@ -450,7 +450,7 @@ export const DeveloperSprintsPage: React.FC = () => {
           <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
             Total Assigned
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f8fafc' }}>
+          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)' }}>
             {counts.total}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
@@ -746,7 +746,7 @@ export const DeveloperSprintsPage: React.FC = () => {
                         style={{
                           fontSize: '1.25rem',
                           fontWeight: 700,
-                          color: '#f8fafc',
+                          color: 'var(--text-primary)',
                           margin: 0,
                         }}
                       >
@@ -997,7 +997,7 @@ export const DeveloperSprintsPage: React.FC = () => {
                       >
                         <div style={{ background: 'var(--bg-surface)', padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                           <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Total Issues</div>
-                          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#f8fafc' }}>{totalIssues}</div>
+                          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>{totalIssues}</div>
                         </div>
 
                         <div style={{ background: 'var(--bg-surface)', padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
@@ -1007,7 +1007,7 @@ export const DeveloperSprintsPage: React.FC = () => {
 
                         <div style={{ background: 'var(--bg-surface)', padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                           <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Remaining Issues</div>
-                          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: remainingIssues > 0 ? '#f59e0b' : '#94a3b8' }}>{remainingIssues}</div>
+                          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: remainingIssues > 0 ? '#f59e0b' : 'var(--text-secondary)' }}>{remainingIssues}</div>
                         </div>
 
                         <div style={{ background: 'var(--bg-surface)', padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
@@ -1210,7 +1210,7 @@ export const DeveloperSprintsPage: React.FC = () => {
                                   {issue.issue_key}
                                   <ExternalLink size={12} style={{ opacity: 0.7 }} />
                                 </Link>
-                                <span style={{ color: '#f8fafc', fontWeight: 500 }}>
+                                <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
                                   {issue.title}
                                 </span>
                               </div>

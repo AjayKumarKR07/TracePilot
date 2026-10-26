@@ -503,7 +503,7 @@ export const AdminSprintApprovalsPage: React.FC = () => {
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '0.65rem', marginBottom: '0.85rem' }}>
                         <div style={{ background: 'var(--bg-surface-elevated)', padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                           <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Total Issues</div>
-                          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f8fafc' }}>{totalIssues}</div>
+                          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>{totalIssues}</div>
                         </div>
                         <div style={{ background: 'var(--bg-surface-elevated)', padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                           <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Completed</div>
@@ -511,7 +511,7 @@ export const AdminSprintApprovalsPage: React.FC = () => {
                         </div>
                         <div style={{ background: 'var(--bg-surface-elevated)', padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                           <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Remaining</div>
-                          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: (totalIssues - completedIssues) > 0 ? '#f59e0b' : '#94a3b8' }}>{Math.max(0, totalIssues - completedIssues)}</div>
+                          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: (totalIssues - completedIssues) > 0 ? '#f59e0b' : 'var(--text-secondary)' }}>{Math.max(0, totalIssues - completedIssues)}</div>
                         </div>
                         <div style={{ background: 'var(--bg-surface-elevated)', padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                           <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Progress %</div>

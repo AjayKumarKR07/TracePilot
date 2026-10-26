@@ -84,7 +84,7 @@ export const SprintLifecycleIndicator: React.FC<SprintLifecycleIndicatorProps> =
         gap: compact ? '0.25rem' : '0.4rem',
         padding: compact ? '0.4rem 0.6rem' : '0.65rem 0.9rem',
         borderRadius: '8px',
-        backgroundColor: 'rgba(15, 23, 42, 0.55)',
+        backgroundColor: 'var(--bg-surface-elevated)',
         border: '1px solid var(--border-subtle)',
         width: '100%',
         boxSizing: 'border-box',
@@ -139,8 +139,9 @@ export const SprintLifecycleIndicator: React.FC<SprintLifecycleIndicatorProps> =
                     ? step.activeColor
                     : isPast
                     ? '#10b981'
-                    : 'rgba(255,255,255,0.06)',
-                  color: isCurrent || isPast ? '#0f172a' : 'var(--text-muted)',
+                    : 'var(--bg-surface)',
+                  color: isCurrent || isPast ? '#ffffff' : 'var(--text-muted)',
+                  border: isFuture ? '1px solid var(--border-subtle)' : 'none',
                   fontSize: compact ? '0.65rem' : '0.72rem',
                   fontWeight: 800,
                   flexShrink: 0,
@@ -160,7 +161,7 @@ export const SprintLifecycleIndicator: React.FC<SprintLifecycleIndicatorProps> =
                   style={{
                     fontSize: compact ? '0.65rem' : '0.74rem',
                     fontWeight: isCurrent ? 800 : isPast ? 700 : 600,
-                    color: isCurrent ? step.activeColor : isPast ? '#e2e8f0' : 'var(--text-muted)',
+                    color: isCurrent ? step.activeColor : isPast ? 'var(--text-primary)' : 'var(--text-muted)',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -213,7 +214,7 @@ export const SprintLifecycleIndicator: React.FC<SprintLifecycleIndicatorProps> =
               <ChevronRight
                 size={compact ? 12 : 14}
                 style={{
-                  color: isPast ? '#10b981' : isCurrent ? step.activeColor : 'rgba(255,255,255,0.15)',
+                  color: isPast ? '#10b981' : isCurrent ? step.activeColor : 'var(--text-muted)',
                   flexShrink: 0,
                   opacity: isFuture ? 0.4 : 0.8,
                 }}

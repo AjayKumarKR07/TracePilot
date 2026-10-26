@@ -197,7 +197,7 @@ const TeamWorkloadChart: React.FC<{ workload: SprintAnalytics["workload"] }> = (
           <tbody>
             {workload.map((wl) => (
               <tr key={wl.developer_id || wl.tester_id}>
-                <td style={{ fontWeight: 600, color: "#f8fafc" }}>{wl.developer_name || wl.tester_name}</td>
+                <td style={{ fontWeight: 600, color: "var(--text-primary)" }}>{wl.developer_name || wl.tester_name}</td>
                 <td>
                   <span style={{
                     fontSize: "0.7rem",

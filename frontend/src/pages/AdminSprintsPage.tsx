@@ -780,7 +780,7 @@ export const AdminSprintsPage: React.FC = () => {
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem', marginBottom: '0.85rem' }}>
                         <div style={{ background: 'var(--bg-surface-elevated)', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Scope (Total Issues)</div>
-                          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#f8fafc' }}>{totalIssues}</div>
+                          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>{totalIssues}</div>
                         </div>
                         <div style={{ background: 'var(--bg-surface-elevated)', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Completed Issues</div>
@@ -788,7 +788,7 @@ export const AdminSprintsPage: React.FC = () => {
                         </div>
                         <div style={{ background: 'var(--bg-surface-elevated)', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Remaining Issues</div>
-                          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: remainingIssues > 0 ? '#f59e0b' : '#94a3b8' }}>{remainingIssues}</div>
+                          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: remainingIssues > 0 ? '#f59e0b' : 'var(--text-secondary)' }}>{remainingIssues}</div>
                         </div>
                         <div style={{ background: 'var(--bg-surface-elevated)', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Issue Resolution</div>
