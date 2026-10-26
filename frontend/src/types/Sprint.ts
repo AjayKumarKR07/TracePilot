@@ -51,6 +51,8 @@ export interface SprintCreate {
   working_days?: number | null;
   hours_per_day?: number | null;
   issue_ids?: number[];
+  developer_id?: number | null;
+  assigned_developer_id?: number | null;
 }
 
 export interface SprintUpdate {

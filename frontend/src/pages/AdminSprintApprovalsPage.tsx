@@ -698,7 +698,7 @@ export const AdminSprintApprovalsPage: React.FC = () => {
                       </td>
                       <td>
                         <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#10b981' }}>
-                          {comp} / {tot} ({tot > 0 ? Math.round((comp / tot) * 100) : 100}%)
+                          {comp} / {tot} ({tot > 0 ? Math.round((comp / tot) * 100) : 0}%)
                         </span>
                       </td>
                       <td>

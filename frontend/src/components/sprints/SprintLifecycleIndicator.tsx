@@ -31,7 +31,7 @@ const LIFECYCLE_STEPS: StepConfig[] = [
   {
     key: 'ACTIVE',
     label: 'ACTIVE',
-    sublabel: 'Ready to Begin',
+    sublabel: 'Waiting for Developer',
     icon: Play,
     activeColor: '#38bdf8',
     activeBg: 'rgba(56,189,248,0.14)',
@@ -40,7 +40,7 @@ const LIFECYCLE_STEPS: StepConfig[] = [
   {
     key: 'IN_PROGRESS',
     label: 'IN PROGRESS',
-    sublabel: 'Testing & Defect Fixes',
+    sublabel: 'Developer Working',
     icon: Sparkles,
     activeColor: '#fbbf24',
     activeBg: 'rgba(251,191,36,0.14)',

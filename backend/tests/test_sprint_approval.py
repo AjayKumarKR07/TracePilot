@@ -402,4 +402,151 @@ class TestSprintApprovalWorkflow:
             assert zm['completed_issues'] == 0
             assert zm['workload_percentage'] == 0.0
 
+    # ── 9. Premature Sprint Completion & Approval Protection Tests ────────────
+    def test_create_sprint_leaves_status_planned_with_developer_and_issues(self):
+        """Admin creating a sprint with developer and backlog issues leaves status PLANNED."""
+        # 1. Create a backlog issue
+        r_iss = _CLIENT.post('/issues', json={
+            'project_id': self.project_id,
+            'title': f'Backlog issue {uuid.uuid4().hex[:6]}',
+            'description': 'Valid defect description meeting the requirements.',
+            'severity': 'MAJOR',
+            'priority': 'HIGH',
+        }, headers=auth_header(admin_token()))
+        assert r_iss.status_code == 201
+        issue_id = r_iss.json()['id']
+
+        # 2. Create sprint with developer and issue_ids
+        start = (datetime.now(timezone.utc) + timedelta(days=2)).isoformat()
+        end = (datetime.now(timezone.utc) + timedelta(days=9)).isoformat()
+        r_sprint = _CLIENT.post('/sprints', json={
+            'name': f'Planned Dev Sprint {uuid.uuid4().hex[:6]}',
+            'goal': 'Verify PLANNED status at creation',
+            'start_date': start,
+            'end_date': end,
+            'project_id': self.project_id,
+            'developer_id': self.tester_id,
+            'issue_ids': [issue_id],
+        }, headers=auth_header(admin_token()))
+        assert r_sprint.status_code == 201, r_sprint.text
+        sprint_data = r_sprint.json()
+        temp_sprint_id = sprint_data['id']
+
+        try:
+            # Must strictly be PLANNED (not ACTIVE, not COMPLETED, not READY_FOR_APPROVAL)
+            assert sprint_data['status'] == 'PLANNED'
+            assert sprint_data['assigned_developer_id'] == self.tester_id
+            assert sprint_data['total_issues'] == 1
+
+            # Developer should receive Sprint Planned notification
+            notifs = _CLIENT.get('/notifications', headers=auth_header(tester3_token()))
+            assert notifs.status_code == 200
+            found = any(n['title'] == 'Sprint Planned' and n['entity_id'] == temp_sprint_id for n in notifs.json()['items'])
+            assert found, "Assigned developer did not receive 'Sprint Planned' notification"
+        finally:
+            _CLIENT.delete(f'/sprints/{temp_sprint_id}', headers=auth_header(admin_token()))
+
+    def test_assign_developer_does_not_approve_or_complete_sprint(self):
+        """Assigning a developer transitions PLANNED to ACTIVE, never COMPLETED or READY_FOR_APPROVAL."""
+        # Check initial status is PLANNED
+        r_initial = _CLIENT.get(f'/sprints/{self.sprint_id}', headers=auth_header(admin_token()))
+        assert r_initial.status_code == 200
+        assert r_initial.json()['status'] == 'PLANNED'
+
+        # Assign developer
+        r_assign = _CLIENT.post(f'/sprints/{self.sprint_id}/assign-tester',
+                                json={'tester_id': self.tester_id},
+                                headers=auth_header(admin_token()))
+        assert r_assign.status_code == 200
+        data = r_assign.json()
+        assert data['status'] == 'ACTIVE'
+        assert data['status'] != 'COMPLETED'
+        assert data['status'] != 'READY_FOR_APPROVAL'
+        assert data['completed_at'] is None
+        assert data['approved_at'] is None
+
+    def test_admin_approval_endpoint_rejects_planned_active_and_in_progress(self):
+        """Admin approve endpoint MUST reject PLANNED, ACTIVE, and IN_PROGRESS sprints (only READY_FOR_APPROVAL allowed)."""
+        # 1. Reject PLANNED
+        r_planned = _CLIENT.post(f'/sprints/{self.sprint_id}/approve', headers=auth_header(admin_token()))
+        assert r_planned.status_code == 400
+        assert "READY_FOR_APPROVAL" in r_planned.json()['detail']
+
+        # 2. Assign developer -> ACTIVE
+        self._assign()
+        r_active = _CLIENT.post(f'/sprints/{self.sprint_id}/approve', headers=auth_header(admin_token()))
+        assert r_active.status_code == 400
+        assert "READY_FOR_APPROVAL" in r_active.json()['detail']
+
+        # 3. Developer begins work -> IN_PROGRESS
+        self._begin_work()
+        r_inp = _CLIENT.post(f'/sprints/{self.sprint_id}/approve', headers=auth_header(admin_token()))
+        assert r_inp.status_code == 400
+        assert "READY_FOR_APPROVAL" in r_inp.json()['detail']
+
+    def test_developer_submits_in_progress_sprint_notifies_admin_and_enters_approval_queue(self):
+        """Developer submits IN_PROGRESS sprint -> READY_FOR_APPROVAL, notifies admin, appears in awaiting-approval queue."""
+        self._assign()
+        self._begin_work()
+        self._add_issue(resolve=True)
+
+        # Developer submits for approval
+        r_sub = _CLIENT.post(f'/sprints/{self.sprint_id}/submit-for-approval', headers=auth_header(tester3_token()))
+        assert r_sub.status_code == 200
+        assert r_sub.json()['status'] == 'READY_FOR_APPROVAL'
+
+        # Admin receives notification
+        notifs_admin = _CLIENT.get('/notifications', headers=auth_header(admin_token()))
+        assert notifs_admin.status_code == 200
+        found_sub = any(
+            n['title'].lower() == 'sprint submitted for approval' and n['entity_id'] == self.sprint_id
+            for n in notifs_admin.json()['items']
+        )
+        assert found_sub, "Admin did not receive 'Sprint submitted for approval' notification"
+
+        # Appears in admin approval queue
+        r_queue = _CLIENT.get('/sprints/awaiting-approval', headers=auth_header(admin_token()))
+        assert r_queue.status_code == 200
+        assert self.sprint_id in [s['id'] for s in r_queue.json()]
+
+    def test_approval_and_changes_requested_notify_correct_developer(self):
+        """Admin requesting changes and approving sprint notifies the assigned developer correctly."""
+        self._assign()
+        self._begin_work()
+        self._add_issue(resolve=True)
+        self._submit(add_resolved_issue=False)
+
+        # 1. Admin requests changes -> notifies developer
+        r_chg = _CLIENT.post(f'/sprints/{self.sprint_id}/request-changes',
+                             json={'comment': 'Please recheck error handling'},
+                             headers=auth_header(admin_token()))
+        assert r_chg.status_code == 200
+        assert r_chg.json()['status'] == 'IN_PROGRESS'
+
+        notifs_dev = _CLIENT.get('/notifications', headers=auth_header(tester3_token()))
+        assert notifs_dev.status_code == 200
+        found_chg = any(
+            n['title'].lower() in ('changes requested for sprint', 'sprint changes requested') and n['entity_id'] == self.sprint_id
+            for n in notifs_dev.json()['items']
+        )
+        assert found_chg, "Developer did not receive 'Changes requested for sprint' notification"
+
+        # 2. Developer re-submits for approval
+        r_resub = _CLIENT.post(f'/sprints/{self.sprint_id}/submit-for-approval', headers=auth_header(tester3_token()))
+        assert r_resub.status_code == 200
+        assert r_resub.json()['status'] == 'READY_FOR_APPROVAL'
+
+        # 3. Admin approves -> notifies developer
+        r_app = _CLIENT.post(f'/sprints/{self.sprint_id}/approve', headers=auth_header(admin_token()))
+        assert r_app.status_code == 200
+        assert r_app.json()['status'] == 'COMPLETED'
+
+        notifs_dev2 = _CLIENT.get('/notifications', headers=auth_header(tester3_token()))
+        assert notifs_dev2.status_code == 200
+        found_app = any(
+            n['title'].lower() in ('sprint approved', 'sprint approved & completed') and n['entity_id'] == self.sprint_id
+            for n in notifs_dev2.json()['items']
+        )
+        assert found_app, "Developer did not receive 'Sprint approved' notification"
+
 

@@ -75,6 +75,7 @@ export const AdminSprintsPage: React.FC = () => {
     estimated_team_members: number;
     working_days: number;
     hours_per_day: number;
+    developer_id?: number;
   }>({
     project_id: 0,
     name: '',
@@ -84,7 +85,11 @@ export const AdminSprintsPage: React.FC = () => {
     estimated_team_members: 3,
     working_days: 10,
     hours_per_day: 6,
+    developer_id: undefined,
   });
+  const [createBacklogIssues, setCreateBacklogIssues] = useState<Issue[]>([]);
+  const [createBacklogLoading, setCreateBacklogLoading] = useState(false);
+  const [createSelectedIssueIds, setCreateSelectedIssueIds] = useState<number[]>([]);
 
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
@@ -123,6 +128,32 @@ export const AdminSprintsPage: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Load backlog issues when Create Sprint modal opens
+  useEffect(() => {
+    if (createModalOpen && createForm.project_id > 0) {
+      let active = true;
+      setCreateBacklogLoading(true);
+      issuesApi.list({ project_id: createForm.project_id, backlog: true, page_size: 100 })
+        .then((res) => {
+          if (active) {
+            setCreateBacklogIssues(res.items || []);
+          }
+        })
+        .catch(() => {
+          if (active) setCreateBacklogIssues([]);
+        })
+        .finally(() => {
+          if (active) setCreateBacklogLoading(false);
+        });
+      return () => {
+        active = false;
+      };
+    } else if (!createModalOpen) {
+      setCreateBacklogIssues([]);
+      setCreateSelectedIssueIds([]);
+    }
+  }, [createModalOpen, createForm.project_id]);
 
   // Real-time WebSocket refresh
   const isInitialMount = useRef(true);
@@ -197,11 +228,13 @@ export const AdminSprintsPage: React.FC = () => {
         estimated_team_members: createForm.estimated_team_members,
         working_days: createForm.working_days,
         hours_per_day: createForm.hours_per_day,
+        developer_id: createForm.developer_id ? Number(createForm.developer_id) : undefined,
+        issue_ids: createSelectedIssueIds.length > 0 ? createSelectedIssueIds : undefined,
       };
 
       const created = await SprintService.createSprint(payload);
 
-      setToastMessage({ type: 'success', text: `Sprint '${createForm.name}' created successfully (placed at TOP)` });
+      setToastMessage({ type: 'success', text: `Sprint '${createForm.name}' created successfully (Status: PLANNED)` });
       setCreateModalOpen(false);
       setCreateForm({
         project_id: projects[0]?.id || 0,
@@ -212,7 +245,9 @@ export const AdminSprintsPage: React.FC = () => {
         estimated_team_members: 3,
         working_days: 10,
         hours_per_day: 6,
+        developer_id: undefined,
       });
+      setCreateSelectedIssueIds([]);
       await fetchData(true);
       setTimeout(() => {
         const el = document.getElementById(`admin-sprint-row-${created.id}`);
@@ -232,7 +267,7 @@ export const AdminSprintsPage: React.FC = () => {
     try {
       await SprintService.startSprint(sprintId);
       setToastMessage({ type: 'success', text: 'Sprint started successfully' });
-      fetchData(true);
+      await fetchData(true);
     } catch (err: any) {
       setToastMessage({ type: 'error', text: err?.response?.data?.detail || 'Failed to start sprint' });
     } finally {
@@ -258,7 +293,7 @@ export const AdminSprintsPage: React.FC = () => {
           ? `Completed sprint '${sprint.name}' deleted. All defect data has been safely preserved.`
           : `Sprint '${sprint.name}' deleted successfully`,
       });
-      fetchData(true);
+      await fetchData(true);
     } catch (err: any) {
       setToastMessage({ type: 'error', text: err?.response?.data?.detail || 'Failed to delete sprint' });
     } finally {
@@ -275,12 +310,12 @@ export const AdminSprintsPage: React.FC = () => {
       setToastMessage({
         type: 'success',
         text: hadIssues
-          ? 'Developer assigned and sprint activated'
-          : 'Developer assigned to sprint. Add backlog issues to begin sprint scope.',
+          ? 'Developer assigned. Sprint is ACTIVE (Waiting for Developer).'
+          : 'Developer assigned. Sprint is ACTIVE (Waiting for Developer). Add backlog issues to begin sprint scope.',
       });
       setAssignModalOpen(false);
       setSelectedSprintForAssign(null);
-      fetchData(true);
+      await fetchData(true);
     } catch (err: any) {
       setToastMessage({ type: 'error', text: err?.response?.data?.detail || 'Failed to assign developer' });
     } finally {
@@ -648,7 +683,13 @@ export const AdminSprintsPage: React.FC = () => {
                               }`,
                             }}
                           >
-                            {sprint.status === 'READY_FOR_APPROVAL' ? 'AWAITING APPROVAL' : sprint.status}
+                            {sprint.status === 'ACTIVE'
+                              ? 'Waiting for Developer'
+                              : sprint.status === 'IN_PROGRESS'
+                              ? 'Waiting for Developer (In Progress)'
+                              : sprint.status === 'READY_FOR_APPROVAL'
+                              ? 'AWAITING APPROVAL'
+                              : sprint.status}
                           </span>
                         </div>
 
@@ -761,7 +802,7 @@ export const AdminSprintsPage: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* 4. Prominent Completed or Changes-Requested Banner */}
+                    {/* 4. Prominent Completed, Waiting for Developer, or Changes-Requested Banner */}
                     {isCompleted && totalIssues > 0 && (
                       <div
                         style={{
@@ -785,6 +826,77 @@ export const AdminSprintsPage: React.FC = () => {
                             — {completedIssues}/{totalIssues} issues closed ({pct}% progress) • Velocity: {completedIssues} pts
                           </span>
                         </div>
+                      </div>
+                    )}
+
+                    {sprint.status === 'ACTIVE' && (
+                      <div
+                        style={{
+                          padding: '0.85rem 1.15rem',
+                          borderRadius: '8px',
+                          backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                          border: '1px solid rgba(56, 189, 248, 0.35)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.6rem',
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          color: '#38bdf8',
+                        }}
+                      >
+                        <Clock size={16} />
+                        <span>Waiting for Developer — Sprint is active. Waiting for developer to begin work and submit for approval.</span>
+                      </div>
+                    )}
+
+                    {sprint.status === 'IN_PROGRESS' && !sprint.review_comment && (
+                      <div
+                        style={{
+                          padding: '0.85rem 1.15rem',
+                          borderRadius: '8px',
+                          backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                          border: '1px solid rgba(245, 158, 11, 0.35)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.6rem',
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          color: '#fbbf24',
+                        }}
+                      >
+                        <Clock size={16} />
+                        <span>Waiting for Developer — Development in progress. Waiting for developer to complete work and submit for approval.</span>
+                      </div>
+                    )}
+
+                    {sprint.status === 'READY_FOR_APPROVAL' && (
+                      <div
+                        style={{
+                          padding: '0.85rem 1.15rem',
+                          borderRadius: '8px',
+                          backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                          border: '1px solid rgba(99, 102, 241, 0.35)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          flexWrap: 'wrap',
+                          gap: '0.75rem',
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          color: '#a5b4fc',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                          <CheckCircle2 size={16} style={{ color: '#818cf8' }} />
+                          <span>Submitted for Approval — Developer has completed work and submitted this sprint for final admin review.</span>
+                        </div>
+                        <Link
+                          to={`/admin/sprint-approvals?sprintId=${sprint.id}`}
+                          className="btn btn-primary btn-sm"
+                          style={{ fontSize: '0.78rem', padding: '0.25rem 0.65rem' }}
+                        >
+                          Review in Approvals →
+                        </Link>
                       </div>
                     )}
 
@@ -864,6 +976,28 @@ export const AdminSprintsPage: React.FC = () => {
                             title={totalIssues === 0 ? "Add backlog issues before starting this sprint" : "Start Sprint → Transitions to ACTIVE"}
                           >
                             <Play size={13} /> Start Sprint (ACTIVE)
+                          </button>
+                        )}
+
+                        {/* Waiting for Developer indicator when ACTIVE or IN_PROGRESS */}
+                        {(sprint.status === 'ACTIVE' || sprint.status === 'IN_PROGRESS') && (
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            disabled
+                            style={{
+                              fontSize: '0.78rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.4rem',
+                              opacity: 0.65,
+                              cursor: 'not-allowed',
+                              backgroundColor: 'rgba(56, 189, 248, 0.08)',
+                              color: '#38bdf8',
+                              borderColor: 'rgba(56, 189, 248, 0.25)',
+                            }}
+                            title="Approval is locked until the assigned developer submits this sprint for approval"
+                          >
+                            <Clock size={13} /> Waiting for Developer
                           </button>
                         )}
 
@@ -1038,6 +1172,87 @@ export const AdminSprintsPage: React.FC = () => {
                 onChange={(e) => setCreateForm({ ...createForm, hours_per_day: Number(e.target.value) })}
               />
             </div>
+          </div>
+
+          <div className="form-group" style={{ marginTop: '0.85rem' }}>
+            <label className="form-label">Assign Developer (Optional)</label>
+            <select
+              className="form-select"
+              value={createForm.developer_id ?? ''}
+              onChange={(e) => setCreateForm({ ...createForm, developer_id: e.target.value ? Number(e.target.value) : undefined })}
+            >
+              <option value="">-- No developer assigned (Assign later) --</option>
+              {developers.map((dev) => (
+                <option key={dev.id} value={dev.id}>
+                  {dev.full_name} ({dev.email})
+                </option>
+              ))}
+            </select>
+            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '0.25rem', display: 'block' }}>
+              Sprint will be created in PLANNED status.
+            </span>
+          </div>
+
+          <div className="form-group" style={{ marginTop: '0.85rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+              <label className="form-label" style={{ margin: 0 }}>Eligible Backlog Issues (Optional)</label>
+              {createBacklogIssues.length > 0 && (
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  {createSelectedIssueIds.length} of {createBacklogIssues.length} selected
+                </span>
+              )}
+            </div>
+            {createBacklogLoading ? (
+              <div style={{ padding: '0.75rem', textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                Loading backlog issues...
+              </div>
+            ) : createBacklogIssues.length === 0 ? (
+              <div style={{ padding: '0.75rem', borderRadius: '6px', backgroundColor: 'var(--bg-surface-elevated)', border: '1px solid var(--border-subtle)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                No unassigned backlog issues found for this project.
+              </div>
+            ) : (
+              <div style={{ maxHeight: '180px', overflowY: 'auto', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '0.5rem', backgroundColor: 'var(--bg-surface-elevated)' }}>
+                {createBacklogIssues.map((issue) => {
+                  const isChecked = createSelectedIssueIds.includes(issue.id);
+                  return (
+                    <label
+                      key={issue.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.35rem 0.5rem',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '0.82rem',
+                        backgroundColor: isChecked ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setCreateSelectedIssueIds((prev) => [...prev, issue.id]);
+                          } else {
+                            setCreateSelectedIssueIds((prev) => prev.filter((id) => id !== issue.id));
+                          }
+                        }}
+                      />
+                      <span style={{ fontWeight: 600, color: 'var(--primary)', minWidth: '70px' }}>
+                        {issue.issue_key}
+                      </span>
+                      <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-primary)' }}>
+                        {issue.title}
+                      </span>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                        {issue.status}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>

@@ -54,6 +54,7 @@ async def get_sprints_for_project(db: AsyncSession, project_id: int) -> Sequence
     result = await db.execute(
         select(Sprint)
         .options(
+            selectinload(Sprint.assigned_developer),
             selectinload(Sprint.assigned_tester),
             selectinload(Sprint.submitted_by),
             selectinload(Sprint.approved_by),
@@ -84,6 +85,7 @@ async def get_sprint_by_id(db: AsyncSession, sprint_id: int) -> Sprint:
     result = await db.execute(
         select(Sprint)
         .options(
+            selectinload(Sprint.assigned_developer),
             selectinload(Sprint.assigned_tester),
             selectinload(Sprint.submitted_by),
             selectinload(Sprint.approved_by),
@@ -136,6 +138,20 @@ async def create_sprint(db: AsyncSession, sprint_in: SprintCreate, actor: User |
             detail="A sprint with this name already exists in the project"
         )
 
+    # Optional developer assignment on creation (status strictly remains PLANNED)
+    dev_id = sprint_in.developer_id or sprint_in.assigned_developer_id
+    assigned_dev: User | None = None
+    if dev_id is not None:
+        dev_res = await db.execute(select(User).where(User.id == dev_id))
+        assigned_dev = dev_res.scalar_one_or_none()
+        if not assigned_dev:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Developer user not found")
+        if assigned_dev.role != UserRole.DEVELOPER:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"User '{assigned_dev.full_name}' does not have DEVELOPER role"
+            )
+
     sprint = Sprint(
         name=sprint_in.name.strip(),
         goal=sprint_in.goal,
@@ -146,6 +162,8 @@ async def create_sprint(db: AsyncSession, sprint_in: SprintCreate, actor: User |
         estimated_team_members=sprint_in.estimated_team_members,
         working_days=sprint_in.working_days,
         hours_per_day=sprint_in.hours_per_day,
+        assigned_developer_id=assigned_dev.id if assigned_dev else None,
+        assigned_tester_id=assigned_dev.id if assigned_dev else None,
     )
     db.add(sprint)
     await db.flush()
@@ -170,12 +188,29 @@ async def create_sprint(db: AsyncSession, sprint_in: SprintCreate, actor: User |
                     detail=f"Cannot assign issue {issue.issue_key} to sprint '{sprint.name}': issue belongs to project {issue.project_id}, but sprint belongs to project {sprint.project_id}."
                 )
             issue.sprint_id = sprint.id
+            if assigned_dev and not issue.assignee_id:
+                issue.assignee_id = assigned_dev.id
+                if issue.status in (IssueStatus.REPORTED, IssueStatus.TRIAGED):
+                    issue.status = IssueStatus.ASSIGNED
             if actor:
                 await create_audit_log(
                     db=db, actor=actor, action=AuditAction.ISSUE_UPDATED,
                     entity_type="ISSUE", entity_id=issue.id, entity_key=issue.issue_key,
                     description=f"Issue assigned to Sprint '{sprint.name}' on creation"
                 )
+
+    if assigned_dev and actor:
+        notif = await notification_service.create_notification(
+            db=db,
+            user_id=assigned_dev.id,
+            notification_type=NotificationType.SPRINT_STARTED,
+            title="Sprint Planned",
+            message=f"Sprint '{sprint.name}' planned with you as assigned developer by {actor.full_name}.",
+            entity_type="SPRINT",
+            entity_id=sprint.id,
+            entity_key=sprint.name,
+        )
+        await _broadcast_ws_notification(assigned_dev.id, notif)
 
     if actor:
         await create_audit_log(
@@ -184,9 +219,9 @@ async def create_sprint(db: AsyncSession, sprint_in: SprintCreate, actor: User |
             description=f"Created sprint '{sprint.name}'"
         )
 
+    sprint_id = sprint.id
     await db.commit()
-    await db.refresh(sprint)
-    return sprint
+    return await get_sprint_details(db, sprint_id)
 
 
 async def update_sprint(db: AsyncSession, sprint_id: int, sprint_in: SprintUpdate, actor: User | None = None) -> Sprint:
@@ -955,6 +990,12 @@ async def assign_tester(
     """Assign a developer to a sprint. ADMIN only."""
     sprint = await get_sprint_by_id(db, sprint_id)
 
+    if sprint.status in (SprintStatus.COMPLETED, SprintStatus.ARCHIVED):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot assign developer to a completed or archived sprint."
+        )
+
     # Validate developer exists and has DEVELOPER role
     developer_result = await db.execute(select(User).where(User.id == tester_id))
     developer = developer_result.scalar_one_or_none()
@@ -970,7 +1011,7 @@ async def assign_tester(
     sprint.assigned_developer_id = tester_id
     sprint.assigned_tester_id = tester_id
 
-    # Move PLANNED → ACTIVE
+    # Move PLANNED → ACTIVE (Never to COMPLETED or READY_FOR_APPROVAL)
     if sprint.status == SprintStatus.PLANNED:
         sprint.status = SprintStatus.ACTIVE
         sprint.actual_start_date = datetime.now(timezone.utc)
@@ -1140,10 +1181,11 @@ async def approve_sprint(db: AsyncSession, sprint_id: int, actor: User) -> Sprin
     )
 
     notif = None
-    if sprint.assigned_tester_id:
+    target_dev_id = sprint.assigned_developer_id or sprint.assigned_tester_id
+    if target_dev_id:
         notif = await notification_service.create_notification(
             db=db,
-            user_id=sprint.assigned_tester_id,
+            user_id=target_dev_id,
             notification_type=NotificationType.SPRINT_ENDED,
             title="Sprint approved",
             message=f"Sprint '{sprint.name}' approved by {actor.full_name}!",
@@ -1168,8 +1210,8 @@ async def approve_sprint(db: AsyncSession, sprint_id: int, actor: User) -> Sprin
 
     await db.commit()
 
-    if notif and sprint.assigned_tester_id:
-        await _broadcast_ws_notification(sprint.assigned_tester_id, notif)
+    if notif and target_dev_id:
+        await _broadcast_ws_notification(target_dev_id, notif)
     for an in admin_notifs:
         await _broadcast_ws_notification(an.user_id, an)
 
@@ -1179,7 +1221,7 @@ async def approve_sprint(db: AsyncSession, sprint_id: int, actor: User) -> Sprin
 async def request_changes(
     db: AsyncSession, sprint_id: int, comment: str | None, actor: User
 ) -> Sprint:
-    """Admin requests changes on a READY_FOR_APPROVAL sprint â†’ IN_PROGRESS."""
+    """Admin requests changes on a READY_FOR_APPROVAL sprint → IN_PROGRESS."""
     sprint = await get_sprint_by_id(db, sprint_id)
 
     if sprint.status != SprintStatus.READY_FOR_APPROVAL:
@@ -1201,13 +1243,14 @@ async def request_changes(
     )
 
     notif = None
-    if sprint.assigned_tester_id:
+    target_dev_id = sprint.assigned_developer_id or sprint.assigned_tester_id
+    if target_dev_id:
         msg = f"Changes requested for sprint '{sprint.name}'"
         if comment:
             msg += f": {comment}"
         notif = await notification_service.create_notification(
             db=db,
-            user_id=sprint.assigned_tester_id,
+            user_id=target_dev_id,
             notification_type=NotificationType.SPRINT_STARTED,
             title="Changes requested for sprint",
             message=msg,
@@ -1232,8 +1275,8 @@ async def request_changes(
 
     await db.commit()
 
-    if notif and sprint.assigned_tester_id:
-        await _broadcast_ws_notification(sprint.assigned_tester_id, notif)
+    if notif and target_dev_id:
+        await _broadcast_ws_notification(target_dev_id, notif)
     for an in admin_notifs:
         await _broadcast_ws_notification(an.user_id, an)
 

@@ -17,6 +17,8 @@ class SprintBase(BaseModel):
 class SprintCreate(SprintBase):
     project_id: int
     issue_ids: list[int] | None = Field(None, description="Issues to assign to sprint on creation")
+    developer_id: int | None = Field(None, description="Developer to assign to sprint on creation")
+    assigned_developer_id: int | None = Field(None, description="Alias for developer_id")
 
 
 class SprintUpdate(BaseModel):

@@ -514,8 +514,11 @@ export const SprintsPage: React.FC = () => {
                           sprint.status === "COMPLETED" ? "#059669" : "var(--border)"
                         }`
                       }}>
-                        {sprint.status === "IN_PROGRESS" ? "In Progress" :
+                        {sprint.status === "ACTIVE" ? "Waiting for Developer" :
+                         sprint.status === "IN_PROGRESS" ? "Waiting for Developer (In Progress)" :
                          sprint.status === "READY_FOR_APPROVAL" ? "Awaiting Approval" :
+                         sprint.status === "COMPLETED" ? "Completed" :
+                         sprint.status === "PLANNED" ? "Planned" :
                          sprint.status}
                       </span>
                       {(sprint.assigned_developer_name || sprint.assigned_tester_name) && (
@@ -532,6 +535,21 @@ export const SprintsPage: React.FC = () => {
                     <button className="btn btn-secondary btn-sm" onClick={() => SprintService.downloadSprintReport(sprint.id, sprint.name)}><Download size={14} /> PDF Report</button>
                     {isAdmin && sprint.status === "PLANNED" && <button className="btn btn-primary btn-sm" onClick={() => handleStartSprint(sprint.id)}><Play size={14} /> Start Sprint</button>}
                     {isAdmin && (sprint.status === "ACTIVE" || sprint.status === "PLANNED") && <button className="btn btn-secondary btn-sm" onClick={() => { setExtendSprintId(sprint.id); setIsExtendOpen(true); }}><Calendar size={14} /> Extend</button>}
+                    {isAdmin && (sprint.status === "ACTIVE" || sprint.status === "IN_PROGRESS") && (
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        disabled
+                        style={{
+                          opacity: 0.65,
+                          cursor: "not-allowed",
+                          color: "#38bdf8",
+                          borderColor: "rgba(56, 189, 248, 0.25)",
+                        }}
+                        title="Approval is locked until the developer submits this sprint for approval"
+                      >
+                        Waiting for Developer
+                      </button>
+                    )}
                     {isAdmin && sprint.status === "READY_FOR_APPROVAL" && <Link to="/admin/sprint-approvals" className="btn btn-primary btn-sm"><CheckCircle2 size={14} /> Review in Approvals</Link>}
                     {isAdmin && sprint.status === "COMPLETED" && <button className="btn btn-secondary btn-sm" onClick={() => handleArchiveSprint(sprint.id)}><Archive size={14} /> Archive</button>}
                     {isAdmin && (sprint.status === "PLANNED" || sprint.status === "COMPLETED") && (

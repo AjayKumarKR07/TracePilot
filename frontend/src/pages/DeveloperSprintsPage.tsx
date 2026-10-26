@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   AlertCircle,
@@ -184,7 +184,7 @@ export const DeveloperSprintsPage: React.FC = () => {
     setActionError(null);
     try {
       await SprintService.beginWork(sprintId);
-      setActionSuccess('Sprint marked In Progress. Testing work has begun!');
+      setActionSuccess('Sprint marked In Progress. Development work has begun!');
       setTimeout(() => setActionSuccess(null), 5000);
       await loadSprints(true);
     } catch (err: unknown) {
