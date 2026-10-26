@@ -63,6 +63,7 @@ export interface SprintUpdate {
   working_days?: number | null;
   hours_per_day?: number | null;
   goal_status?: string | null;
+  project_id?: number;
 }
 
 export interface SprintExtend {

@@ -122,7 +122,13 @@ async def _generate_issue_key(project_key: str, db: AsyncSession) -> str:
         .where(Project.project_key == project_key)
     )
     count = result.scalar_one()
-    return f"{project_key}-{count + 1:04d}"
+    num = count + 1
+    while True:
+        candidate = f"{project_key}-{num:04d}"
+        key_exists = await db.execute(select(Issue.id).where(Issue.issue_key == candidate))
+        if key_exists.scalar_one_or_none() is None:
+            return candidate
+        num += 1
 
 
 # --------------------------------------------------------------------------- #
@@ -275,8 +281,23 @@ async def list_issues(
         # Users can only see their own submitted issues
         query = query.where(Issue.reporter_id == current_user.id)
     elif current_user.role == UserRole.DEVELOPER:
-        # Testers see only issues assigned to them
-        query = query.where(Issue.assignee_id == current_user.id)
+        # Developers see issues assigned directly to them, or in sprints where they are the assigned developer
+        if sprint_id is not None:
+            query = query.where(
+                or_(
+                    Issue.assignee_id == current_user.id,
+                    Issue.sprint_id == sprint_id
+                )
+            )
+        elif backlog is True:
+            query = query.where(
+                or_(
+                    Issue.assignee_id == current_user.id,
+                    Issue.assignee_id.is_(None)
+                )
+            )
+        else:
+            query = query.where(Issue.assignee_id == current_user.id)
     # ADMIN sees all — no base filter
 
     # ---- Test-data filter ------------------------------------------------- #

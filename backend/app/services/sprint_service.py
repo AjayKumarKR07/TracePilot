@@ -239,6 +239,22 @@ async def update_sprint(db: AsyncSession, sprint_id: int, sprint_in: SprintUpdat
                 detail="Sprint cannot be completed. Resolve all assigned sprint issues before approval."
             )
 
+    if "project_id" in update_data and update_data["project_id"] is not None:
+        new_proj_id = update_data["project_id"]
+        if new_proj_id != sprint.project_id:
+            from app.models.project import Project
+            target_proj = await db.get(Project, new_proj_id)
+            if not target_proj:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Target project {new_proj_id} not found.")
+            iss_count_res = await db.execute(select(func.count(Issue.id)).where(Issue.sprint_id == sprint.id))
+            if (iss_count_res.scalar() or 0) > 0:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Cannot change project for a sprint that already has issues assigned. Remove issues first."
+                )
+            sprint.project_id = new_proj_id
+            del update_data["project_id"]
+
     for field, value in update_data.items():
         setattr(sprint, field, value)
 
@@ -839,6 +855,12 @@ async def add_issue_to_sprint(db: AsyncSession, sprint_id: int, issue_id: int, a
         )
 
     issue.sprint_id = sprint.id
+    # Automatically assign the sprint's developer to the issue if currently unassigned
+    dev_id = sprint.assigned_developer_id or sprint.assigned_tester_id
+    if dev_id and not issue.assignee_id:
+        issue.assignee_id = dev_id
+    if issue.assignee_id and issue.status in (IssueStatus.REPORTED, IssueStatus.TRIAGED):
+        issue.status = IssueStatus.ASSIGNED
     
     if actor:
         await create_audit_log(
@@ -948,10 +970,18 @@ async def assign_tester(
     sprint.assigned_developer_id = tester_id
     sprint.assigned_tester_id = tester_id
 
-    # Move PLANNED → ACTIVE automatically when developer is assigned
+    # Move PLANNED → ACTIVE
     if sprint.status == SprintStatus.PLANNED:
         sprint.status = SprintStatus.ACTIVE
         sprint.actual_start_date = datetime.now(timezone.utc)
+
+    # Assign developer to all currently unassigned issues in this sprint
+    sprint_issues_res = await db.execute(select(Issue).where(Issue.sprint_id == sprint.id))
+    for s_issue in sprint_issues_res.scalars().all():
+        if not s_issue.assignee_id:
+            s_issue.assignee_id = tester_id
+            if s_issue.status in (IssueStatus.REPORTED, IssueStatus.TRIAGED):
+                s_issue.status = IssueStatus.ASSIGNED
 
     await create_audit_log(
         db=db, actor=actor, action=AuditAction.SPRINT_DEVELOPER_ASSIGNED,

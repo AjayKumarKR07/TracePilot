@@ -12,7 +12,7 @@ Phase 5: Audit logging added to create_project, update_project,
 import math
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.audit_log import AuditAction
@@ -118,8 +118,15 @@ async def list_projects(
 
     # Paginated items
     offset = (page - 1) * page_size
+    # Prioritize flagship projects (ISEC, active UI, CORE, MOB, API) so they are always accessible
+    flagship_order = case(
+        (Project.project_key == 'ISEC', 0),
+        (Project.project_key == 'UPDT44447F', 1),
+        (Project.project_key.in_(['CORE', 'MOB', 'API']), 2),
+        else_=3
+    )
     result = await db.execute(
-        query.order_by(Project.created_at.desc()).offset(offset).limit(page_size)
+        query.order_by(flagship_order, Project.created_at.desc()).offset(offset).limit(page_size)
     )
     projects = result.scalars().all()
 

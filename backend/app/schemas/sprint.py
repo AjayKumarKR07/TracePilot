@@ -29,6 +29,7 @@ class SprintUpdate(BaseModel):
     working_days: int | None = None
     hours_per_day: int | None = None
     goal_status: str | None = Field(None, max_length=50)
+    project_id: int | None = Field(None, description="Project ID (only editable if sprint has 0 assigned issues)")
 
 class SprintExtend(BaseModel):
     new_end_date: datetime

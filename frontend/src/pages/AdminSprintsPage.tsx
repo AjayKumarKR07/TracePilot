@@ -29,6 +29,7 @@ import { ErrorMessage } from '../components/common/ErrorMessage';
 import { Modal } from '../components/common/Modal';
 import { PriorityBadge } from '../components/common/PriorityBadge';
 import { SeverityBadge } from '../components/common/SeverityBadge';
+import { StatusBadge } from '../components/common/StatusBadge';
 import type { Sprint, SprintCreate } from '../types/Sprint';
 import type { Project } from '../types/project';
 import type { Issue } from '../types/issue';
@@ -61,6 +62,7 @@ export const AdminSprintsPage: React.FC = () => {
   const [activeSprintForBacklog, setActiveSprintForBacklog] = useState<Sprint | null>(null);
   const [projectBacklogIssues, setProjectBacklogIssues] = useState<Issue[]>([]);
   const [backlogLoading, setBacklogLoading] = useState(false);
+  const [backlogSearch, setBacklogSearch] = useState('');
 
   // Forms
   const [creating, setCreating] = useState(false);
@@ -269,7 +271,13 @@ export const AdminSprintsPage: React.FC = () => {
     setActionLoadingId(selectedSprintForAssign.id);
     try {
       await SprintService.assignDeveloper(selectedSprintForAssign.id, developerId);
-      setToastMessage({ type: 'success', text: 'Developer assigned and sprint activated' });
+      const hadIssues = (selectedSprintForAssign.total_issues ?? 0) > 0;
+      setToastMessage({
+        type: 'success',
+        text: hadIssues
+          ? 'Developer assigned and sprint activated'
+          : 'Developer assigned to sprint. Add backlog issues to begin sprint scope.',
+      });
       setAssignModalOpen(false);
       setSelectedSprintForAssign(null);
       fetchData(true);
@@ -282,17 +290,41 @@ export const AdminSprintsPage: React.FC = () => {
 
   const openBacklogModal = async (sprint: Sprint) => {
     setActiveSprintForBacklog(sprint);
+    setBacklogSearch('');
     setBacklogModalOpen(true);
     setBacklogLoading(true);
     try {
       const res = await issuesApi.list({
         project_id: sprint.project_id,
         backlog: true,
-        page_size: 50,
+        page_size: 100,
       });
       setProjectBacklogIssues(res.items || []);
     } catch (err) {
       console.error(err);
+    } finally {
+      setBacklogLoading(false);
+    }
+  };
+
+  const handleChangeSprintProject = async (sprintId: number, newProjectId: number) => {
+    setBacklogLoading(true);
+    try {
+      const updated = await SprintService.updateSprint(sprintId, { project_id: newProjectId });
+      setActiveSprintForBacklog(updated);
+      setToastMessage({
+        type: 'success',
+        text: `Sprint project changed to ${updated.project_name ? `[${updated.project_key}] ${updated.project_name}` : 'selected project'}`,
+      });
+      const res = await issuesApi.list({
+        project_id: newProjectId,
+        backlog: true,
+        page_size: 100,
+      });
+      setProjectBacklogIssues(res.items || []);
+      fetchData(true);
+    } catch (err: any) {
+      setToastMessage({ type: 'error', text: err?.response?.data?.detail || 'Failed to update sprint project' });
     } finally {
       setBacklogLoading(false);
     }
@@ -303,7 +335,7 @@ export const AdminSprintsPage: React.FC = () => {
     try {
       await SprintService.addIssueToSprint(activeSprintForBacklog.id, issueId);
       setProjectBacklogIssues((prev) => prev.filter((i) => i.id !== issueId));
-      setToastMessage({ type: 'success', text: 'Issue added to sprint' });
+      setToastMessage({ type: 'success', text: 'Issue added to sprint scope' });
       fetchData(true);
     } catch (err: any) {
       setToastMessage({ type: 'error', text: err?.response?.data?.detail || 'Failed to add issue to sprint' });
@@ -465,7 +497,7 @@ export const AdminSprintsPage: React.FC = () => {
             <option value="ALL">All Projects ({projects.length})</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.project_key} — {p.name}
+                [{p.project_key}] — {p.name}
               </option>
             ))}
           </select>
@@ -923,7 +955,7 @@ export const AdminSprintsPage: React.FC = () => {
                 })
                 .map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.project_key} — {p.name}
+                    [{p.project_key}] — {p.name}
                   </option>
                 ))}
             </select>
@@ -1072,83 +1104,182 @@ export const AdminSprintsPage: React.FC = () => {
         onClose={() => {
           setBacklogModalOpen(false);
           setActiveSprintForBacklog(null);
+          setBacklogSearch('');
         }}
         title={`Project Backlog: Add Issues to ${activeSprintForBacklog?.name || 'Sprint'}`}
       >
         <div style={{ padding: '1.25rem' }}>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-            Available unassigned backlog defects from this project. Click <strong>Add to Sprint</strong> to include the issue in sprint scope.
+          {/* Project Switcher / Disambiguation bar */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '0.75rem',
+              padding: '0.65rem 0.9rem',
+              marginBottom: '1rem',
+              borderRadius: '8px',
+              backgroundColor: 'var(--bg-surface-elevated)',
+              border: '1px solid var(--border-subtle)',
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <FolderGit2 size={16} style={{ color: '#818cf8' }} />
+              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                Linked Project:
+              </span>
+              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                {activeSprintForBacklog?.project_name ? `[${activeSprintForBacklog.project_key}] ${activeSprintForBacklog.project_name}` : `Project #${activeSprintForBacklog?.project_id}`}
+              </span>
+            </div>
+
+            {/* If sprint has 0 issues, allow switching project directly here */}
+            {activeSprintForBacklog && (activeSprintForBacklog.total_issues ?? 0) === 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Switch Project:</span>
+                <select
+                  className="form-select"
+                  style={{ fontSize: '0.76rem', padding: '0.2rem 0.45rem', minWidth: '170px' }}
+                  value={activeSprintForBacklog.project_id}
+                  disabled={backlogLoading}
+                  onChange={(e) => handleChangeSprintProject(activeSprintForBacklog.id, Number(e.target.value))}
+                >
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      [{p.project_key}] — {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+
+          {/* Search bar inside Backlog Modal */}
+          <div style={{ position: 'relative', marginBottom: '0.85rem' }}>
+            <Search size={14} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Search available backlog issues by key, title..."
+              value={backlogSearch}
+              onChange={(e) => setBacklogSearch(e.target.value)}
+              style={{ paddingLeft: '2.2rem', fontSize: '0.82rem', width: '100%' }}
+            />
+          </div>
+
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+            Available unassigned backlog defects. Click <strong>+ Add to Sprint</strong> to assign issues to sprint scope. Issues will automatically inherit the sprint developer.
           </p>
 
           {backlogLoading ? (
             <div style={{ padding: '2rem 0', textAlign: 'center' }}>
               <LoadingSpinner message="Fetching backlog issues..." />
             </div>
-          ) : projectBacklogIssues.length === 0 ? (
-            <div
-              style={{
-                padding: '2rem 1.5rem',
-                textAlign: 'center',
-                backgroundColor: 'var(--bg-surface-elevated)',
-                borderRadius: '10px',
-                border: '1px dashed var(--border-subtle)',
-              }}
-            >
-              <Layers size={32} style={{ color: 'var(--text-muted)', marginBottom: '0.75rem' }} />
-              <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.4rem' }}>
-                No unassigned backlog defects in this project yet
-              </div>
-              <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', maxWidth: '380px', margin: '0 auto' }}>
-                All defects in this project are currently assigned to active sprints or already resolved.
-              </p>
-            </div>
-          ) : (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                  {projectBacklogIssues.length} available backlog defect{projectBacklogIssues.length === 1 ? '' : 's'}
-                </span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '380px', overflowY: 'auto' }}>
-                {projectBacklogIssues.map((issue) => (
+          ) : (() => {
+            const filteredIssues = projectBacklogIssues.filter((issue) => {
+              if (!backlogSearch) return true;
+              const q = backlogSearch.toLowerCase();
+              return (
+                issue.issue_key.toLowerCase().includes(q) ||
+                issue.title.toLowerCase().includes(q)
+              );
+            });
+
+            if (projectBacklogIssues.length === 0) {
+              return (
                 <div
-                  key={issue.id}
                   style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '0.75rem',
-                    borderRadius: '8px',
+                    padding: '2rem 1.5rem',
+                    textAlign: 'center',
                     backgroundColor: 'var(--bg-surface-elevated)',
-                    border: '1px solid var(--border-subtle)',
-                    gap: '0.75rem',
+                    borderRadius: '10px',
+                    border: '1px dashed var(--border-subtle)',
                   }}
                 >
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
-                      <span style={{ fontWeight: 700, fontSize: '0.82rem', color: '#818cf8' }}>
-                        {issue.issue_key}
-                      </span>
-                      <PriorityBadge priority={issue.priority} />
-                      <SeverityBadge severity={issue.severity} />
-                    </div>
-                    <div style={{ fontSize: '0.82rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {issue.title}
-                    </div>
+                  <Layers size={32} style={{ color: 'var(--text-muted)', marginBottom: '0.75rem' }} />
+                  <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.4rem' }}>
+                    No unassigned backlog defects in this project yet
                   </div>
-
-                  <button
-                    className="btn btn-secondary btn-sm"
-                    style={{ fontSize: '0.75rem', padding: '0.3rem 0.75rem', flexShrink: 0 }}
-                    onClick={() => handleAddIssueToSprint(issue.id)}
-                  >
-                    + Add to Sprint
-                  </button>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', maxWidth: '420px', margin: '0 auto' }}>
+                    {activeSprintForBacklog && (activeSprintForBacklog.total_issues ?? 0) === 0
+                      ? 'This project currently has 0 backlog defects. You can switch the sprint project above to Kaggle ISEC or TracePilot Frontend UI to add defects.'
+                      : 'All defects in this project are currently assigned to active sprints or already resolved.'}
+                  </p>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              );
+            }
+
+            if (filteredIssues.length === 0) {
+              return (
+                <div
+                  style={{
+                    padding: '1.5rem',
+                    textAlign: 'center',
+                    backgroundColor: 'var(--bg-surface-elevated)',
+                    borderRadius: '10px',
+                    border: '1px dashed var(--border-subtle)',
+                  }}
+                >
+                  <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
+                    No defects match "{backlogSearch}"
+                  </div>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                    Try clearing the search query to see all {projectBacklogIssues.length} available backlog defects.
+                  </p>
+                </div>
+              );
+            }
+
+            return (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
+                  <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                    Showing {filteredIssues.length} of {projectBacklogIssues.length} available backlog defect{projectBacklogIssues.length === 1 ? '' : 's'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '380px', overflowY: 'auto' }}>
+                  {filteredIssues.map((issue) => (
+                    <div
+                      key={issue.id}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '0.75rem',
+                        borderRadius: '8px',
+                        backgroundColor: 'var(--bg-surface-elevated)',
+                        border: '1px solid var(--border-subtle)',
+                        gap: '0.75rem',
+                      }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem', flexWrap: 'wrap' }}>
+                          <span style={{ fontWeight: 700, fontSize: '0.82rem', color: '#818cf8' }}>
+                            {issue.issue_key}
+                          </span>
+                          <StatusBadge status={issue.status} />
+                          <PriorityBadge priority={issue.priority} />
+                          <SeverityBadge severity={issue.severity} />
+                        </div>
+                        <div style={{ fontSize: '0.82rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {issue.title}
+                        </div>
+                      </div>
+
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontSize: '0.75rem', padding: '0.3rem 0.75rem', flexShrink: 0, fontWeight: 600 }}
+                        onClick={() => handleAddIssueToSprint(issue.id)}
+                      >
+                        + Add to Sprint
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </Modal>
 
