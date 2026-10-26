@@ -5,6 +5,7 @@ from fastapi.responses import StreamingResponse
 
 from app.database.session import get_db
 from app.dependencies.auth import get_current_user, require_role
+from app.models.sprint import SprintStatus
 from app.models.user import User, UserRole
 from app.schemas.sprint import (
     SprintCreate, SprintRead, SprintUpdate, SprintAnalytics, SprintExtend,
@@ -38,7 +39,7 @@ async def list_all_sprints(
     sprint_status = None
     if status:
         try:
-            sprint_status = SprintStatus(status)
+            sprint_status = SprintStatus(status.upper())
         except ValueError:
             pass
     return await sprint_service.get_all_sprints(db, project_id=project_id, status=sprint_status)
