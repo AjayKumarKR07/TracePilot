@@ -11,18 +11,17 @@
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.141.1-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18.6-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0.52-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white)](https://www.sqlalchemy.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white)](https://www.sqlalchemy.org/)
 [![Alembic](https://img.shields.io/badge/Alembic-1.19.1-6BA814?style=for-the-badge&logo=alembic&logoColor=white)](https://alembic.sqlalchemy.org/)
 
-[![React](https://img.shields.io/badge/React-19.2.8-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.2-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-5.4.19-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-Modern_UI-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![React](https://img.shields.io/badge/React-18%2B-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 
 [![JWT Authentication](https://img.shields.io/badge/JWT-Authentication-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)](https://jwt.io/)
 [![WebSocket](https://img.shields.io/badge/WebSocket-Real--Time-4B32C3?style=for-the-badge&logo=websocket&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)
-[![Pytest](https://img.shields.io/badge/Pytest-9.1.1-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](https://docs.pytest.org/)
+[![Pytest](https://img.shields.io/badge/Pytest-520%20Passing-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](https://docs.pytest.org/)
 [![AI Assistant](https://img.shields.io/badge/AI_Assistant-Gemini%20%7C%20Groq-8E75C2?style=for-the-badge&logo=googlegemini&logoColor=white)](https://ai.google.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
@@ -30,7 +29,7 @@
 
 **Repository:** [https://github.com/AjayKumarKR07/TracePilot](https://github.com/AjayKumarKR07/TracePilot)  
 **Author:** Ajay Kumar K R  
-**Architecture:** Full-Stack Enterprise Single-Page Application (FastAPI + React 19 + PostgreSQL 18)
+**Architecture:** Full-Stack Enterprise Single-Page Application (FastAPI + React + PostgreSQL)
 
 <p align="center">
   <em>TracePilot is an enterprise-grade automated defect tracking, Agile sprint execution, and software quality assurance system engineered to streamline defect lifecycles, developer workload allocation, real-time collaboration, and advisory AI root-cause diagnostics.</em>
@@ -46,44 +45,42 @@
 | --------------------------- | ------------------------------------------------------------ |
 | **Current Version**         | `v1.0.0`                                                     |
 | **Status**                  | 🟢 Active Development                                        |
-| **Backend Framework**       | FastAPI `0.141.1` (Python `3.10+` / `3.14`)                  |
-| **Frontend Framework**      | React `19.2.8` + TypeScript `5.7.2` + Vite `5.4.19`          |
-| **UI & Styling**            | Modern Design Tokens + Tailwind CSS UI                       |
-| **Database**                | PostgreSQL `18.6`                                            |
-| **ORM & Migrations**        | SQLAlchemy `2.0.52` + Alembic `1.19.1`                       |
-| **Authentication**          | JWT (`PyJWT 2.13.0`) + Bcrypt Password Hashing                |
-| **Real-Time Communication** | WebSocket (`websockets 17.0.1`)                              |
-| **Testing Framework**       | Pytest `9.1.1`                                               |
-| **AI Advisory Engine**      | Groq (`openai/gpt-oss-120b`) & Google Gemini (`gemini-2.0-flash`) |
+| **Backend Framework**       | FastAPI `0.141.1` (Python `3.10+`)                           |
+| **Frontend Framework**      | React `18+` + TypeScript `5.7` + Vite `5.4`                  |
+| **UI & Styling**            | Vanilla CSS + CSS Design Tokens (dark glassmorphic theme)    |
+| **Database**                | PostgreSQL `14+`                                             |
+| **ORM & Migrations**        | SQLAlchemy `2.0` (async) + Alembic `1.19.1`                  |
+| **Authentication**          | JWT (`httponly` cookies + refresh tokens) + Bcrypt           |
+| **Real-Time Communication** | WebSocket (`websockets`) — DB-persisted + broadcast          |
+| **Testing Framework**       | Pytest `9.1.1` — **520 passing, 10 skipped**                 |
+| **AI Advisory Engine**      | Google Gemini (`gemini-2.0-flash`) & Groq (primary default)  |
+| **PDF Reports**             | ReportLab `4.1.0`                                            |
 | **License**                 | MIT License                                                  |
 
 ---
 
 # 📌 Overview
 
-TracePilot provides a centralized backend for managing software development and defect-tracking workflows.
+TracePilot provides a centralized, full-stack platform for managing software development and defect-tracking workflows.
 
-The backend provides APIs for:
+The system provides:
 
-* 🔐 Authentication and authorization
-* 👥 Role-Based Access Control (RBAC)
-* 🐞 Issue and defect tracking
-* 📁 Project management
-* 🏃 Agile sprint planning
-* 📋 Backlog management
-* 📊 Sprint analytics
-* 📉 Burndown tracking
-* ⚖️ Team workload analysis
-* 🔔 Real-time notifications
-* 📝 Audit logging
-* 💬 Issue comments
-* 📎 File attachments
-* 📈 Advanced analytics
-* 📄 CSV reporting
-* 📑 PDF sprint reports
-* 🔄 Issue rollover and sprint management
+* 🔐 JWT authentication with `httponly` cookie storage and refresh token rotation
+* 👥 Role-Based Access Control (RBAC) — three canonical roles: `ADMIN`, `DEVELOPER`, `USER`
+* 🐞 Issue and defect tracking with concurrent-safe key generation
+* 📁 Project management with unique project-key enforcement
+* 🏃 Agile sprint planning with a 6-state FSM lifecycle
+* 📋 Backlog management with eligibility filtering (excludes `RESOLVED`/`CLOSED`)
+* 📊 Sprint analytics, burndown tracking, and workload analysis
+* 🔔 Real-time WebSocket notifications — persisted in PostgreSQL, broadcast on connect
+* 📝 Immutable audit logging in the same transaction as every mutating operation
+* 💬 Issue comments and threaded discussions
+* 📎 File attachments with MIME validation and 413 handling
+* 📈 Admin and developer analytics dashboards
+* 📑 PDF sprint reports (generated in-memory via ReportLab)
+* 🔄 Safe issue rollover and sprint deletion with backlog preservation
 * 🔗 GitHub/Webhook integration
-* 🤖 **AI Assistant** (Dual-provider Gemini & Groq advisory assistant integrated in Developer & Admin workflows)
+* 🤖 **AI Assistant** — Dual-provider Gemini & Groq advisory assistant (strictly read-only)
 
 ---
 
@@ -112,14 +109,15 @@ TracePilot resolves industry challenges through targeted, production-ready capab
 
 * **Centralized Defect Lifecycle Management:** End-to-end defect creation, severity/priority triage, component tagging, reproduction step tracking, and developer assignment with complete resolution verification.
 * **Canonical Role-Based Access Control (RBAC):** Strict operational isolation between `ADMIN` (governance, triage, sprint approvals), `DEVELOPER` (defect investigation, code resolution, sprint execution), and `USER` (defect reporting, reproduction clarification, closure verification).
-* **Agile Sprint & Backlog Orchestration:** Project-isolated backlog management, capacity planning, single-active-sprint enforcement per project, and safe rollover of unfinished items upon sprint completion.
-* **Controlled Sprint Review & Approval Workflows:** Developers submit completed sprints for administrative review (`READY_FOR_APPROVAL`), allowing administrators to either approve completion or request targeted rework (`IN_PROGRESS`).
+* **Concurrent-Safe Issue Key Generation:** Savepoint-based retry loop (up to 10 attempts) with PostgreSQL SQLSTATE `23505` + constraint-name precision for the `ix_issues_issue_key` uniqueness guard — never retries on unrelated integrity errors.
+* **Agile Sprint & Backlog Orchestration:** Project-isolated backlog management (eligibility excludes `RESOLVED`/`CLOSED`), capacity planning, single-active-sprint enforcement per project, and safe rollover of unfinished items upon sprint completion.
+* **Controlled Sprint Review & Approval Workflows:** Developers submit completed sprints for administrative review (`READY_FOR_APPROVAL`), allowing administrators to either approve completion or request targeted rework (`IN_PROGRESS`). Approval requires all sprint issues to be `RESOLVED` or `CLOSED`.
 * **Deep Quality & Workload Analytics:** Real-time metrics covering defect distribution, severity trends, backlog aging, burndown rates, capacity calculations, and team workload balance.
-* **Real-Time WebSocket Broadcasts:** Instantaneous, full-duplex WebSocket notifications alerting team members to defect assignments, status transitions, comments, and sprint lifecycle milestones.
-* **Immutable Audit Trail:** Comprehensive event logging (`audit_logs`) tracking actor IDs, action types, entity references, previous states, and timestamped changes.
-* **Automated Stakeholder Reporting:** On-demand CSV defect exports and programmatic, high-fidelity PDF sprint reports generated via ReportLab.
+* **Real-Time WebSocket Broadcasts:** Instantaneous, full-duplex WebSocket notifications alerting team members to defect assignments, status transitions, comments, and sprint lifecycle milestones. Notifications are persisted in PostgreSQL before broadcast — replayed on reconnect.
+* **Immutable Audit Trail:** Comprehensive event logging (`audit_logs`) tracking actor IDs, action types, entity references, previous states, and timestamped changes — written in the same database transaction as the triggering operation.
+* **Automated Stakeholder Reporting:** On-demand CSV defect exports and programmatic, high-fidelity PDF sprint reports generated via ReportLab, streamed directly to the browser (no server temp files).
 * **Advisory AI Assistant (Gemini & Groq):** Deep defect analysis, root-cause investigation, reproduction guides, test-case generation, and sprint health summaries powered by Google Gemini (via `google-genai`) with automated Groq fallback.
-* **Enterprise Full-Stack Architecture:** Persistent PostgreSQL 18 database with async SQLAlchemy 2.0 ORM and Alembic migrations, asynchronous FastAPI REST APIs, and a modern, high-performance React 19 + TypeScript frontend.
+* **Enterprise Full-Stack Architecture:** Persistent PostgreSQL database with async SQLAlchemy 2.0 ORM and Alembic migrations, asynchronous FastAPI REST APIs, and a modern, high-performance React + TypeScript frontend.
 
 > 🔒 **Advisory AI Guarantee:** TracePilot AI operates **strictly as an advisory assistant**. It never executes database modifications, assigns tasks, or changes defect states autonomously. All workflow progressions require deliberate, authenticated user operations through authorized application endpoints.
 
@@ -136,16 +134,16 @@ TracePilot resolves industry challenges through targeted, production-ready capab
 
 ### System Architecture
 
-TracePilot is architected as an enterprise-tier single-page application (SPA) backed by asynchronous Python microservices and PostgreSQL persistence:
+TracePilot is architected as an enterprise-tier single-page application (SPA) backed by asynchronous Python services and PostgreSQL persistence:
 
 ```mermaid
 flowchart TD
-    U["Users: Admin, Developer, User"] --> FE["React 19 + TypeScript Frontend"]
+    U["Users: Admin, Developer, User"] --> FE["React + TypeScript Frontend"]
     FE --> API["FastAPI REST API Engine"]
     FE <--> WS["WebSocket Real-Time Broadcast"]
     API --> AUTH["JWT Authentication & RBAC"]
     AUTH --> SVC["Application Core Services"]
-    SVC --> DB[("PostgreSQL 18 Database")]
+    SVC --> DB[("PostgreSQL Database")]
     SVC --> AI["AI Advisory Service"]
     AI --> PROVIDER["Configured AI Provider<br/>(Gemini / Groq)"]
     SVC --> REPORTS["Analytics, CSV & PDF Reports"]
@@ -187,7 +185,7 @@ Reporter portal enabling defect creation with repro steps, real-time status trac
 ---
 
 ### 4. 🏃 Agile Sprints & Backlog Planning (`/sprints`)
-Structured sprint iteration authoring, capacity allocation, active sprint lifecycle management, and backlog prioritization.
+Structured sprint iteration authoring, capacity allocation, active sprint lifecycle management, and backlog prioritization with eligibility filtering.
 
 <p align="center">
   <img src="IMAGES/sprints_planning_modern.png" alt="TracePilot Sprint Planning" width="95%" />
@@ -240,7 +238,7 @@ flowchart TD
 
 ## 🏃 Sprint Management Workflow
 
-Agile iterations in TracePilot follow a structured, multi-phase lifecycle governed by project capacity and single-active-sprint rules:
+Agile iterations in TracePilot follow a structured, 6-state lifecycle governed by project capacity, single-active-sprint rules, and a formal approval gate:
 
 ```mermaid
 flowchart TD
@@ -248,8 +246,8 @@ flowchart TD
     B --> C["Assign Project Developer<br/>(Status: ACTIVE)"]
     C --> D["Developer Commences Sprint Execution<br/>(Status: IN_PROGRESS)"]
     D --> E["Developer Submits Sprint for Review<br/>(Status: READY_FOR_APPROVAL)"]
-    E --> F{"Admin Approval Review"}
-    F -->|Changes Requested| G["Admin Requests Modifications<br/>(Status: IN_PROGRESS)"]
+    E --> F{"Admin Approval Review<br/>(All issues must be RESOLVED/CLOSED)"}
+    F -->|Changes Requested| G["Admin Requests Modifications<br/>(Status: IN_PROGRESS)<br/>review_comment delivered to Developer"]
     G --> D
     F -->|Approved| H["Admin Approves Sprint<br/>(Status: COMPLETED)"]
     H --> I["Issue Rollover / Backlog Return<br/>(Unfinished Items Handled)"]
@@ -257,11 +255,37 @@ flowchart TD
     J --> K["Archive Sprint<br/>(Status: ARCHIVED)"]
 ```
 
+### Sprint State Machine — Quick Reference
+
+| Transition | Actor | From → To |
+|---|---|---|
+| Assign Developer | `ADMIN` | `PLANNED` → `ACTIVE` |
+| Begin Work | `DEVELOPER` / `ADMIN` | `ACTIVE` → `IN_PROGRESS` |
+| Submit for Approval | `DEVELOPER` / `ADMIN` | `IN_PROGRESS` → `READY_FOR_APPROVAL` |
+| Approve | `ADMIN` | `READY_FOR_APPROVAL` → `COMPLETED` |
+| Request Changes | `ADMIN` | `READY_FOR_APPROVAL` → `IN_PROGRESS` |
+| Archive | `ADMIN` | `COMPLETED` → `ARCHIVED` |
+
 ### Core Sprint Rules & Safeguards
-* **Single Active Sprint Rule:** TracePilot enforces that only **one sprint can be in execution (`ACTIVE`, `IN_PROGRESS`, or `READY_FOR_APPROVAL`) per project at any given time**, preventing team scope dilution.
-* **Dual-Sync Developer Assignment:** Sprint assignments utilize the canonical `assigned_developer_id` column with automatic PostgreSQL trigger synchronization (`trg_sync_sprint_developer_assignee`) for legacy column compatibility.
+* **Single Active Sprint Rule:** Only **one sprint can be in execution (`ACTIVE`, `IN_PROGRESS`, or `READY_FOR_APPROVAL`) per project at any given time**, preventing team scope dilution.
+* **Approval Guard:** Admin approval fails if any sprint issue is still open (not `RESOLVED` or `CLOSED`) — enforced at the service layer.
+* **Review Comment Delivery:** When admin requests changes, the `review_comment` is persisted to the sprint and a WebSocket notification is sent directly to the assigned developer.
+* **Dual-Sync Developer Assignment:** Sprint assignments use the canonical `assigned_developer_id` column with automatic PostgreSQL trigger synchronization (`trg_sync_sprint_developer_assignee`) for legacy column compatibility.
 * **Safe Issue Rollover:** When a sprint is completed, any unfinished defects are protected against data loss and can be automatically migrated to the next planned sprint or returned safely to the unassigned backlog.
 * **Capacity Planning Engine:** Calculates available team hours (`team_members × working_days × hours_per_day`) to ensure assigned issue story points do not exceed capacity.
+
+---
+
+## 🔑 Concurrent-Safe Issue Key Generation
+
+Issue keys (e.g., `PROJ-42`) are generated atomically using a **savepoint-based retry loop**:
+
+1. A candidate key is generated from the project key + next sequence number, tracking all `attempted_keys` to avoid re-trying the same value.
+2. The insert is wrapped in a **PostgreSQL savepoint** so a uniqueness conflict rolls back only that attempt, not the outer transaction.
+3. On conflict, the savepoint is rolled back and a new key is generated — up to `MAX_RETRIES = 10` **total attempts**.
+4. Conflict detection uses structured PostgreSQL diagnostics: **SQLSTATE `23505`** + **`diag.constraint_name == "ix_issues_issue_key"`** — only the issue-key uniqueness constraint triggers a retry; unrelated integrity errors are re-raised immediately.
+5. If all 10 attempts fail, the endpoint returns HTTP `409 Conflict` with a clear error message — never an unexpected HTTP 500.
+6. Audit logs and notifications execute **exactly once**, only after the issue is successfully created.
 
 ---
 
@@ -291,7 +315,7 @@ flowchart TD
 
 ### Advisory Integrity & Provider Guarantees
 * **Strict Advisory Isolation:** The AI service is strictly read-only with respect to project records. It cannot modify defect statuses, reassign users, close sprints, or alter database entities. All actions must be performed manually through the TracePilot UI by authorized personnel.
-* **Dynamic Provider Routing & Resilience:** TracePilot supports **Groq** (production default with automated model fallback) and **Google Gemini** (via `google-genai` SDK). When using Groq, if the primary model (`openai/gpt-oss-120b`) encounters temporary errors (rate-limiting 429, 5xx server errors, network timeouts, or model unreachability), the engine automatically falls back to `openai/gpt-oss-20b` without interrupting user workflows.
+* **Dynamic Provider Routing & Resilience:** TracePilot supports **Groq** (production default with automated model fallback) and **Google Gemini** (via `google-genai` SDK). When using Groq, if the primary model (`openai/gpt-oss-120b`) encounters temporary errors, the engine automatically falls back to `openai/gpt-oss-20b` without interrupting user workflows.
 * **Sanitized Logs & Credential Protection:** All credentials, API keys, and sensitive environment variables are strictly filtered, masked, and excluded from application logs, error traces, and client responses.
 
 ---
@@ -319,7 +343,7 @@ TracePilot includes a built-in advisory AI Assistant supporting **Groq** (produc
 
 The AI Assistant is natively embedded across key TracePilot workspaces:
 * **Developer Workspace (`/developer-dashboard`):** Real-time interactive AI chat drawer and triage assistant for defect investigation, reproduction guidance, and root cause analysis.
-* **Admin Dashboard (`/dashboard`):** Executive AI assistance for sprint summaries, bottleneck detection, and analytics metric interpretation.
+* **Admin Dashboard (`/admin-dashboard`):** Executive AI assistance for sprint summaries, bottleneck detection, and analytics metric interpretation.
 * **Defect Detail View (`/issues/:id`):** One-click contextual AI quick actions to generate structured test cases, analyze stack traces, or generate reproduction guides directly from the active defect record.
 
 ## Setup & Provider Configuration
@@ -345,7 +369,7 @@ Restart the backend server after updating `.env`. The AI assistant will automati
 
 > ⚠️ **Security**: Never commit API keys to version control. Keys are protected via `.env` in `.gitignore`.
 
-## API Endpoints
+## AI API Endpoints
 
 | Method | Endpoint | Description | Permitted Roles |
 |---|---|---|---|
@@ -372,6 +396,27 @@ TracePilot operates strictly on three canonical application roles:
 | `DEVELOPER` | Defect investigation, root-cause resolution, code fix implementation, test execution and verification, sprint delivery, and completion submission |
 | `USER`      | Standard authenticated portal access, defect reporting, reproduction clarification, and post-resolution acceptance verification   |
 
+### Role Permissions Matrix
+
+| Action | ADMIN | DEVELOPER | USER |
+|---|:---:|:---:|:---:|
+| Create/manage projects | ✅ | ❌ | ❌ |
+| Manage users & roles | ✅ | ❌ | ❌ |
+| Triage & assign issues | ✅ | ❌ | ❌ |
+| Create & configure sprints | ✅ | ❌ | ❌ |
+| Assign developer to sprint | ✅ | ❌ | ❌ |
+| Approve / request changes on sprint | ✅ | ❌ | ❌ |
+| Begin sprint work | ✅ | ✅ | ❌ |
+| Submit sprint for approval | ✅ | ✅ | ❌ |
+| View assigned sprints & issues | ✅ | ✅ | ❌ |
+| Report defects | ✅ | ✅ | ✅ |
+| View own issues | ✅ | ✅ | ✅ |
+| Close / verify resolved defects | ✅ | ✅ | ✅ |
+| Access AI assistant | ✅ | ✅ | ✅ |
+| View analytics | ✅ | ✅ | ❌ |
+| Download PDF sprint reports | ✅ | ✅ | ❌ |
+| Access audit logs | ✅ | ❌ | ❌ |
+
 ---
 
 ## 🗄️ Legacy Database Compatibility
@@ -394,14 +439,13 @@ TracePilot provides secure authentication and authorization mechanisms.
 
 ### Features
 
-* JWT-based authentication
+* JWT-based authentication stored in `httponly` cookies (not `localStorage`) to prevent XSS token theft
+* Automatic refresh-token rotation for seamless session continuity
 * Secure bcrypt password hashing
-* Role-Based Access Control (RBAC)
-* Protected API routes
-* Dependency-based authorization
-* Role-specific resource access
-* Token-based authenticated requests
-* Secure environment configuration
+* Role-Based Access Control (RBAC) with `require_role()` dependency on every sensitive route
+* Protected API routes with dependency-based authorization
+* Token-based authenticated WebSocket connections
+* Secure environment configuration — all secrets via `.env`, never committed
 
 ### Authentication Flow
 
@@ -412,16 +456,16 @@ User
 Login / Registration
  │
  ▼
-Authentication
+bcrypt Credential Validation
  │
  ▼
-JWT Token
+JWT Access Token (httponly cookie) + Refresh Token
  │
  ▼
-Protected API
+Protected API Request
  │
  ▼
-Role Authorization
+require_role() Dependency Check
  │
  ├── ADMIN
  ├── DEVELOPER
@@ -436,50 +480,38 @@ TracePilot supports the complete software defect management lifecycle.
 
 ### Features
 
-* Create issues
-* Update issues
-* Assign issues
-* Track issue status
-* Set priority
-* Set severity
-* Add descriptions
-* Track reporters
-* Track developer assignees
-* Estimate effort
-* Search issues
-* Filter issues
-* Sort issues
+* Create issues with concurrent-safe key generation (savepoint retry, `MAX_RETRIES=10`)
+* Update issues (title, description, severity, priority, type, environment, story points)
+* Assign issues to developers
+* Track issue status through full FSM
+* Set priority and severity
+* Add reproduction steps and environment details
+* Track reporters and developer assignees
+* Estimate effort (story points)
+* Search, filter, and sort issues
 * Bulk issue operations
 * Assign issues to sprints
 * Return issues to backlog
 * Track resolution timestamps
-* Add comments
-* Attach files
-* Maintain issue history
+* Add threaded comments
+* Attach files with MIME validation
+* Maintain complete issue history via audit logs
 
-### Issue Workflow
+### Issue Status FSM
 
 ```text
-Report Issue (REPORTED)
-     │
-     ▼
-Triage & Assign Developer (TRIAGED / ASSIGNED)
-     │
-     ▼
-Sprint Planning & Execution (IN_PROGRESS)
-     │
-     ▼
-Development & Verification (IN_DEVELOPMENT → IN_REVIEW → IN_TESTING)
-     │
-     ▼
-Resolution Summary (RESOLVED)
-     │
-     ▼
-Acceptance Verification (Reporter / Admin)
-     │
-     ▼
-Closed (CLOSED)
+REPORTED → ASSIGNED → IN_DEVELOPMENT → IN_REVIEW → IN_TESTING → RESOLVED → CLOSED
+                                                                      ↑
+                                                              REOPENED ←
 ```
+
+### Backlog Eligibility
+
+The project backlog includes only issues that are:
+- Not assigned to any sprint (`sprint_id IS NULL`)
+- **Not** in terminal states: `RESOLVED` or `CLOSED`
+
+This prevents already-resolved issues from appearing in the backlog and being re-assigned to new sprints.
 
 ---
 
@@ -489,7 +521,7 @@ Projects provide the primary workspace for organizing development activities.
 
 ### Features
 
-* Create projects
+* Create projects with unique project keys
 * Update project information
 * Manage project members
 * Track project issues
@@ -498,15 +530,17 @@ Projects provide the primary workspace for organizing development activities.
 * Project backlog management
 * Sprint summaries
 * Team workload analysis
+* `is_test` tagging for test/demo projects
+* Flagship project prioritization in project lists
 
 Each project maintains:
 
 ```text
 PROJECT
  ├── Members
- ├── Issues
+ ├── Issues (with backlog eligibility filtering)
  ├── Backlog
- ├── Sprints
+ ├── Sprints (one active at a time)
  ├── Analytics
  └── Workload Data
 ```
@@ -515,49 +549,46 @@ PROJECT
 
 # 🏃 Advanced Sprint Management
 
-TracePilot provides a controlled Agile sprint lifecycle.
+TracePilot provides a controlled Agile sprint lifecycle with a formal 6-state FSM.
 
 ## Sprint Lifecycle
 
 ```text
 PLANNED
    │
-   ▼
+   ▼ (assign-developer → ADMIN)
 ACTIVE
    │
-   ▼
-IN PROGRESS
+   ▼ (begin-work → DEVELOPER/ADMIN)
+IN_PROGRESS
    │
-   ▼
-READY FOR APPROVAL
+   ▼ (submit-for-approval → DEVELOPER/ADMIN)
+READY_FOR_APPROVAL
    │
-   ├──────────────► Request Changes
-   │                       │
-   │                       ▼
-   │                  IN PROGRESS
+   ├──────────────► request-changes (ADMIN) ──► IN_PROGRESS
    │
-   ▼
+   ▼ (approve → ADMIN, all issues RESOLVED/CLOSED)
 COMPLETED
+   │
+   ▼ (archive → ADMIN)
+ARCHIVED
 ```
 
 ### Sprint Operations
 
-* Create sprint
-* Update sprint
-* Start sprint
-* Assign developer (with bidirectional database synchronization)
-* Begin sprint work
-* Submit sprint for approval
-* Approve sprint
-* Request changes
-* Complete sprint
-* Extend sprint
-* Archive sprint
-* Safely delete eligible sprints
-* Assign issues to sprint
+* Create sprint (with dates, goal, capacity)
+* Update sprint properties
+* Assign developer (triggers `PLANNED` → `ACTIVE`)
+* Begin sprint work (`ACTIVE` → `IN_PROGRESS`)
+* Submit sprint for approval (`IN_PROGRESS` → `READY_FOR_APPROVAL`)
+* Approve sprint (`READY_FOR_APPROVAL` → `COMPLETED`)
+* Request changes with review comment (`READY_FOR_APPROVAL` → `IN_PROGRESS`)
+* Extend sprint end date
+* Archive completed sprint (`COMPLETED` → `ARCHIVED`)
+* Safely delete eligible sprints (issues returned to backlog)
+* Assign/remove individual issues
 * Bulk assign backlog issues
-* Rollover unfinished issues
-* Return unfinished issues to backlog
+* Rollover unfinished issues to backlog or next sprint
 
 ---
 
@@ -567,36 +598,34 @@ TracePilot enforces a project-level rule:
 
 > **Only one sprint can be actively executed for a project at a time.**
 
+Statuses `ACTIVE`, `IN_PROGRESS`, and `READY_FOR_APPROVAL` are all considered "in execution." Attempting to start or activate a second sprint while one is already in execution returns HTTP `409 Conflict`.
+
 This prevents overlapping sprint execution cycles and maintains consistent Agile workflow management.
 
 ---
 
 # 📋 Advanced Backlog Management
 
-The project backlog contains issues that are not currently assigned to a sprint.
+The project backlog contains issues that are eligible for sprint assignment.
 
 ### Features
 
-* Backlog filtering
-* Text search
-* Status filtering
-* Priority filtering
-* Severity filtering
-* Issue type filtering
-* Sorting
-* Recommended priority ordering
+* Backlog eligibility filtering (excludes `RESOLVED`/`CLOSED` and issues already in a sprint)
+* Text search across title and description
+* Status, priority, severity, and issue type filtering
+* Sorting by priority, severity, age, and estimated effort
+* Recommended priority ordering (Blocker > Critical > Major > Minor)
 * Backlog aging indicators
-* Bulk issue selection
-* Bulk sprint assignment
+* Bulk issue selection and sprint assignment
 * Estimated effort visibility
 
 ### Priority Recommendation
 
-Backlog prioritization can consider:
+Backlog prioritization considers:
 
-* Severity
-* Priority
-* Issue age
+* Severity (BLOCKER, CRITICAL, MAJOR, MINOR, TRIVIAL)
+* Priority (CRITICAL, HIGH, MEDIUM, LOW)
+* Issue age (creation timestamp)
 * Resolution urgency
 
 ---
@@ -607,18 +636,13 @@ Sprint analytics are calculated from actual database data.
 
 ### Analytics Include
 
-* Total issues
-* Completed issues
-* Remaining issues
+* Total issues, completed issues, remaining issues
 * Completion percentage
-* Sprint health
-* Sprint overdue status
-* Days remaining
-* Days overdue
-* Team workload
-* Capacity hours
-* Estimated effort
-* Burndown information
+* Sprint health (ON_TRACK / AT_RISK / OFF_TRACK)
+* Sprint overdue status and days remaining/overdue
+* Team workload distribution
+* Capacity hours, estimated effort
+* Burndown data (ideal vs. actual remaining work)
 
 ---
 
@@ -632,13 +656,7 @@ Sprint health is dynamically calculated based on sprint progress.
 | 🟡 `AT_RISK`   | Sprint progress is behind expected progress  |
 | 🔴 `OFF_TRACK` | Sprint is significantly behind or overdue    |
 
-The calculation considers:
-
-* Sprint duration
-* Elapsed time
-* Completion percentage
-* Remaining issues
-* Overdue status
+The calculation considers: sprint duration, elapsed time, completion percentage, remaining issues, and overdue status.
 
 ---
 
@@ -673,45 +691,21 @@ The system does **not generate fake historical data** when sufficient completion
 
 # ⚖️ Capacity Planning
 
-Sprint capacity can be calculated using:
-
-* Team members
-* Working days
-* Hours per day
-
-### Capacity Formula
+Sprint capacity is calculated using:
 
 ```text
-Total Capacity Hours
-=
-Team Members
-×
-Working Days
-×
-Hours Per Day
+Total Capacity Hours = Team Members × Working Days × Hours Per Day
+
+Example: 5 members × 10 days × 6 hrs/day = 300 Capacity Hours
 ```
 
-### Example
-
-```text
-5 Team Members
-×
-10 Working Days
-×
-6 Hours Per Day
-=
-300 Capacity Hours
-```
-
-Capacity is maintained separately from issue count and estimated effort.
+Capacity is maintained separately from issue count and estimated effort, allowing realistic sprint loading decisions.
 
 ---
 
 # 👥 Workload Analysis
 
 TracePilot calculates workload distribution across team members.
-
-Example:
 
 | Team Member  | Assigned Issues |
 | ------------ | --------------: |
@@ -731,42 +725,16 @@ TracePilot prevents unfinished issues from being lost when a sprint is completed
 ### Return to Backlog
 
 ```text
-CURRENT SPRINT
-      │
-      ▼
-COMPLETE SPRINT
-      │
-      ▼
-UNFINISHED ISSUES
-      │
-      ▼
-PROJECT BACKLOG
+CURRENT SPRINT → COMPLETE → UNFINISHED ISSUES → PROJECT BACKLOG
 ```
 
 ### Move to Another Sprint
 
 ```text
-CURRENT SPRINT
-      │
-      ▼
-COMPLETE
-      │
-      ▼
-UNFINISHED ISSUES
-      │
-      ▼
-NEXT SPRINT
+CURRENT SPRINT → COMPLETE → UNFINISHED ISSUES → NEXT SPRINT
 ```
 
-The system preserves:
-
-* Issue information
-* Comments
-* Attachments
-* Status
-* Resolution information
-* Audit history
-* Project relationship
+The system preserves: issue information, comments, attachments, status, resolution information, audit history, and project relationship.
 
 ---
 
@@ -774,54 +742,36 @@ The system preserves:
 
 TracePilot protects active workflow data.
 
-Sprints involved in active execution or approval workflows cannot be arbitrarily deleted.
+Sprints involved in active execution or approval workflows (`ACTIVE`, `IN_PROGRESS`, `READY_FOR_APPROVAL`) cannot be arbitrarily deleted.
 
-Eligible planned or completed sprints can be safely deleted according to backend validation rules.
-
-Before deletion, linked issues are detached from the sprint instead of being deleted.
-
-```text
-Sprint
-   │
-   ├── Issue A ──┐
-   ├── Issue B ──┤
-   └── Issue C ──┘
-                 │
-                 ▼
-          Sprint Deleted
-                 │
-                 ▼
-       Issues Preserved
-       sprint_id = NULL
-```
-
-This prevents accidental issue data loss.
+Eligible `PLANNED` or `COMPLETED`/`ARCHIVED` sprints can be safely deleted. Before deletion, linked issues are detached from the sprint (their `sprint_id` set to `NULL`) instead of being deleted — preventing accidental issue data loss.
 
 ---
 
 # 🔔 Real-Time Notifications
 
-TracePilot uses **WebSockets** for real-time communication.
+TracePilot uses **WebSockets** for real-time communication, with notifications **persisted in PostgreSQL** before broadcast. When a user reconnects, unread notifications are replayed.
 
-Notifications can be generated for events such as:
+### Notification Events
 
-* Sprint assignment
-* Sprint started
-* Sprint submission
-* Sprint approval
-* Changes requested
-* Issue updates
-* Assignment changes
-* Workflow events
-* System notifications
+| Event | Recipients |
+|---|---|
+| Sprint assigned | Assigned developer |
+| Sprint work begun | Admin |
+| Sprint submitted for approval | Admin |
+| Sprint approved | Assigned developer |
+| Sprint changes requested (with review comment) | Assigned developer |
+| Issue assigned | Assigned developer |
+| Issue status changed | Reporter, assignee |
+| Comment added | Issue participants |
 
-Connected users can receive updates without manually refreshing the application.
+Connected users receive updates without manually refreshing the application. Notifications include deep-link navigation to the relevant sprint or issue.
 
 ---
 
 # 📝 Audit Logging
 
-Important system operations are recorded through audit logs.
+All mutating operations write `audit_logs` records in the **same database transaction** as the triggering operation — ensuring no audit record exists without a committed state change, and no committed state change is unrecorded.
 
 ### Sprint Audit Actions
 
@@ -837,26 +787,15 @@ SPRINT_COMPLETED
 SPRINT_ARCHIVED
 SPRINT_DELETED
 SPRINT_DEVELOPER_ASSIGNED
-SPRINT_TESTER_ASSIGNED (legacy compatibility)
+SPRINT_TESTER_ASSIGNED  (legacy compatibility — historical records only)
 ```
 
 ### Other Auditable Activities
 
-* Issue creation
-* Issue updates
-* Status changes
-* Assignment changes
+* Issue creation, updates, status changes, assignment changes
 * Project updates
-* User actions
-* Workflow events
-
-Audit logging improves:
-
-* Traceability
-* Accountability
-* Debugging
-* Activity monitoring
-* Data integrity
+* User role changes and account activation
+* Workflow events and state transitions
 
 ---
 
@@ -867,66 +806,39 @@ TracePilot supports issue collaboration through:
 ### Comments
 
 * Add comments to issues
-* Track comment authors
-* Maintain comment history
+* Track comment authors and timestamps
+* Maintain full comment history
 
 ### Attachments
 
-* Upload issue-related files
-* Associate files with issues
-* Preserve attachments during sprint rollover
+* Upload issue-related files with MIME type validation
+* 413 (payload too large) handling for oversized uploads
+* Attachments preserved during sprint rollover and sprint deletion
 
 ---
 
 # 📄 Sprint PDF Reports
 
-TracePilot generates professional Sprint Reports using **ReportLab**.
-
-Reports are generated dynamically in memory.
+TracePilot generates professional Sprint Reports using **ReportLab**, streamed directly to the browser — no server-side temp files required.
 
 ### Report Contents
 
-* Sprint information
-* Sprint goal
-* Start date
-* End date
-* Sprint health
-* Completion statistics
-* Issue distribution
-* Team workload
-* Capacity information
-* Estimated effort
-* Generated timestamp
-* Page numbering
+* Sprint information (name, goal, project)
+* Start date and end date
+* Sprint health and overdue status
+* Completion statistics (total, completed, remaining, percentage)
+* Issue distribution by status
+* Team workload summary
+* Capacity information and estimated effort
+* Generated timestamp and page numbering
 
 ### PDF Workflow
 
 ```text
-User
- │
- ▼
-Request Sprint Report
- │
- ▼
-FastAPI Endpoint
- │
- ▼
-Fetch Sprint Data
- │
- ▼
-Calculate Analytics
- │
- ▼
-Generate PDF
- │
- ▼
-StreamingResponse
- │
- ▼
-Browser
+Authenticated User → Request Sprint Report → FastAPI Endpoint
+→ Fetch Sprint Data → Calculate Analytics → Generate PDF (ReportLab)
+→ StreamingResponse → Browser Download
 ```
-
-No permanent temporary PDF file is required on the server.
 
 ---
 
@@ -948,88 +860,15 @@ TracePilot provides analytics for issues, projects, sprints, and system activity
 
 ---
 
-# 📊 Quality & Defect Analytics
-
-TracePilot supports analysis of:
-
-* Issue status distribution
-* Severity distribution
-* Issue trends
-* Resolution trends
-* Project statistics
-* Sprint completion
-* Workload distribution
-* Estimated effort
-* Defect activity
-
-These analytics are generated from application/database data rather than static demonstration values.
-
----
-
 # 🔗 GitHub & Webhook Integration
 
-TracePilot includes GitHub/webhook integration as part of its development and integration capabilities.
-
-The backend provides webhook handling for Git-based workflow events.
-
-Example workflow:
+TracePilot includes GitHub/webhook integration for Git-based workflow events.
 
 ```text
-GitHub
-   │
-   ▼
-Webhook
-   │
-   ▼
-TracePilot API
-   │
-   ▼
-Webhook Processing
-   │
-   ▼
-Issue / Project Workflow
+GitHub → Webhook → TracePilot API → Webhook Processing → Issue / Project Workflow
 ```
 
 Webhook endpoints are protected and validated according to the backend integration configuration.
-
----
-
-# 🔒 RBAC Isolation
-
-## ADMIN
-
-```text
-✓ System administration
-✓ User management
-✓ Project management
-✓ Sprint management
-✓ Issue management
-✓ Analytics
-✓ Reports
-✓ Sprint approval workflow
-✓ Audit access
-```
-
-## DEVELOPER
-
-```text
-✓ Assigned developer workflow
-✓ Defect investigation & root-cause analysis
-✓ Code fix implementation & testing
-✓ Sprint execution & completion submission
-✓ Project defect & sprint backlog access
-✗ System administration
-✗ User administration
-✗ Sprint approval
-```
-
-## USER
-
-```text
-✓ Standard authenticated access
-✓ Authorized application resources
-✗ Administrative operations
-```
 
 ---
 
@@ -1038,28 +877,28 @@ Webhook endpoints are protected and validated according to the backend integrati
 ### Backend Architecture
 | Technology | Version | Purpose |
 | :--- | :--- | :--- |
-| **Python** | `3.10+` / `3.14` | High-performance core backend runtime |
+| **Python** | `3.10+` | High-performance core backend runtime |
 | **FastAPI** | `0.141.1` | Asynchronous RESTful API framework |
-| **PostgreSQL** | `18.6` | Relational database engine with ACID transactions |
-| **SQLAlchemy** | `2.0.52` | Modern async Object-Relational Mapping (ORM) |
+| **PostgreSQL** | `14+` | Relational database engine with ACID transactions |
+| **SQLAlchemy** | `2.0` (async) | Modern async Object-Relational Mapping (ORM) |
 | **Alembic** | `1.19.1` | Database migration & schema version control |
-| **Pydantic** | `2.13.4` | Strict data validation and schema serialization |
-| **PyJWT** | `2.13.0` | Stateless HMAC-SHA256 authentication tokens |
-| **WebSockets** | `17.0.1` | Full-duplex real-time events and team broadcast |
+| **Pydantic** | `2.x` | Strict data validation and schema serialization |
+| **PyJWT** | `2.x` | Stateless HMAC-SHA256 authentication tokens |
+| **WebSockets** | `17.x` | Full-duplex real-time events and team broadcast |
 | **Google GenAI** | `>=2.0.0` | Google Gemini AI defect advisory engine |
-| **Groq SDK** | LLaMA 3.3 | Alternative high-throughput AI advisory engine |
-| **Pytest** | `9.1.1` | Test runner for unit, integration, and e2e suites |
+| **Groq SDK** | latest | Alternative high-throughput AI advisory engine |
+| **Pytest** | `9.1.1` | Test runner — 520 passing, 10 skipped |
 | **ReportLab** | `4.1.0` | High-fidelity programmatic PDF report generation |
 
 ### Frontend Architecture
 | Technology | Version | Purpose |
 | :--- | :--- | :--- |
-| **React** | `19.2.8` | Declarative UI component tree and state model |
-| **TypeScript** | `5.7.2` | Compile-time type safety across API and components |
-| **Vite** | `5.4.19` | Fast HMR dev server and production asset bundler |
-| **Tailwind CSS / Tokens** | Modern | Curated dark/light theme tokens and layout system |
-| **Lucide React** | `1.35.0` | Modern, consistent SVG interface iconography |
-| **Plotly.js & Recharts** | `4.0` / `3.10` | Interactive defect distribution and burndown charts |
+| **React** | `18+` | Declarative UI component tree and state model |
+| **TypeScript** | `5.7` | Compile-time type safety across API and components |
+| **Vite** | `5.4` | Fast HMR dev server and production asset bundler |
+| **Vanilla CSS + Design Tokens** | — | Curated dark/light theme tokens and layout system |
+| **Lucide React** | latest | Modern, consistent SVG interface iconography |
+| **Plotly.js & Recharts** | — | Interactive defect distribution and burndown charts |
 
 ---
 
@@ -1070,35 +909,52 @@ TracePilot/
 ├── backend/
 │   ├── alembic/
 │   │   ├── env.py
-│   │   └── versions/
-│   │       └── e5f6a7b8c9d0_canonical_developer_dataset_migration.py
+│   │   └── versions/           # Migration scripts
 │   ├── app/
-│   │   ├── core/          # Application configuration, security, JWT
-│   │   ├── database/      # SQLAlchemy connection, async session
-│   │   ├── models/        # User, Project, Issue, Sprint, AuditLog, Notification
-│   │   ├── schemas/       # Pydantic request/response schemas
-│   │   ├── routes/        # FastAPI REST and WebSocket endpoints
-│   │   ├── services/      # Business logic: Auth, Issue, Sprint, Analytics, AI, PDF
-│   │   └── utils/         # Helpers, security decorators, dependencies
-│   ├── tests/             # Pytest automated test suites (500+ tests)
-│   ├── requirements.txt   # Backend dependency specifications
-│   └── alembic.ini        # Migration engine configuration
+│   │   ├── core/               # Application configuration, security, JWT
+│   │   ├── database/           # SQLAlchemy async connection and session
+│   │   ├── models/             # User, Project, Issue, Sprint, AuditLog, Notification
+│   │   ├── schemas/            # Pydantic request/response schemas
+│   │   ├── routes/             # FastAPI REST and WebSocket endpoints
+│   │   ├── services/           # Business logic: Auth, Issue, Sprint, Analytics, AI, PDF
+│   │   └── utils/              # Helpers, security decorators, dependencies
+│   ├── tests/                  # Pytest automated test suites (520 passing)
+│   │   ├── conftest.py
+│   │   ├── test_issues.py           # Issue lifecycle + concurrent key generation
+│   │   ├── test_sprint_approval.py  # 25 sprint FSM + approval workflow tests
+│   │   ├── test_sprint_deletion.py  # Sprint deletion safeguards
+│   │   ├── test_sprint_persistence.py
+│   │   ├── test_e2e_workflow.py     # Full end-to-end lifecycle
+│   │   ├── test_analytics.py
+│   │   ├── test_auth.py
+│   │   ├── test_notifications.py
+│   │   ├── test_websocket.py
+│   │   ├── test_audit.py
+│   │   └── ...                      # 25 test modules total
+│   ├── requirements.txt        # Backend dependency specifications
+│   └── alembic.ini             # Migration engine configuration
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── components/    # Reusable UI components: Admin, Dashboard, Sprints
-│   │   ├── pages/         # Full-page views: Dashboard, Issues, Sprints, Admin
-│   │   ├── services/      # Frontend API integration clients
-│   │   ├── types/         # TypeScript interfaces and domain schemas
-│   │   ├── App.tsx        # Application router and layout tree
-│   │   └── index.css      # Core design tokens and global styles
-│   ├── package.json       # Frontend dependencies and build scripts
-│   ├── tsconfig.json      # TypeScript compiler configuration
-│   └── vite.config.ts     # Vite build and proxy configuration
+│   │   ├── components/         # Reusable UI components: Admin, Dashboard, Sprints
+│   │   ├── pages/              # Full-page views: Dashboard, Issues, Sprints, Admin
+│   │   │   ├── AdminDashboardPage.tsx
+│   │   │   ├── AdminSprintsPage.tsx
+│   │   │   ├── AdminSprintApprovalsPage.tsx
+│   │   │   ├── DeveloperDashboardPage.tsx
+│   │   │   ├── DeveloperSprintsPage.tsx
+│   │   │   └── ...
+│   │   ├── services/           # Frontend API integration clients
+│   │   ├── types/              # TypeScript interfaces and domain schemas
+│   │   ├── App.tsx             # Application router and layout tree
+│   │   └── index.css           # Core design tokens and global styles
+│   ├── package.json            # Frontend dependencies and build scripts
+│   ├── tsconfig.json           # TypeScript compiler configuration
+│   └── vite.config.ts          # Vite build and proxy configuration
 │
-├── scripts/               # E2E workflow and encoding validation scripts
-├── LICENSE                # MIT License
-└── README.md              # Project documentation
+├── scripts/                    # E2E workflow and encoding validation scripts
+├── LICENSE                     # MIT License
+└── README.md                   # Project documentation
 ```
 
 ---
@@ -1108,7 +964,6 @@ TracePilot/
 For detailed component-level guides, refer to:
 - 📖 [Backend Setup & Architecture Guide](backend/README.md)
 - 💻 [Frontend Setup & Workspace Guide](frontend/README.md)
-- 📚 [Documentation Index](docs/README.md)
 
 ---
 
@@ -1155,7 +1010,7 @@ APP_NAME=TracePilot
 APP_ENV=development
 DEBUG=true
 
-# Database Settings (PostgreSQL 14+ / 18)
+# Database Settings (PostgreSQL 14+)
 DB_DRIVER=postgresql+psycopg
 DB_USER=postgres
 DB_PASSWORD=YOUR_PASSWORD
@@ -1167,12 +1022,15 @@ DB_NAME=bugtracker_db
 JWT_SECRET_KEY=generate_with_python_secrets_token_hex
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=60
+REFRESH_TOKEN_EXPIRE_DAYS=7
 
 # AI Provider Configuration (Optional)
 AI_ENABLED=true
-AI_PROVIDER=groq
+AI_PROVIDER=groq                     # 'groq' or 'gemini'
 GROQ_API_KEY=your_groq_api_key
 GROQ_MODEL=openai/gpt-oss-120b
+GROQ_FALLBACK_MODEL=openai/gpt-oss-20b
+GEMINI_API_KEY=your_gemini_api_key   # Only if AI_PROVIDER=gemini
 ```
 
 > 🔒 **Security Notice:** Never commit `.env` files, database passwords, JWT secrets, or API keys into version control.
@@ -1197,7 +1055,7 @@ Health check endpoint: `http://127.0.0.1:8000/health`
 
 ---
 
-## 3️⃣ Frontend Setup (React 19 + TypeScript + Vite)
+## 3️⃣ Frontend Setup (React + TypeScript + Vite)
 
 Open a new terminal window:
 ```bash
@@ -1225,13 +1083,13 @@ FastAPI automatically generates interactive API documentation.
 
 ### Swagger UI
 
-```text
+```
 http://127.0.0.1:8000/docs
 ```
 
 ### ReDoc
 
-```text
+```
 http://127.0.0.1:8000/redoc
 ```
 
@@ -1261,27 +1119,26 @@ Example health response:
 | Endpoint | Method | Description | Permitted Roles |
 | :--- | :--- | :--- | :--- |
 | `/sprints` | `POST` | Create sprint | `ADMIN` |
-| `/sprints` | `GET` | List all sprints with project/status filters | Authenticated Users |
-| `/sprints/{id}` | `GET` | Get sprint details with complete Agile metrics | Authenticated Users |
+| `/sprints` | `GET` | List all sprints with project/status filters | Authenticated |
+| `/sprints/{id}` | `GET` | Get sprint details with complete Agile metrics | Authenticated |
 | `/sprints/{id}` | `PATCH` | Update sprint properties | `ADMIN` |
-| `/sprints/{id}/start` | `POST` | Start sprint (`PLANNED` → `ACTIVE`) | `ADMIN` |
 | `/sprints/{id}/assign-developer` | `POST` | Assign developer (`PLANNED` → `ACTIVE`) *(legacy alias: `/assign-tester`)* | `ADMIN` |
 | `/sprints/{id}/begin-work` | `POST` | Developer begins work (`ACTIVE` → `IN_PROGRESS`) | `DEVELOPER`, `ADMIN` |
 | `/sprints/{id}/submit-for-approval` | `POST` | Submit sprint (`IN_PROGRESS` → `READY_FOR_APPROVAL`) | `DEVELOPER`, `ADMIN` |
-| `/sprints/{id}/approve` | `POST` | Approve sprint (`READY_FOR_APPROVAL` → `COMPLETED`) | `ADMIN` |
-| `/sprints/{id}/request-changes` | `POST` | Request changes (`READY_FOR_APPROVAL` → `IN_PROGRESS`) | `ADMIN` |
+| `/sprints/{id}/approve` | `POST` | Approve sprint (`READY_FOR_APPROVAL` → `COMPLETED`) — requires all issues resolved | `ADMIN` |
+| `/sprints/{id}/request-changes` | `POST` | Request changes with review comment (`READY_FOR_APPROVAL` → `IN_PROGRESS`) | `ADMIN` |
 | `/sprints/{id}/complete` | `POST` | Complete sprint with optional issue rollover | `ADMIN` |
 | `/sprints/{id}/extend` | `POST` | Extend sprint end date | `ADMIN` |
 | `/sprints/{id}/archive` | `POST` | Archive completed sprint | `ADMIN` |
 | `/sprints/{id}` | `DELETE` | Safely delete eligible sprint (returns items to backlog) | `ADMIN` |
-| `/sprints/{id}/analytics` | `GET` | Real-time sprint health & burndown analytics | Authenticated Users |
-| `/sprints/{id}/report` | `GET` | Download executive PDF sprint summary | Authenticated Users |
+| `/sprints/{id}/analytics` | `GET` | Real-time sprint health & burndown analytics | Authenticated |
+| `/sprints/{id}/report` | `GET` | Download executive PDF sprint summary | Authenticated |
 | `/sprints/{id}/issues/{issue_id}` | `POST` | Add issue to sprint | `ADMIN` |
 | `/sprints/{id}/issues/{issue_id}` | `DELETE` | Remove issue from sprint | `ADMIN` |
 | `/sprints/assigned` | `GET` | List sprints assigned to current developer | `DEVELOPER`, `ADMIN` |
 | `/sprints/awaiting-approval` | `GET` | List sprints awaiting administrative review | `ADMIN` |
 | `/sprints/active` | `GET` | List all active and in-progress sprints | `ADMIN` |
-| `/sprints/project/{project_id}/summary` | `GET` | High-level project sprint metrics summary | Authenticated Users |
+| `/sprints/project/{project_id}/summary` | `GET` | High-level project sprint metrics summary | Authenticated |
 
 ---
 
@@ -1289,25 +1146,34 @@ Example health response:
 
 | Endpoint                               | Method | Description                      |
 | -------------------------------------- | ------ | -------------------------------- |
-| `/issues?project_id={id}&backlog=true` | `GET`  | Get project backlog              |
+| `/issues?project_id={id}&backlog=true` | `GET`  | Get project backlog (excludes RESOLVED/CLOSED) |
 | `/issues/bulk-assign-sprint`           | `POST` | Assign multiple issues to sprint |
 
 ---
 
 # 🧪 Automated Testing & Verification
 
-TracePilot features an automated test harness validating role-based authorization, state-machine transitions, concurrency, and real-time collaboration:
+TracePilot features a comprehensive automated test harness validating role-based authorization, state-machine transitions, concurrency, and real-time collaboration.
 
-### 1. Backend Test Suites (Pytest)
+### Backend Test Suites (Pytest)
 Run the complete backend test suite:
 ```powershell
 cd backend
 pytest tests -q
 ```
-*Current Verified Test Results:* **509 passed, 10 skipped, 0 failures** in ~85s.
+*Current Verified Test Results:* **520 passed, 10 skipped, 0 failures.**
 
 Run specific functional test modules:
 ```powershell
+# Sprint FSM & approval workflow (25 tests)
+pytest tests/test_sprint_approval.py -v
+
+# Sprint deletion safeguards
+pytest tests/test_sprint_deletion.py -v
+
+# Issue lifecycle + concurrent key generation
+pytest tests/test_issues.py -v
+
 # Role-based route protection & regression
 pytest tests/test_tester_migration_regression.py tests/test_switch_role.py -v
 
@@ -1319,22 +1185,39 @@ pytest tests/test_admin_dashboard.py tests/test_users.py -v
 
 # Sprints, Backlog, and Analytics
 pytest tests/test_sprints.py tests/test_analytics.py -v
+
+# Notifications and WebSocket
+pytest tests/test_notifications.py tests/test_websocket.py -v
 ```
 
-### 2. End-to-End Workflow Verification Script
-Execute the 14-module lifecycle test harness across all database models, APIs, and AI fallbacks:
-```powershell
-python scripts/verify_e2e_workflow.py
-```
-*Verification Coverage:*
-- `USER_CREATE` $\rightarrow$ `ADMIN_TRIAGE` $\rightarrow$ `ADMIN_ASSIGN` $\rightarrow$ `DEV_INVESTIGATE` $\rightarrow$ `DEV_RESOLUTION` $\rightarrow$ `FINAL_CLOSURE`
-- Threaded comments & magic-byte attachment validation
-- WebSocket push notification dispatching
-- Immutable audit log records with actor attribution
-- AI advisory triage with automatic Groq/Gemini rate-limit fallback
-- RBAC security isolation across all role endpoints
+### Test Module Index
 
-### 3. Frontend Production Build & Type Safety
+| Module | Coverage Area |
+|---|---|
+| `test_auth.py` | Login, registration, token refresh, OTP |
+| `test_issues.py` | Issue CRUD, backlog eligibility, concurrent key generation, conflict precision |
+| `test_sprint_approval.py` | Full 6-state sprint FSM, approval/rejection, unresolved-issue guard |
+| `test_sprint_deletion.py` | Deletion safeguards, backlog preservation |
+| `test_sprint_persistence.py` | Sprint data integrity across transitions |
+| `test_sprint_realtime.py` | Sprint WebSocket notification delivery |
+| `test_notifications.py` | Notification persistence and delivery |
+| `test_websocket.py` | WebSocket connection and broadcast |
+| `test_analytics.py` | Burndown, workload, health metrics |
+| `test_admin_dashboard.py` | Admin governance endpoints |
+| `test_users.py` | User management and role changes |
+| `test_projects.py` | Project CRUD and key uniqueness |
+| `test_audit.py` | Audit log record creation |
+| `test_comments.py` | Issue comment threading |
+| `test_attachments.py` | File upload and MIME validation |
+| `test_e2e_workflow.py` | Full cross-role end-to-end lifecycle |
+| `test_tester_migration_regression.py` | Legacy TESTER → DEVELOPER compatibility |
+| `test_switch_role.py` | Role-based route isolation |
+| `test_notification_navigation.py` | Notification deep-link navigation |
+| `test_ai.py` | AI advisory endpoint (advisory-only) |
+| `test_health.py` | Backend health checks |
+| `test_database.py` | Database connectivity |
+
+### Frontend Production Build & Type Safety
 Validate TypeScript compilation and Rollup asset bundling:
 ```bash
 cd frontend
@@ -1349,62 +1232,22 @@ npm run build
 TracePilot implements several safeguards:
 
 * Cross-project sprint assignment validation
-* Single active sprint per project
-* Controlled sprint lifecycle
-* Sprint approval workflow
-* Safe sprint deletion
-* Issue preservation during sprint deletion
-* Unfinished issue rollover
-* No issue data loss during sprint completion
-* PostgreSQL enum migration compatibility
-* Audit logging
-* Role-based authorization
+* Single active sprint per project enforcement (HTTP 409 on violation)
+* Controlled 6-state sprint lifecycle with role-gated transitions
+* Sprint approval requires all issues `RESOLVED` or `CLOSED`
+* Safe sprint deletion with issue backlog preservation
+* Unfinished issue rollover on sprint completion
+* No issue data loss during sprint completion or deletion
+* Concurrent-safe issue key generation with savepoint retry
+* Precise conflict detection (SQLSTATE `23505` + constraint name) — unrelated integrity errors immediately re-raised
+* PostgreSQL enum migration compatibility (`SafeUserRoleType`)
+* Transactional audit logging (same transaction as mutating operation)
+* Role-based authorization on every sensitive route
 * Transactional bulk operations
-* Project-level data validation
 
 ---
 
-# 🗺️ System Workflow
-
-```text
-PROJECT
-   │
-   ├── BACKLOG
-   │      │
-   │      └── Issues
-   │
-   └── SPRINT
-          │
-          ├── PLANNED
-          │
-          ▼
-        ACTIVE
-          │
-          ▼
-      IN PROGRESS
-          │
-          ├── Development & Testing
-          ├── Issue Updates
-          └── Resolution
-          │
-          ▼
-   READY FOR APPROVAL
-          │
-          ├──────────────► REQUEST CHANGES
-          │                       │
-          │                       ▼
-          │                  IN PROGRESS
-          │
-          ▼
-       COMPLETED
-          │
-          ▼
-       ARCHIVED
-```
-
----
-
-# 📦 Reporting
+# 📑 Reporting
 
 ## CSV Reports
 
@@ -1420,16 +1263,13 @@ Issue data can be exported for:
 Sprint reports include:
 
 ```text
-Sprint Details
-Sprint Goal
-Progress Metrics
-Sprint Health
-Issue Statistics
-Team Workload
-Capacity Information
-Estimated Effort
-Report Timestamp
-Page Numbers
+Sprint Details & Goal
+Progress Metrics (total, completed, remaining, %)
+Sprint Health (ON_TRACK / AT_RISK / OFF_TRACK)
+Issue Distribution by Status
+Team Workload Summary
+Capacity Information & Estimated Effort
+Report Timestamp & Page Numbers
 ```
 
 ---
@@ -1438,46 +1278,39 @@ Page Numbers
 
 ## ✅ Completed
 
-* [x] Project foundation
-* [x] PostgreSQL integration
+* [x] Project foundation & PostgreSQL integration
 * [x] Alembic migrations
-* [x] JWT authentication & bcrypt password hashing
-* [x] Role-Based Access Control
-* [x] Project management
-* [x] Issue tracking
-* [x] Comments
-* [x] File attachments
-* [x] Audit logging
-* [x] Real-time notifications
-* [x] Advanced analytics
+* [x] JWT authentication with `httponly` cookies & refresh tokens
+* [x] Role-Based Access Control (3 canonical roles)
+* [x] Project management with key uniqueness
+* [x] Issue tracking with concurrent-safe key generation
+* [x] Precise conflict detection (SQLSTATE 23505 + constraint name)
+* [x] Backlog eligibility filtering (excludes RESOLVED/CLOSED)
+* [x] Comments & file attachments
+* [x] Immutable audit logging (transactional)
+* [x] Real-time WebSocket notifications (DB-persisted + broadcast)
+* [x] Advanced analytics (burndown, workload, velocity)
 * [x] CSV reporting
-* [x] Agile sprint planning
-* [x] Advanced backlog management
-* [x] Sprint analytics
-* [x] Burndown data
-* [x] Capacity planning
-* [x] Sprint health calculation
-* [x] Team workload analysis
-* [x] Sprint approval workflow
-* [x] Safe sprint deletion
-* [x] Issue rollover
-* [x] PDF sprint reports
+* [x] Agile sprint planning with 6-state FSM
+* [x] Sprint approval workflow with unresolved-issue guard
+* [x] Review comment delivery to assigned developer
+* [x] Safe sprint deletion (backlog preservation)
+* [x] Issue rollover on sprint completion
+* [x] PDF sprint reports (in-memory via ReportLab)
 * [x] GitHub/webhook integration
-* [x] Automated backend test coverage
+* [x] Legacy TESTER → DEVELOPER migration compatibility
+* [x] Automated backend test coverage (520 passing)
 
 ## 🚧 Planned Improvements
 
 * [ ] Automated scheduled sprint reminders
-* [ ] Improved email notifications
+* [ ] Enhanced email notification delivery
 * [ ] Sprint templates
 * [ ] Advanced velocity forecasting
 * [ ] Machine-learning based issue prioritization
 * [ ] Extended CI/CD integration
-* [ ] Docker deployment
-* [ ] Kubernetes deployment
-* [ ] Production monitoring
-* [ ] Performance optimization
-* [ ] Advanced AI-assisted defect analysis
+* [ ] Docker & Kubernetes deployment
+* [ ] Production monitoring & observability
 
 ---
 
@@ -1487,37 +1320,24 @@ Page Numbers
 
 ### Major Features
 
-* Advanced Sprint Planning
-* Advanced Backlog Management
-* Sprint Lifecycle Management
+* Advanced Sprint Planning with 6-state FSM
+* Advanced Backlog Management with eligibility filtering
+* Sprint Approval Workflow with unresolved-issue guard
+* Review comment delivery to developers on change requests
 * Developer & Sprint Assignment (with dual-sync database compatibility)
-* Sprint Approval Workflow
-* Capacity Planning
-* Sprint Health Analytics
+* Concurrent-safe Issue Key Generation (savepoint retry, SQLSTATE 23505 precision)
+* Capacity Planning & Sprint Health Analytics
 * Real Burndown Data
 * Team Workload Analysis
-* Safe Issue Rollover
+* Safe Issue Rollover & Sprint Deletion
 * Bulk Sprint Assignment
-* Sprint PDF Reports
-* Real-Time Notifications
-* Audit Logging
-* Enhanced RBAC Validation
+* Sprint PDF Reports (in-memory ReportLab)
+* Real-Time WebSocket Notifications (DB-persisted)
+* Immutable Audit Logging (transactional)
+* Enhanced RBAC Validation (`require_role()` on every sensitive route)
 * GitHub/Webhook Integration
-* Advanced Analytics
-
----
-
-## 🚀 Future Scope
-
-The following items are **planned enhancements** under active architectural design and roadmap planning. They represent future platform extensions and are **not** currently completed features:
-
-1. **Email OTP Verification** — Introduce email-based OTP verification after reliable email delivery and configuration are available.
-2. **Advanced AI Assistance** — Improve AI-powered root-cause analysis, defect prioritization, and resolution recommendations.
-3. **Automated Notifications** — Add reliable notifications for issue assignments, status changes, and sprint deadlines.
-4. **Enhanced Analytics** — Introduce more quality metrics, historical comparisons, and customizable reports.
-5. **CI/CD Integration** — Integrate with GitHub Actions and other development pipelines for automated defect workflow updates.
-6. **Third-Party Integrations** — Explore integrations with GitHub Issues, Jira, and collaboration platforms.
-7. **Improved Testing** — Expand automated unit, integration, and end-to-end test coverage.
+* Advisory AI Assistant (Gemini & Groq with fallback)
+* Advanced Analytics Dashboards
 
 ---
 
@@ -1528,27 +1348,15 @@ Contributions are welcome.
 Recommended workflow:
 
 ```text
-Fork Repository
-      ↓
-Create Feature Branch
-      ↓
-Develop Feature
-      ↓
-Run Tests
-      ↓
-Create Pull Request
-      ↓
-Code Review
-      ↓
-Merge
+Fork Repository → Create Feature Branch → Develop Feature
+→ Run Tests → Create Pull Request → Code Review → Merge
 ```
 
 Before submitting changes:
 
 ```powershell
-pytest
-flake8
-mypy app
+cd backend
+pytest tests -q        # All 520 tests must pass
 ```
 
 ---
@@ -1557,15 +1365,15 @@ mypy app
 
 Never commit:
 
-* `.env`
+* `.env` files
 * Database passwords
 * JWT secrets
 * Email credentials
-* API keys
+* AI API keys (Groq, Gemini)
 * Production configuration
 * Private credentials
 
-Use environment variables for sensitive configuration.
+Use environment variables for all sensitive configuration. The `.gitignore` is pre-configured to exclude `.env` files.
 
 ---
 
@@ -1587,18 +1395,10 @@ Repository: [https://github.com/AjayKumarKR07/TracePilot](https://github.com/Aja
 
 🟢 **Actively Developed**
 
-TracePilot currently provides a comprehensive backend foundation for:
+TracePilot provides a comprehensive, production-grade platform for:
 
-> **Defect Tracking + Project Management + Agile Sprint Planning + Backlog Management + Sprint Analytics + Real-Time Notifications + Audit Logging + Reporting + GitHub Integration**
-
----
+> **Defect Tracking + Project Management + Agile Sprint Planning + Backlog Management + Sprint Analytics + Real-Time Notifications + Audit Logging + Reporting + Advisory AI + GitHub Integration**
 
 <p align="center">
-
-**🐞 TracePilot**
-
-**Track. Resolve. Deliver.**
-
-Built with ❤️ using **FastAPI, PostgreSQL, SQLAlchemy and modern Agile principles.**
-
+<strong>🐞 TracePilot — Track. Resolve. Deliver.</strong>
 </p>
