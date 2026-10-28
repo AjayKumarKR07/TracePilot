@@ -151,65 +151,6 @@ flowchart TD
     WS --> U
 ```
 
----
-
-# 🖼️ Application Interfaces & Visual Showcase
-
-TracePilot provides unified, modern, dark glassmorphic workspaces tailored for each canonical role:
-
-### 1. 🛡️ Admin Command Center & Governance (`/admin-dashboard`)
-Comprehensive system management including user account activation/deactivation, role modifications, project creation, defect assignment triage matrix, sprint approvals, and live health telemetry.
-
-<p align="center">
-  <img src="IMAGES/admin_dashboard_modern.png" alt="TracePilot Admin Dashboard" width="95%" />
-</p>
-
----
-
-### 2. 👨‍💻 Developer Workspace & Testing Queue (`/developer-dashboard`)
-Dedicated engineering hub for assigned defects, active sprint execution, testing validation queue (`IN_TESTING` → `RESOLVED`), and developer work health metrics.
-
-<p align="center">
-  <img src="IMAGES/developer_dashboard_modern.png" alt="TracePilot Developer Workspace" width="95%" />
-</p>
-
----
-
-### 3. 👤 User Defect Tracking & Verification Portal (`/user-dashboard`)
-Reporter portal enabling defect creation with repro steps, real-time status tracking, resolution verification, and one-click defect closure or reopening.
-
-<p align="center">
-  <img src="IMAGES/user_dashboard_modern.png" alt="TracePilot User Dashboard" width="95%" />
-</p>
-
----
-
-### 4. 🏃 Agile Sprints & Backlog Planning (`/sprints`)
-Structured sprint iteration authoring, capacity allocation, active sprint lifecycle management, and backlog prioritization with eligibility filtering.
-
-<p align="center">
-  <img src="IMAGES/sprints_planning_modern.png" alt="TracePilot Sprint Planning" width="95%" />
-</p>
-
----
-
-### 5. 📈 Quality Intelligence & Analytics Dashboard (`/analytics`)
-Live analytical insights powered by Plotly.js covering defect severity distributions, velocity trends, team workload balance, and PDF report downloads.
-
-<p align="center">
-  <img src="IMAGES/analytics_dashboard_modern.png" alt="TracePilot Quality Analytics" width="95%" />
-</p>
-
----
-
-### 6. 🔐 Secure Authentication & Onboarding (`/login`)
-JWT-secured entry point featuring bcrypt credential validation, OTP email verification flow, and automatic role-based redirecting.
-
-<p align="center">
-  <img src="IMAGES/login_page_modern.png" alt="TracePilot Authentication" width="80%" />
-</p>
-
----
 
 ## 🔄 Defect Lifecycle
 
